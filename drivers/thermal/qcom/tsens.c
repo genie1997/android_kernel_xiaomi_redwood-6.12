@@ -1071,7 +1071,7 @@ static int init_cold_interrupt(struct tsens_priv *priv, u32 ver_minor)
 	return 0;
 }
 
-int __init init_common(struct tsens_priv *priv)
+int init_common(struct tsens_priv *priv)
 {
 	void __iomem *tm_base, *srot_base;
 	struct device *dev = priv->dev;
