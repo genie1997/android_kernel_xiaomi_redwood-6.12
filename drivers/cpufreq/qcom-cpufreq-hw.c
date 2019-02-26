@@ -918,12 +918,15 @@ static int qcom_cpufreq_hw_driver_probe(struct platform_device *pdev)
 		spin_lock_init(&qcom_cpufreq_counter[cpu].lock);
 
 	ret = cpufreq_register_driver(&cpufreq_qcom_hw_driver);
-	if (ret)
+	if (ret) {
 		dev_err(&pdev->dev, "CPUFreq HW driver failed to register\n");
-	else
-		dev_dbg(&pdev->dev, "QCOM CPUFreq HW driver initialized\n");
+		return ret;
+	}
 
-	return ret;
+	dev_dbg(&pdev->dev, "QCOM CPUFreq HW driver initialized\n");
+	of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
+
+	return 0;
 }
 
 static void qcom_cpufreq_hw_driver_remove(struct platform_device *pdev)
