@@ -61,6 +61,7 @@ void drm_panel_init(struct drm_panel *panel, struct device *dev,
 		DRM_WARN("%s: %s: a valid connector type is required!\n", __func__, dev_name(dev));
 
 	INIT_LIST_HEAD(&panel->list);
+	BLOCKING_INIT_NOTIFIER_HEAD(&panel->nh);
 	INIT_LIST_HEAD(&panel->followers);
 	mutex_init(&panel->follower_lock);
 	panel->dev = dev;
@@ -571,6 +572,27 @@ int drm_panel_of_backlight(struct drm_panel *panel)
 }
 EXPORT_SYMBOL(drm_panel_of_backlight);
 #endif
+
+int drm_panel_notifier_register(struct drm_panel *panel,
+	struct notifier_block *nb)
+{
+	return blocking_notifier_chain_register(&panel->nh, nb);
+}
+EXPORT_SYMBOL(drm_panel_notifier_register);
+
+int drm_panel_notifier_unregister(struct drm_panel *panel,
+	struct notifier_block *nb)
+{
+	return blocking_notifier_chain_unregister(&panel->nh, nb);
+}
+EXPORT_SYMBOL(drm_panel_notifier_unregister);
+
+int drm_panel_notifier_call_chain(struct drm_panel *panel,
+	unsigned long val, void *v)
+{
+	return blocking_notifier_call_chain(&panel->nh, val, v);
+}
+EXPORT_SYMBOL(drm_panel_notifier_call_chain);
 
 MODULE_AUTHOR("Thierry Reding <treding@nvidia.com>");
 MODULE_DESCRIPTION("DRM panel infrastructure");
