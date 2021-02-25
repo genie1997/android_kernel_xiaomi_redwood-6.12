@@ -33,6 +33,7 @@
 #define CLK_HW_DIV			2
 #define LUT_TURBO_IND			1
 #define MAX_FN_SIZE			20
+#define MAX_ROW				2
 
 #define GT_IRQ_STATUS			BIT(2)
 
@@ -67,6 +68,8 @@ struct qcom_cpufreq_soc_data {
 struct qcom_cpufreq_data {
 	void __iomem *base;
 	void __iomem *pdmem_base;
+	void __iomem **sdpm_base;
+	int sdpm_base_count;
 	struct resource *res;
 	const struct qcom_cpufreq_soc_data *soc_data;
 
@@ -205,11 +208,17 @@ static int qcom_cpufreq_hw_target_index(struct cpufreq_policy *policy,
 			writel_relaxed(index, data->pdmem_base);
 	}
 
+	for (i = 0; i < data->sdpm_base_count && freq > policy->cur; i++)
+		writel_relaxed(freq / 1000, data->sdpm_base[i]);
+
 	writel_relaxed(index, data->base + soc_data->reg_perf_state);
 
 	if (data->per_core_dcvs)
 		for (i = 1; i < cpumask_weight(policy->related_cpus); i++)
 			writel_relaxed(index, data->base + soc_data->reg_perf_state + i * 4);
+
+	for (i = 0; i < data->sdpm_base_count && freq < policy->cur; i++)
+		writel_relaxed(freq / 1000, data->sdpm_base[i]);
 
 	if (icc_scaling_enabled)
 		qcom_cpufreq_set_bw(policy, freq);
@@ -272,17 +281,25 @@ static unsigned int qcom_cpufreq_hw_fast_switch(struct cpufreq_policy *policy,
 {
 	struct qcom_cpufreq_data *data = policy->driver_data;
 	const struct qcom_cpufreq_soc_data *soc_data = data->soc_data;
-	unsigned int index;
+	unsigned int index, freq;
 	unsigned int i;
 
 	index = policy->cached_resolved_idx;
+	freq = policy->freq_table[index].frequency;
+
+	for (i = 0; i < data->sdpm_base_count && freq > policy->cur; i++)
+		writel_relaxed(freq / 1000, data->sdpm_base[i]);
+
 	writel_relaxed(index, data->base + soc_data->reg_perf_state);
 
 	if (data->per_core_dcvs)
 		for (i = 1; i < cpumask_weight(policy->related_cpus); i++)
 			writel_relaxed(index, data->base + soc_data->reg_perf_state + i * 4);
 
-	return policy->freq_table[index].frequency;
+	for (i = 0; i < data->sdpm_base_count && freq < policy->cur; i++)
+		writel_relaxed(freq / 1000, data->sdpm_base[i]);
+
+	return freq;
 }
 
 static int qcom_cpufreq_hw_read_lut(struct device *cpu_dev,
@@ -718,7 +735,9 @@ static int qcom_cpufreq_hw_cpu_init(struct cpufreq_policy *policy)
 	void __iomem *base;
 	struct qcom_cpufreq_data *data;
 	char pdmem_name[MAX_FN_SIZE] = {};
-	int ret, index;
+	char sdpm_name[MAX_FN_SIZE] = {};
+	int ret, index, len, i;
+	u32 reg, size;
 
 	cpu_dev = get_cpu_device(policy->cpu);
 	if (!cpu_dev) {
@@ -773,6 +792,29 @@ static int qcom_cpufreq_hw_cpu_init(struct cpufreq_policy *policy)
 		data->base = base;
 		data->res = res;
 		data->hw_clk_domain = index;
+
+		snprintf(sdpm_name, sizeof(sdpm_name), "qcom,sdpm-cx-mx-%d", index);
+		len = of_property_count_u32_elems(dev->of_node, sdpm_name);
+		if (len > 0) {
+			data->sdpm_base_count = len / MAX_ROW;
+			data->sdpm_base = devm_kcalloc(dev, data->sdpm_base_count,
+						       sizeof(*data->sdpm_base), GFP_KERNEL);
+			if (!data->sdpm_base)
+				return -ENOMEM;
+
+			for (i = 0; i < data->sdpm_base_count; i++) {
+				of_property_read_u32_index(dev->of_node, sdpm_name,
+							   i * MAX_ROW, &reg);
+				of_property_read_u32_index(dev->of_node, sdpm_name,
+							   i * MAX_ROW + 1, &size);
+				data->sdpm_base[i] = devm_ioremap(dev, reg, size);
+				if (!data->sdpm_base[i]) {
+					dev_err(dev, "Failed to map SDPM base %d domain-%d\n",
+						i, index);
+					return -ENOMEM;
+				}
+			}
+		}
 	}
 
 	base = data->base;
@@ -858,6 +900,30 @@ static void qcom_cpufreq_ready(struct cpufreq_policy *policy)
 		enable_irq(data->throttle_irq);
 }
 
+static int qcom_cpufreq_hw_suspend(struct cpufreq_policy *policy)
+{
+	struct qcom_cpufreq_data *data = policy->driver_data;
+	unsigned long freq = policy->freq_table[0].frequency;
+	int i;
+
+	for (i = 0; i < data->sdpm_base_count && freq < policy->cur; i++)
+		writel_relaxed(freq / 1000, data->sdpm_base[i]);
+
+	return 0;
+}
+
+static int qcom_cpufreq_hw_resume(struct cpufreq_policy *policy)
+{
+	struct qcom_cpufreq_data *data = policy->driver_data;
+	unsigned long freq = policy->cur;
+	int i;
+
+	for (i = 0; i < data->sdpm_base_count; i++)
+		writel_relaxed(freq / 1000, data->sdpm_base[i]);
+
+	return 0;
+}
+
 static struct freq_attr *qcom_cpufreq_hw_attr[] = {
 	&cpufreq_freq_attr_scaling_available_freqs,
 	&cpufreq_freq_attr_scaling_boost_freqs,
@@ -880,6 +946,8 @@ static struct cpufreq_driver cpufreq_qcom_hw_driver = {
 	.name		= "qcom-cpufreq-hw",
 	.attr		= qcom_cpufreq_hw_attr,
 	.ready		= qcom_cpufreq_ready,
+	.suspend	= qcom_cpufreq_hw_suspend,
+	.resume		= qcom_cpufreq_hw_resume,
 	.boost_enabled	= true,
 };
 
