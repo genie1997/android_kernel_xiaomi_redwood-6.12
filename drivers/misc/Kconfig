@@ -637,6 +637,11 @@ config BOOT_DEADLINE_TIMEOUT
 	depends on BOOT_DEADLINE
 	default 90
 
+config MI_HARDWARE_ID
+	tristate "Xiaomi hardware identification module"
+	help
+	  This adds support for MI hardware identification driver.
+
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"

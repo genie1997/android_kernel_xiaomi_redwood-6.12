@@ -75,3 +75,4 @@ obj-y				+= keba/
 obj-$(CONFIG_UID_SYS_STATS)	+= uid_sys_stats.o
 obj-$(CONFIG_PKVM_SMC_FILTER)  += pkvm-smc/
 obj-$(CONFIG_BOOT_DEADLINE)	+= boot_deadline.o
+obj-$(CONFIG_MI_HARDWARE_ID)	+= hwid.o
