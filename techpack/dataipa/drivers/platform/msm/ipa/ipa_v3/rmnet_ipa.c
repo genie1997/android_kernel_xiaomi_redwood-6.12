@@ -1417,6 +1417,7 @@ static void apps_ipa_packet_receive_notify(void *priv,
 		skb->dev = IPA_NETDEV();
 		skb->protocol = htons(ETH_P_MAP);
 		skb_set_mac_header(skb, 0);
+		skb_reset_network_header(skb);
 
 		/* default traffic uses rx-0 queue. */
 		skb_record_rx_queue(skb, 0);
