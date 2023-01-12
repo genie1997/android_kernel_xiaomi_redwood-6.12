@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 config ICNSS2
 	tristate "Platform driver for Wi-Fi Module module"
+	depends on MI_HARDWARE_ID
 	select CNSS_UTILS
 	help
 	  This module adds support for Q6 integrated WLAN connectivity

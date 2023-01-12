@@ -20,6 +20,7 @@
 #include <linux/ipc_logging.h>
 #include <linux/thread_info.h>
 #include <linux/firmware.h>
+#include <linux/hwid.h>
 #include <linux/soc/qcom/qmi.h>
 #include <linux/platform_device.h>
 #ifdef CONFIG_CNSS_OUT_OF_TREE
@@ -42,9 +43,13 @@
 #define BDF_FILE_NAME_PREFIX		"bdwlan"
 #define ELF_BDF_FILE_NAME		"bdwlan.elf"
 #define ELF_BDF_FILE_NAME_PREFIX	"bdwlan.e"
+#define ELF_BDF_FILE_NAME_M20		"bd_m20.elf"
+#define ELF_BDF_FILE_NAME_M20_GLOBAL	"bd_m20gl.elf"
+#define ELF_BDF_FILE_NAME_M20_INDIA	"bd_m20in.elf"
 #define BIN_BDF_FILE_NAME		"bdwlan.bin"
 #define BIN_BDF_FILE_NAME_PREFIX	"bdwlan."
 #define REGDB_FILE_NAME			"regdb.bin"
+#define REGDB_FILE_NAME_M20		"regdb_xiaomi.bin"
 
 #define DEFAULT_PHY_UCODE_FILE_NAME	"phy_ucode.elf"
 #define DEFAULT_AUX_FILE_NAME		"aux_ucode.elf"
@@ -943,11 +948,13 @@ int icnss_qmi_get_dms_mac(struct icnss_priv *priv)
 		if (resp.resp.error == DMS_MAC_NOT_PROVISIONED) {
 			icnss_pr_err("NV MAC address is not provisioned");
 			priv->dms.nv_mac_not_prov = 1;
+			ret = -resp.resp.result;
 		} else {
 			icnss_pr_err("QMI_DMS_GET_MAC_ADDRESS_REQ_V01 failed, result: %d, err: %d\n",
 				     resp.resp.result, resp.resp.error);
+			/* The modem's DMS service answers with errors while it starts: retry */
+			ret = -EAGAIN;
 		}
-		ret = -resp.resp.result;
 		goto out;
 	}
 	if (!resp.mac_address_valid ||
@@ -1112,6 +1119,24 @@ void icnss_dms_deinit(struct icnss_priv *priv)
 	qmi_handle_release(&priv->qmi_dms);
 }
 
+static bool icnss_is_m20(void)
+{
+	return get_hw_version_platform() == HARDWARE_PROJECT_M20;
+}
+
+/* M20 boards report no board ID, so the RF board data follows the hardware region */
+static const char *icnss_m20_elf_bdf_name(void)
+{
+	switch (get_hw_country_version()) {
+	case CountryGlobal:
+		return ELF_BDF_FILE_NAME_M20_GLOBAL;
+	case CountryIndia:
+		return ELF_BDF_FILE_NAME_M20_INDIA;
+	default:
+		return ELF_BDF_FILE_NAME_M20;
+	}
+}
+
 static int icnss_get_bdf_file_name(struct icnss_priv *priv,
 				   u32 bdf_type, char *filename,
 				   u32 filename_len)
@@ -1123,7 +1148,9 @@ static int icnss_get_bdf_file_name(struct icnss_priv *priv,
 	switch (bdf_type) {
 	case ICNSS_BDF_ELF:
 		if (priv->board_id == 0xFF)
-			snprintf(filename_tmp, filename_len, ELF_BDF_FILE_NAME);
+			snprintf(filename_tmp, filename_len, "%s",
+				 icnss_is_m20() ? icnss_m20_elf_bdf_name() :
+				 ELF_BDF_FILE_NAME);
 		else if (priv->board_id < 0xFF)
 			snprintf(filename_tmp, filename_len,
 				 ELF_BDF_FILE_NAME_PREFIX "%02x",
@@ -1165,7 +1192,8 @@ static int icnss_get_bdf_file_name(struct icnss_priv *priv,
 		}
 		break;
 	case ICNSS_BDF_REGDB:
-		snprintf(filename_tmp, filename_len, REGDB_FILE_NAME);
+		snprintf(filename_tmp, filename_len, "%s",
+			 icnss_is_m20() ? REGDB_FILE_NAME_M20 : REGDB_FILE_NAME);
 		break;
 	default:
 		icnss_pr_err("Invalid BDF type: %d\n",
