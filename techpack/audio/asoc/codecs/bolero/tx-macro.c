@@ -47,9 +47,9 @@
 #define TX_MACRO_ADC_MODE_CFG0_SHIFT 1
 
 #define TX_MACRO_DMIC_UNMUTE_DELAY_MS	40
-#define TX_MACRO_AMIC_UNMUTE_DELAY_MS	100
-#define TX_MACRO_DMIC_HPF_DELAY_MS	300
-#define TX_MACRO_AMIC_HPF_DELAY_MS	300
+#define TX_MACRO_AMIC_UNMUTE_DELAY_MS	200
+#define TX_MACRO_DMIC_HPF_DELAY_MS	200
+#define TX_MACRO_AMIC_HPF_DELAY_MS	100
 
 static int tx_amic_unmute_delay = TX_MACRO_AMIC_UNMUTE_DELAY_MS;
 module_param(tx_amic_unmute_delay, int, 0664);
@@ -587,11 +587,11 @@ static void tx_macro_tx_hpf_corner_freq_callback(struct work_struct *work)
 				dec_cfg_reg, TX_HPF_CUT_OFF_FREQ_MASK,
 				hpf_cut_off_freq << 5);
 		snd_soc_component_update_bits(component, hpf_gate_reg,
-						0x02, 0x02);
+						0x03, 0x02);
 		/* Minimum 1 clk cycle delay is required as per HW spec */
 		usleep_range(1000, 1010);
 		snd_soc_component_update_bits(component, hpf_gate_reg,
-						0x02, 0x00);
+						0x03, 0x01);
 	}
 }
 
@@ -1231,26 +1231,27 @@ static int tx_macro_enable_dec(struct snd_soc_dapm_widget *w,
 				   &tx_priv->tx_mute_dwork[decimator].dwork,
 				   msecs_to_jiffies(unmute_delay));
 		if (tx_priv->tx_hpf_work[decimator].hpf_cut_off_freq !=
-							CF_MIN_3DB_150HZ)
+							CF_MIN_3DB_150HZ) {
 			queue_delayed_work(system_freezable_wq,
 				&tx_priv->tx_hpf_work[decimator].dwork,
 				msecs_to_jiffies(hpf_delay));
-		snd_soc_component_update_bits(component,
-				hpf_gate_reg, 0x03, 0x02);
-		if (!is_smic_enabled(component, decimator))
 			snd_soc_component_update_bits(component,
-				hpf_gate_reg, 0x03, 0x00);
-		snd_soc_component_update_bits(component,
-				hpf_gate_reg, 0x03, 0x01);
-		/*
-		 * 6ms delay is required as per HW spec
-		 */
-		usleep_range(6000, 6010);
+					hpf_gate_reg, 0x03, 0x02);
+			if (!is_smic_enabled(component, decimator))
+				snd_soc_component_update_bits(component,
+					hpf_gate_reg, 0x02, 0x00);
+			/*
+			 * 6ms delay is required as per HW spec
+			 */
+			usleep_range(6000, 6010);
+			snd_soc_component_update_bits(component,
+					hpf_gate_reg, 0x02, 0x00);
+		}
 		/* apply gain after decimator is enabled */
 		snd_soc_component_write(component, tx_gain_ctl_reg,
 			      snd_soc_component_read(component,
 					tx_gain_ctl_reg));
-		if (tx_priv->bcs_enable) {
+		if (tx_priv->bcs_enable && decimator == 0) {
 			if ((tx_priv->version == BOLERO_VERSION_2_1) ||
 			    (tx_priv->version == BOLERO_VERSION_2_2))
 				snd_soc_component_update_bits(component,
@@ -1349,7 +1350,7 @@ static int tx_macro_enable_dec(struct snd_soc_dapm_widget *w,
 			0x40, 0x00);
 		snd_soc_component_update_bits(component, tx_vol_ctl_reg,
 						0x10, 0x00);
-		if (tx_priv->bcs_enable) {
+		if (tx_priv->bcs_enable && decimator == 0) {
 			snd_soc_component_update_bits(component, dec_cfg_reg,
 					0x01, 0x00);
 			snd_soc_component_update_bits(component,
