@@ -271,6 +271,7 @@ struct cam_isp_context_event_record {
  * @use_frame_header_ts:       Use frame header for qtimer ts
  * @support_consumed_addr:     Indicate whether HW has last consumed addr reg
  * @apply_in_progress          Whether request apply is in progress
+ * @deferred_reg_upd:          Indicate whether HW has a deferred reg upd
  * @init_timestamp:            Timestamp at which this context is initialized
  * @isp_device_type:           ISP device type
  * @rxd_epoch:                 Indicate whether epoch has been received. Used to
@@ -319,6 +320,7 @@ struct cam_isp_context {
 	bool                                  use_frame_header_ts;
 	bool                                  support_consumed_addr;
 	atomic_t                              apply_in_progress;
+	atomic_t                              deferred_reg_upd;
 	unsigned int                          init_timestamp;
 	uint32_t                              isp_device_type;
 	atomic_t                              rxd_epoch;

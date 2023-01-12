@@ -285,21 +285,22 @@ int cam_tasklet_start(void  *tasklet_info)
 {
 	struct cam_tasklet_info       *tasklet = tasklet_info;
 	int i = 0;
+	unsigned long flags;
 
-	if (atomic_read(&tasklet->tasklet_active)) {
+	if (atomic_cmpxchg(&tasklet->tasklet_active, 0, 1)) {
 		CAM_ERR(CAM_ISP, "Tasklet already active idx:%d",
 			tasklet->index);
 		return -EBUSY;
 	}
 
 	/* clean up the command queue first */
+	spin_lock_irqsave(&tasklet->tasklet_lock, flags);
 	for (i = 0; i < CAM_TASKLETQ_SIZE; i++) {
 		list_del_init(&tasklet->cmd_queue[i].list);
 		list_add_tail(&tasklet->cmd_queue[i].list,
 			&tasklet->free_cmd_list);
 	}
-
-	atomic_set(&tasklet->tasklet_active, 1);
+	spin_unlock_irqrestore(&tasklet->tasklet_lock, flags);
 
 	tasklet_enable(&tasklet->tasklet);
 
@@ -310,10 +311,9 @@ void cam_tasklet_stop(void  *tasklet_info)
 {
 	struct cam_tasklet_info  *tasklet = tasklet_info;
 
-	if (!atomic_read(&tasklet->tasklet_active))
+	if (!atomic_cmpxchg(&tasklet->tasklet_active, 1, 0))
 		return;
 
-	atomic_set(&tasklet->tasklet_active, 0);
 	tasklet_kill(&tasklet->tasklet);
 	tasklet_disable(&tasklet->tasklet);
 	cam_tasklet_flush(tasklet);

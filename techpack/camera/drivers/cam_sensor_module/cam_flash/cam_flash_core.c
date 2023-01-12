@@ -515,6 +515,9 @@ static int cam_flash_low(
 			cam_res_mgr_led_trigger_event(
 				flash_ctrl->flash_trigger[i],
 				LED_OFF);
+	if (flash_ctrl->switch_trigger)
+		cam_res_mgr_led_trigger_event(flash_ctrl->switch_trigger,
+			(enum led_brightness)LED_SWITCH_OFF);
 
 	rc = cam_flash_ops(flash_ctrl, flash_data,
 		CAMERA_SENSOR_FLASH_OP_FIRELOW);
