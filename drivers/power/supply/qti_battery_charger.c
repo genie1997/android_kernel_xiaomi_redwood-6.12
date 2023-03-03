@@ -18,13 +18,13 @@
 #include <linux/mutex.h>
 #include <linux/pm_wakeup.h>
 #include <linux/power_supply.h>
+#include <linux/thermal.h>
 #include <linux/soc/qcom/qti_pmic_glink.h>
 #include <linux/soc/qcom/battery_charger.h>
 #ifdef CONFIG_MACH_XIAOMI
 #include <linux/hwid.h>
 #include <linux/ktime.h>
 #include <linux/string.h>
-#include <linux/thermal.h>
 #endif
 #ifdef CONFIG_DRM_PANEL
 #include <drm/drm_panel.h>
@@ -1841,6 +1841,43 @@ static struct thermal_zone_device_ops psy_tzd_ops = {
 	.get_temp = power_supply_read_temp,
 };
 #endif
+
+static int
+battery_chg_get_max_charge_cntl_limit(struct thermal_cooling_device *tcd,
+					unsigned long *state)
+{
+	struct battery_chg_dev *bcdev = tcd->devdata;
+
+	*state = bcdev->num_thermal_levels;
+
+	return 0;
+}
+
+static int
+battery_chg_get_cur_charge_cntl_limit(struct thermal_cooling_device *tcd,
+					unsigned long *state)
+{
+	struct battery_chg_dev *bcdev = tcd->devdata;
+
+	*state = bcdev->curr_thermal_level;
+
+	return 0;
+}
+
+static int
+battery_chg_set_cur_charge_cntl_limit(struct thermal_cooling_device *tcd,
+					unsigned long state)
+{
+	struct battery_chg_dev *bcdev = tcd->devdata;
+
+	return battery_psy_set_charge_current(bcdev, (int)state);
+}
+
+static const struct thermal_cooling_device_ops battery_tcd_ops = {
+	.get_max_state = battery_chg_get_max_charge_cntl_limit,
+	.get_cur_state = battery_chg_get_cur_charge_cntl_limit,
+	.set_cur_state = battery_chg_set_cur_charge_cntl_limit,
+};
 
 static int battery_chg_init_psy(struct battery_chg_dev *bcdev)
 {
@@ -5030,6 +5067,8 @@ static int battery_chg_probe(struct platform_device *pdev)
 	struct battery_chg_dev *bcdev;
 	struct device *dev = &pdev->dev;
 	struct pmic_glink_client_data client_data = { };
+	struct thermal_cooling_device *tcd;
+	struct psy_state *pst;
 	int rc, i;
 
 #ifdef CONFIG_MACH_XIAOMI
@@ -5168,6 +5207,13 @@ static int battery_chg_probe(struct platform_device *pdev)
 		dev_err(dev, "Failed to create battery_class rc=%d\n", rc);
 		goto error;
 	}
+
+	pst = &bcdev->psy_list[PSY_TYPE_BATTERY];
+	tcd = devm_thermal_of_cooling_device_register(dev, dev->of_node,
+			pst->psy->desc->name, bcdev, &battery_tcd_ops);
+	if (IS_ERR(tcd))
+		dev_err(dev, "Failed to register thermal cooling device rc=%ld\n",
+			PTR_ERR(tcd));
 
 	battery_chg_add_debugfs(bcdev);
 	bcdev->notify_en = false;
