@@ -19,7 +19,7 @@
 #if !IS_ENABLED(CONFIG_QSEECOM)
 #include "IQSEEComCompat.h"
 #include "IQSEEComCompatAppLoader.h"
-#include "linux/qseecom.h"
+#include "linux/qseecom_api.h"
 #if IS_ENABLED(CONFIG_QSEECOM_PROXY)
 #include <linux/qseecom_kernel.h>
 #else
