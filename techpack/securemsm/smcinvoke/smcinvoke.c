@@ -1508,7 +1508,8 @@ static void process_tzcb_req(void *buf, size_t buf_len, struct file **arr_filp)
 	} else if (TZHANDLE_IS_MEM_OBJ(cb_req->hdr.tzhandle)) {
 		return process_mem_obj(buf, buf_len);
 	} else if (!TZHANDLE_IS_CB_OBJ(cb_req->hdr.tzhandle)) {
-		pr_err("Request object is not a callback object\n");
+		pr_err("Request object is not a callback object %x\n",
+			cb_req->hdr.tzhandle);
 		cb_req->result = OBJECT_ERROR_INVALID;
 		return;
 	}
@@ -2165,7 +2166,17 @@ static void process_piggyback_data(void *buf, size_t buf_size)
 	struct smcinvoke_piggyback_msg *msg = buf;
 	int32_t *objs = msg->objs;
 
+	if (msg->version == 0) {
+		/* QTEE reset the buffer if it is unused. */
+		return;
+	}
+
 	for (i = 0; i < msg->counts; i++) {
+		if (msg->op != OBJECT_OP_RELEASE) {
+			/* We only support release handler. */
+			break;
+		}
+
 		req.hdr.op = msg->op;
 		req.hdr.counts = 0; /* release op does not require any args */
 		req.hdr.tzhandle = objs[i];
