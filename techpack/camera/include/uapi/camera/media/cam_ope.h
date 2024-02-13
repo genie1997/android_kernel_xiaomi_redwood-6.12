@@ -209,7 +209,10 @@ struct ope_clk_bw_request_v2 {
 	__u32 rt_flag;
 	__u32 reserved;
 	__u32 num_paths;
-	struct cam_axi_per_path_bw_vote   axi_path[1];
+	union {
+		struct cam_axi_per_path_bw_vote   axi_path[1];
+		__DECLARE_FLEX_ARRAY(struct cam_axi_per_path_bw_vote, axi_path_flex);
+	};
 };
 
 /**

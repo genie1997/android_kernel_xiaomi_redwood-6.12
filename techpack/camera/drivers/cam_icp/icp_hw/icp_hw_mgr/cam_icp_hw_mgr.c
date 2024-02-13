@@ -4147,7 +4147,7 @@ static bool cam_icp_mgr_is_valid_inconfig(struct cam_packet *packet)
 	bool in_config_valid = false;
 	struct cam_buf_io_cfg *io_cfg_ptr = NULL;
 
-	io_cfg_ptr = (struct cam_buf_io_cfg *) ((uint32_t *) &packet->payload +
+	io_cfg_ptr = (struct cam_buf_io_cfg *) ((uint32_t *) &packet->payload_flex +
 					packet->io_configs_offset/4);
 
 	for (i = 0 ; i < packet->num_io_configs; i++)
@@ -4174,7 +4174,7 @@ static bool cam_icp_mgr_is_valid_outconfig(struct cam_packet *packet)
 	bool out_config_valid = false;
 	struct cam_buf_io_cfg *io_cfg_ptr = NULL;
 
-	io_cfg_ptr = (struct cam_buf_io_cfg *) ((uint32_t *) &packet->payload +
+	io_cfg_ptr = (struct cam_buf_io_cfg *) ((uint32_t *) &packet->payload_flex +
 					packet->io_configs_offset/4);
 
 	for (i = 0 ; i < packet->num_io_configs; i++)
@@ -4244,7 +4244,7 @@ static int cam_icp_mgr_process_cmd_desc(struct cam_icp_hw_mgr *hw_mgr,
 	uintptr_t cpu_addr = 0;
 
 	cmd_desc = (struct cam_cmd_buf_desc *)
-		((uint32_t *) &packet->payload + packet->cmd_buf_offset/4);
+		((uint32_t *) &packet->payload_flex + packet->cmd_buf_offset/4);
 	rc = cam_packet_util_validate_cmd_desc(cmd_desc);
 	if (rc)
 		return rc;
@@ -4321,7 +4321,7 @@ static int cam_icp_mgr_process_io_cfg(struct cam_icp_hw_mgr *hw_mgr,
 	int32_t sync_in_obj[CAM_MAX_IN_RES];
 	int32_t merged_sync_in_obj;
 
-	io_cfg_ptr = (struct cam_buf_io_cfg *) ((uint32_t *) &packet->payload +
+	io_cfg_ptr = (struct cam_buf_io_cfg *) ((uint32_t *) &packet->payload_flex +
 				packet->io_configs_offset/4);
 	prepare_args->num_out_map_entries = 0;
 	prepare_args->num_in_map_entries = 0;
@@ -4409,22 +4409,22 @@ static int cam_icp_process_stream_settings(
 
 	for (i = 0; i < cmd_mem_regions->num_regions; i++) {
 		rc = cam_mem_get_io_buf(
-			cmd_mem_regions->map_info_array[i].mem_handle,
+			cmd_mem_regions->map_info_array_flex[i].mem_handle,
 			icp_hw_mgr.iommu_hdl, &iova, &len);
 		if (rc) {
 			CAM_ERR(CAM_ICP,
 				"Failed to get cmd region iova for handle %u",
-				cmd_mem_regions->map_info_array[i].mem_handle);
+				cmd_mem_regions->map_info_array_flex[i].mem_handle);
 			kfree(map_cmd);
 			return -EINVAL;
 		}
 
 		map_cmd->mem_map_region_sets[i].start_addr = (uint32_t)iova +
-			(cmd_mem_regions->map_info_array[i].offset);
+			(cmd_mem_regions->map_info_array_flex[i].offset);
 		map_cmd->mem_map_region_sets[i].len = (uint32_t) len;
 
 		CAM_DBG(CAM_ICP, "Region %u mem_handle %d iova %pK len %u",
-			(i+1), cmd_mem_regions->map_info_array[i].mem_handle,
+			(i+1), cmd_mem_regions->map_info_array_flex[i].mem_handle,
 			(uint32_t)iova, (uint32_t)len);
 	}
 
@@ -4699,7 +4699,7 @@ static int cam_icp_process_generic_cmd_buffer(
 	cmd_generic_blob.io_buf_addr = io_buf_addr;
 
 	cmd_desc = (struct cam_cmd_buf_desc *)
-		((uint32_t *) &packet->payload + packet->cmd_buf_offset/4);
+		((uint32_t *) &packet->payload_flex + packet->cmd_buf_offset/4);
 	for (i = 0; i < packet->num_cmd_buf; i++) {
 		rc = cam_packet_util_validate_cmd_desc(&cmd_desc[i]);
 		if (rc)
@@ -4800,7 +4800,7 @@ static void cam_icp_mgr_print_io_bufs(struct cam_packet *packet,
 	if (mem_found)
 		*mem_found = false;
 
-	io_cfg = (struct cam_buf_io_cfg *)((uint32_t *)&packet->payload +
+	io_cfg = (struct cam_buf_io_cfg *)((uint32_t *)&packet->payload_flex +
 		packet->io_configs_offset / 4);
 
 	for (i = 0; i < packet->num_io_configs; i++) {
@@ -4888,7 +4888,7 @@ static int cam_icp_mgr_config_stream_settings(
 	cmd_generic_blob.io_buf_addr = NULL;
 
 	cmd_desc = (struct cam_cmd_buf_desc *)
-		((uint32_t *) &packet->payload + packet->cmd_buf_offset/4);
+		((uint32_t *) &packet->payload_flex + packet->cmd_buf_offset/4);
 
 	rc = cam_packet_util_validate_cmd_desc(cmd_desc);
 	if (rc)
@@ -5603,7 +5603,7 @@ static int cam_icp_get_acquire_info(struct cam_icp_hw_mgr *hw_mgr,
 		ctx_data->icp_dev_acquire_info->num_out_res,
 		ctx_data->icp_dev_acquire_info->scratch_mem_size);
 
-	p_icp_out = ctx_data->icp_dev_acquire_info->out_res;
+	p_icp_out = ctx_data->icp_dev_acquire_info->out_res_flex;
 	for (i = 0; i < icp_dev_acquire_info.num_out_res; i++)
 		CAM_DBG(CAM_ICP, "out[i] %x %x %x %x",
 			p_icp_out[i].format,
@@ -5739,12 +5739,12 @@ static int cam_icp_mgr_acquire_hw(void *hw_mgr_priv, void *acquire_hw_args)
 		dev_type);
 
 	cmd_mem_region.num_regions = 1;
-	cmd_mem_region.map_info_array[0].mem_handle =
+	cmd_mem_region.map_info_array_flex[0].mem_handle =
 		icp_dev_acquire_info->io_config_cmd_handle;
-	cmd_mem_region.map_info_array[0].offset = 0;
-	cmd_mem_region.map_info_array[0].size =
+	cmd_mem_region.map_info_array_flex[0].offset = 0;
+	cmd_mem_region.map_info_array_flex[0].size =
 		icp_dev_acquire_info->io_config_cmd_size;
-	cmd_mem_region.map_info_array[0].flags = 0;
+	cmd_mem_region.map_info_array_flex[0].flags = 0;
 
 	rc = cam_icp_process_stream_settings(ctx_data,
 		&cmd_mem_region, true);
