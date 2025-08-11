@@ -5277,11 +5277,11 @@ error:
 	cancel_work_sync(&bcdev->subsys_up_work);
 	bcdev->initialized = false;
 	complete(&bcdev->ack);
-	pmic_glink_unregister_client(bcdev->client);
 #ifdef CONFIG_MACH_XIAOMI
 	unregister_reboot_notifier(&bcdev->shutdown_notifier);
 #endif
 	unregister_reboot_notifier(&bcdev->reboot_notifier);
+	pmic_glink_unregister_client(bcdev->client);
 	return rc;
 }
 
