@@ -1660,10 +1660,12 @@ static void handle_event_change(enum hal_command_response cmd, void *data)
 
 		fmt = &inst->fmts[OUTPUT_PORT];
 		event_fields_changed |=
-			(fmt->v4l2_fmt.fmt.pix_mp.height !=
-							event_notify->height);
+				(fmt->v4l2_fmt.fmt.pix_mp.height != event_notify->height) ?
+				true : ((inst->reconfig_OutPort_height != 0) && (inst->reconfig_OutPort_height != event_notify->height));
+
 		event_fields_changed |=
-			(fmt->v4l2_fmt.fmt.pix_mp.width != event_notify->width);
+				(fmt->v4l2_fmt.fmt.pix_mp.width != event_notify->width) ?
+				true : ((inst->reconfig_OutPort_width != 0) && (inst->reconfig_OutPort_width != event_notify->width));
 
 		if (event_fields_changed) {
 			event = V4L2_EVENT_SEQ_CHANGED_INSUFFICIENT;
@@ -1779,6 +1781,8 @@ static void handle_event_change(enum hal_command_response cmd, void *data)
 	fmt = &inst->fmts[OUTPUT_PORT];
 	fmt->v4l2_fmt.fmt.pix_mp.height = event_notify->height;
 	fmt->v4l2_fmt.fmt.pix_mp.width = event_notify->width;
+	inst->reconfig_OutPort_height = event_notify->height; // Update the cache height for OutPort
+	inst->reconfig_OutPort_width = event_notify->width; // Update the cache width for OutPort
 	mutex_unlock(&inst->lock);
 
 	if (event == V4L2_EVENT_SEQ_CHANGED_INSUFFICIENT)
