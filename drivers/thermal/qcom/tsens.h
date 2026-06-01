@@ -724,8 +724,17 @@ int get_temp_common(const struct tsens_sensor *s, int *temp);
 int get_cold_int_status(const struct tsens_sensor *s, bool *cold_status);
 #ifdef CONFIG_SUSPEND
 int tsens_resume_common(struct tsens_priv *priv);
+int tsens_suspend_common(struct tsens_priv *priv);
 #else
-#define tsens_resume_common            NULL
+static inline int tsens_resume_common(struct tsens_priv *priv)
+{
+	return 0;
+}
+
+static inline int tsens_suspend_common(struct tsens_priv *priv)
+{
+	return 0;
+}
 #endif
 int tsens_v2_tsens_suspend(struct tsens_priv *priv);
 int tsens_v2_tsens_freeze(struct tsens_priv *priv);
