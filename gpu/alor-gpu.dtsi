@@ -7,9 +7,15 @@
 
 /* External feature codes */
 #define FC_UNKNOWN 0x0
+#define FC_AC 0x3
+
+/* Internal feature codes */
+#define FC_Y3 0x00f4
+#define FC_Y4 0x00f5
 
 /* Pcodes */
 #define PCODE_UNKNOWN 0
+#define PCODE_0 1
 
 #define SKU_CODE(pcode, featurecode) ((pcode << 16) + featurecode)
 

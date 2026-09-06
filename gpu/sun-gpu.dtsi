@@ -233,6 +233,7 @@
 
 &funnel_gfx {
 	status = "ok";
+	compatible = "arm,primecell", "qcom,coresight-funnel-gfx";
 	in-ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -240,16 +241,16 @@
 		port@0 {
 			reg = <0>;
 			funnel_gfx_in_gx_dbgc: endpoint {
-			remote-endpoint =
-				<&gx_dbgc_out_funnel_gfx>;
+				remote-endpoint =
+					<&gx_dbgc_out_funnel_gfx>;
 			};
 		};
 
 		port@1 {
 			reg = <1>;
 			funnel_gfx_in_cx_dbgc: endpoint {
-			remote-endpoint =
-				<&cx_dbgc_out_funnel_gfx>;
+				remote-endpoint =
+					<&cx_dbgc_out_funnel_gfx>;
 			};
 		};
 	};
