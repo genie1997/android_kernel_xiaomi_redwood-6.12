@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+ccflags-y += -I$(srctree)
 obj-$(CONFIG_COMMON_CLK_QCOM) += clk-qcom.o
 
 clk-qcom-y += common.o
@@ -14,8 +15,12 @@ clk-qcom-y += clk-regmap-mux-div.o
 clk-qcom-y += clk-regmap-phy-mux.o
 clk-qcom-$(CONFIG_KRAIT_CLOCKS) += clk-krait.o
 clk-qcom-y += clk-hfpll.o
+clk-qcom-y += clk-debug.o
+clk-qcom-y += clk-opp.o
+clk-qcom-y += clk-pm.o
+clk-qcom-y += vdd-class.o
 clk-qcom-y += reset.o
-clk-qcom-$(CONFIG_QCOM_GDSC) += gdsc.o
+clk-qcom-$(CONFIG_QCOM_GDSC) += gdsc.o gdsc-debug.o
 
 # Keep alphabetically sorted by config
 obj-$(CONFIG_APQ_GCC_8084) += gcc-apq8084.o
@@ -159,3 +164,5 @@ obj-$(CONFIG_SPMI_PMIC_CLKDIV) += clk-spmi-pmic-div.o
 obj-$(CONFIG_KPSS_XCC) += kpss-xcc.o
 obj-$(CONFIG_QCOM_HFPLL) += hfpll.o
 obj-$(CONFIG_KRAITCC) += krait-cc.o
+obj-$(CONFIG_COMMON_CLK_QCOM) += clk-dummy.o
+obj-$(CONFIG_QCOM_GDSC_REGULATOR) += gdsc-regulator.o
