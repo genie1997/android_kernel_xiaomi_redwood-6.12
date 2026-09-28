@@ -295,4 +295,13 @@ config QCOM_PBS
 	  This module provides the APIs to the client drivers that wants to send the
 	  PBS trigger event to the PBS RAM.
 
+config QCOM_RPMH_TIMEOUT
+	int "Timeout for RPMH and CRM communication"
+	default 5000
+	depends on QCOM_RPMH || QCOM_CRM || QCOM_CRM_V2
+	help
+	  The amount of time, in milliseconds that should enough to get
+	  response from RPMh for the resource request from APSS.
+	  Wait this much time before a warning is emitted.
+
 endmenu
