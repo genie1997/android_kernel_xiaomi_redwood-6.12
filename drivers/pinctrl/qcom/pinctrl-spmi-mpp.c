@@ -19,8 +19,8 @@
 
 #include <dt-bindings/pinctrl/qcom,pmic-mpp.h>
 
-#include "../core.h"
-#include "../pinctrl-utils.h"
+#include "drivers/pinctrl/core.h"
+#include "drivers/pinctrl/pinctrl-utils.h"
 
 #define PMIC_MPP_ADDRESS_RANGE			0x100
 
@@ -983,7 +983,6 @@ static const struct of_device_id pmic_mpp_of_match[] = {
 	{ .compatible = "qcom,pm8226-mpp", .data = (void *) 8 },
 	{ .compatible = "qcom,pm8841-mpp", .data = (void *) 4 },
 	{ .compatible = "qcom,pm8916-mpp", .data = (void *) 4 },
-	{ .compatible = "qcom,pm8937-mpp", .data = (void *) 4 },
 	{ .compatible = "qcom,pm8941-mpp", .data = (void *) 8 },
 	{ .compatible = "qcom,pm8950-mpp", .data = (void *) 4 },
 	{ .compatible = "qcom,pmi8950-mpp", .data = (void *) 4 },
