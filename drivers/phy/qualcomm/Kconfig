@@ -218,3 +218,23 @@ config PHY_QCOM_SGMII_ETH
 	help
 	  Enable this to support the internal SerDes/SGMII PHY on various
 	  Qualcomm chipsets.
+
+config PHY_QCOM_UFS
+	tristate "Qualcomm Technologies, Inc. UFS PHY driver"
+	depends on OF && ARCH_QCOM
+	select GENERIC_PHY
+	help
+	  Enables support for UFS PHY on Qualcomm Technologies, Inc.
+	  chipsets.
+	  This driver together with the UFS PHY controller specific
+	  driver enables the UFS PHY support for Qualcomm Technologies, Inc.
+	  chips.
+
+config PHY_QCOM_UFS_V4_YUPIK
+	tristate "Qualcomm Technologies, Inc. UFS Yupik Phy Driver"
+	depends on PHY_QCOM_UFS
+	help
+	  This configuration option adds support for the UFS
+	  PHY present on QCOM Yupik chipsets.
+	  This is required to enable UFS on Yupik chipset.
+	  To compile this driver as a module, choose M here.
