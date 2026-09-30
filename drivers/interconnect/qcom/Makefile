@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+ccflags-y += -I$(srctree)
 
 obj-$(CONFIG_INTERCONNECT_QCOM) += interconnect_qcom.o
 
@@ -76,3 +77,7 @@ obj-$(CONFIG_INTERCONNECT_QCOM_SM8550) += qnoc-sm8550.o
 obj-$(CONFIG_INTERCONNECT_QCOM_SM8650) += qnoc-sm8650.o
 obj-$(CONFIG_INTERCONNECT_QCOM_X1E80100) += qnoc-x1e80100.o
 obj-$(CONFIG_INTERCONNECT_QCOM_SMD_RPM) += icc-smd-rpm.o
+obj-$(CONFIG_INTERCONNECT_QCOM_YUPIK) += qnoc-yupik.o
+qnoc-yupik-objs += yupik.o
+obj-$(CONFIG_INTERCONNECT_QCOM_QOS) += qnoc-qos.o
+obj-$(CONFIG_INTERCONNECT_QCOM_DEBUG) += icc-debug.o

@@ -319,3 +319,28 @@ config INTERCONNECT_QCOM_X1E80100
 
 config INTERCONNECT_QCOM_SMD_RPM
 	tristate
+
+config INTERCONNECT_QCOM_YUPIK
+	tristate "YUPIK interconnect driver"
+	depends on INTERCONNECT_QCOM
+        depends on OF
+        select INTERCONNECT_QCOM_BCM_VOTER
+        select INTERCONNECT_QCOM_RPMH
+        select INTERCONNECT_QCOM_QOS
+	help
+	  This is a driver for the Qualcomm Technologies, Inc. Network-on-Chip
+	  on yupik-based platforms. The interconnect provider collects and
+	  aggreagates the cosumer bandwidth requests to satisfy constraints
+	  placed on Network-on-Chip performance states.
+
+config INTERCONNECT_QCOM_QOS
+	tristate
+
+config INTERCONNECT_QCOM_DEBUG
+	tristate "QCOM-specific interconnect debug features"
+	depends on INTERCONNECT_QCOM
+	help
+	  This driver provides debug features specific to
+	  Qualcomm Technologies, Inc. interconnect drivers. These features
+	  include optionally printing all enabled interconnect votes when
+	  entering suspend.
