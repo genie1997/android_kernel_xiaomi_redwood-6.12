@@ -203,3 +203,6 @@ obj-$(CONFIG_REGULATOR_WM8400) += wm8400-regulator.o
 obj-$(CONFIG_REGULATOR_WM8994) += wm8994-regulator.o
 
 ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
+obj-$(CONFIG_REGULATOR_RPMH) += rpmh-regulator.o
+obj-$(CONFIG_REGULATOR_PROXY_CONSUMER) += proxy-consumer.o
+obj-$(CONFIG_REGULATOR_STUB) += stub-regulator.o

@@ -1720,4 +1720,33 @@ config REGULATOR_QCOM_LABIBB
 	  boost regulator and IBB can be used as a negative boost regulator
 	  for LCD display panel.
 
+config REGULATOR_PROXY_CONSUMER
+	tristate "Boot time regulator proxy consumer support"
+	help
+	  This library provides support for boot time regulator proxy requests.
+	  It can enforce a specified voltage range, set a minimum current,
+	  and/or keep a regulator enabled.  It is needed in circumstances where
+	  reducing one or more of these three quantities will cause hardware to
+	  stop working if performed before the driver managing the hardware has
+	  probed.
+
+config REGULATOR_RPMH
+	tristate "Qualcomm Technologies, Inc. Legacy RPMh regulator driver"
+	depends on QCOM_RPMH
+	help
+	  This driver supports control of PMIC regulators via the RPMh hardware
+	  block found on Qualcomm Technologies Inc. SoCs.  RPMh regulator
+	  control allows for voting on regulator state between multiple
+	  processors within the SoC.
+
+config REGULATOR_STUB
+	tristate "Stub Regulator"
+	help
+	  This driver adds stub regulator support. It allows for consumers to
+	  request their regulator devices and to use all of the standard
+	  regulator functions. It is useful for bringing up new platforms when
+	  the real hardware based regulator implementation is not yet available.
+	  Consumers can use stub regulator device with proper constraint
+	  checking while the real regulator driver is being developed.
+
 endif
