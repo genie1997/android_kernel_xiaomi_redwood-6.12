@@ -1613,3 +1613,8 @@ config SERIAL_MCTRL_GPIO
 	tristate
 
 source "drivers/tty/serial/pkvm-pl011/Kconfig"
+
+config SERIAL_MSM_GENI
+    tristate "MSM on-chip GENI HW based serial port support"
+    depends on ARCH_QCOM
+    depends on QCOM_GENI_SE
