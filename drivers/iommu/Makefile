@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+ccflags-y += -I$(srctree)
 obj-y += amd/ intel/ arm/ iommufd/
 obj-$(CONFIG_IOMMU_API) += iommu.o
 obj-$(CONFIG_IOMMU_API) += iommu-traces.o
@@ -31,3 +32,7 @@ obj-$(CONFIG_IOMMU_IOPF) += io-pgfault.o
 obj-$(CONFIG_SPRD_IOMMU) += sprd-iommu.o
 obj-$(CONFIG_APPLE_DART) += apple-dart.o
 obj-$(CONFIG_PKVM_PVIOMMU) += pkvm-pviommu.o
+obj-$(CONFIG_QCOM_IOMMU_UTIL) += qcom_iommu_util.o
+qcom_iommu_util-objs += qcom-iommu-util.o
+qcom_iommu_util-$(CONFIG_IOMMU_IO_PGTABLE_FAST) += qcom-dma-iommu-generic.o io-pgtable-fast.o dma-mapping-fast.o
+qcom_iommu_util-$(CONFIG_IOMMU_IO_PGTABLE_LPAE) += qcom-io-pgtable-arm.o qcom-io-pgtable-alloc.o
