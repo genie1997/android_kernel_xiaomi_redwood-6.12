@@ -313,4 +313,31 @@ config QTI_HW_KEY_MANAGER_V1
 	 HWKM hardware to perform key operations from the kernel which will
 	 be used for storage encryption.
 
+config PDR_INDICATION_NOTIF_TIMEOUT
+	int "Pdr notifications timeout in ms"
+	default 3000
+	help
+	  The amount of time, in milliseconds, that should elapse between
+	  the start and end of notifications, before a warning
+	  is emitted.
+
+config QCOM_SMP2P_SLEEPSTATE
+	tristate "SMP2P Sleepstate notifier"
+	depends on QCOM_SMP2P
+	help
+	  When this option is enabled, notifications are sent to remote procs
+	  for the power state changes on the local processor. The notifications
+	  are sent through the smp2p framework. This driver can also receive
+	  notifications from the remote to prevent suspend on the local
+	  processor.
+
+config QCOM_GLINK
+	tristate "GLINK Probe Helper"
+	depends on RPMSG_QCOM_GLINK_SMEM
+	help
+	  This enables the GLINK Probe module. This is designed to set up
+	  other edges in the system. It will initialize all the transports for
+	  all the edges present in the device.
+	  Say M if you want to enable this module.
+
 endmenu

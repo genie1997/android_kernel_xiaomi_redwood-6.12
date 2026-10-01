@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-only
+ccflags-y += -I$(srctree)
 obj-$(CONFIG_QRTR) += qrtr.o
 qrtr-y	:= af_qrtr.o ns.o
 
