@@ -189,4 +189,13 @@ config USB_DWC3_RTK
 	  or dual-role mode.
 	  Say 'Y' or 'M' if you have such device.
 
+config USB_DWC3_MSM
+	tristate "QTI MSM Platforms"
+	depends on ARCH_QCOM || COMPILE_TEST
+	help
+	  Applicable to QTI MSM Platforms with DesignWare Core
+	  USB3 IP.
+	  Driver supports host, device and dual-role modes of operation.
+	  Say 'Y' or 'M' if you have one such device.
+
 endif

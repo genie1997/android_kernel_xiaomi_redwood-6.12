@@ -45,3 +45,4 @@ obj-$(CONFIG_QCOM_GLINK) += glink_probe.o
 obj-$(CONFIG_QCOM_SMP2P_SLEEPSTATE) += smp2p_sleepstate.o
 obj-$(CONFIG_QTI_PMIC_GLINK) += qti_pmic_glink.o
 obj-$(CONFIG_QTI_ALTMODE_GLINK) += altmode-glink.o
+obj-$(CONFIG_QCOM_EUD) += eud.o
