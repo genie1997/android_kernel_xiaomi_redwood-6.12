@@ -1,0 +1,7 @@
+ccflags-y += -I$(srctree)/techpack/audio/include -I$(srctree)/techpack/audio/include/uapi
+
+obj-$(CONFIG_SND_EVENT) += soc/snd_event.o
+obj-$(CONFIG_MSM_QDSP6_PDR) += dsp/audio_pdr.o
+obj-$(CONFIG_MSM_QDSP6_NOTIFIER) += dsp/audio_notifier.o dsp/audio_ssr.o
+obj-$(CONFIG_MSM_QDSP6_APRV2_RPMSG) += ipc/apr.o ipc/apr_v2.o ipc/apr_tal_rpmsg.o
+obj-$(CONFIG_MSM_ADSP_LOADER) += dsp/adsp-loader.o

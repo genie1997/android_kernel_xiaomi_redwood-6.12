@@ -1,0 +1,5 @@
+config MSM_CDSP_LOADER
+	bool "CDSP loader"
+	depends on REMOTEPROC
+	help
+	  Boots the CDSP when userspace writes /sys/kernel/boot_cdsp/boot.
