@@ -91,4 +91,16 @@ config UCSI_LENOVO_YOGA_C630
 	  To compile the driver as a module, choose M here: the module will be
 	  called ucsi_yoga_c630.
 
+config UCSI_QTI_GLINK
+	tristate "UCSI Interface Driver for QTI PMIC"
+	depends on QTI_PMIC_GLINK
+	help
+	  This driver enables UCSI support on Qualcomm Technologies, Inc.
+	  platforms that expose UCSI interface to communicate with PPM which is
+	  charger firmware running on the remote subsystem (e.g. DSP) over PMIC
+	  Glink.
+
+	  To compile the driver as a module, choose M here: the module will be
+	  called ucsi_qti_glink.
+
 endif

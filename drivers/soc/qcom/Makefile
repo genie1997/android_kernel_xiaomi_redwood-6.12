@@ -43,3 +43,5 @@ obj-$(CONFIG_QCOM_PBS) +=	qcom-pbs.o
 obj-$(CONFIG_QTI_HW_KEY_MANAGER_V1) += hwkm.o
 obj-$(CONFIG_QCOM_GLINK) += glink_probe.o
 obj-$(CONFIG_QCOM_SMP2P_SLEEPSTATE) += smp2p_sleepstate.o
+obj-$(CONFIG_QTI_PMIC_GLINK) += qti_pmic_glink.o
+obj-$(CONFIG_QTI_ALTMODE_GLINK) += altmode-glink.o

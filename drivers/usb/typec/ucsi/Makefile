@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+ccflags-y += -I$(srctree)
 CFLAGS_trace.o				:= -I$(src)
 
 obj-$(CONFIG_TYPEC_UCSI)		+= typec_ucsi.o
@@ -23,3 +24,4 @@ obj-$(CONFIG_UCSI_STM32G0)		+= ucsi_stm32g0.o
 obj-$(CONFIG_UCSI_PMIC_GLINK)		+= ucsi_glink.o
 obj-$(CONFIG_CROS_EC_UCSI)		+= cros_ec_ucsi.o
 obj-$(CONFIG_UCSI_LENOVO_YOGA_C630)	+= ucsi_yoga_c630.o
+obj-$(CONFIG_UCSI_QTI_GLINK) += ucsi_qti_glink.o
