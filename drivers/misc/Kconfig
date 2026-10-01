@@ -627,6 +627,16 @@ config PKVM_SMC_FILTER
 
 	  Say N here unless you know what you are doing.
 
+config BOOT_DEADLINE
+	bool "Panic a fixed time after boot"
+	help
+	  Test builds: a boot that hangs anywhere still ends in a panic record.
+
+config BOOT_DEADLINE_TIMEOUT
+	int "Seconds after late init before the boot deadline panic"
+	depends on BOOT_DEADLINE
+	default 90
+
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
