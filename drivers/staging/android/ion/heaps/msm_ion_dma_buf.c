@@ -438,7 +438,7 @@ static void msm_ion_dma_buf_release(struct dma_buf *dmabuf)
 	ion_free(buffer);
 }
 
-static void *msm_ion_dma_buf_vmap(struct dma_buf *dmabuf)
+static int msm_ion_dma_buf_vmap(struct dma_buf *dmabuf, struct iosys_map *map)
 {
 	struct ion_buffer *buffer = to_iommu_data(dmabuf->priv);
 	void *vaddr = ERR_PTR(-EINVAL);
@@ -451,10 +451,15 @@ static void *msm_ion_dma_buf_vmap(struct dma_buf *dmabuf)
 				    buffer->heap->name);
 	mutex_unlock(&buffer->lock);
 
-	return vaddr;
+	if (IS_ERR(vaddr))
+		return PTR_ERR(vaddr);
+
+	iosys_map_set_vaddr(map, vaddr);
+	return 0;
 }
 
-static void msm_ion_dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+static void msm_ion_dma_buf_vunmap(struct dma_buf *dmabuf,
+				   struct iosys_map *map)
 {
 	struct ion_buffer *buffer = to_iommu_data(dmabuf->priv);
 
