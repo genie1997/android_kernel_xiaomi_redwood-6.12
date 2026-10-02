@@ -33,11 +33,11 @@ enum ion_kthread_type {
 
 struct ion_msm_system_heap {
 	struct msm_ion_heap heap;
-	struct ion_msm_page_pool *uncached_pools[MAX_ORDER];
-	struct ion_msm_page_pool *cached_pools[MAX_ORDER];
+	struct ion_msm_page_pool *uncached_pools[NUM_ORDERS];
+	struct ion_msm_page_pool *cached_pools[NUM_ORDERS];
 	/* worker threads to refill the pool */
 	struct task_struct *kworker[ION_MAX_NUM_KTHREADS];
-	struct ion_msm_page_pool *secure_pools[VMID_LAST][MAX_ORDER];
+	struct ion_msm_page_pool *secure_pools[VMID_LAST][NUM_ORDERS];
 	/* Prevents unnecessary page splitting */
 	struct mutex split_page_mutex;
 };
