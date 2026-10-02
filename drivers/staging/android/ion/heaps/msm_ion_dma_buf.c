@@ -177,7 +177,7 @@ static struct sg_table
 	      !(map_attrs & DMA_ATTR_FORCE_NON_COHERENT)) ||
 	     (map_attrs & DMA_ATTR_FORCE_COHERENT)) &&
 	    !(buffer->flags & ION_FLAG_CACHED)) {
-		pr_warn_ratelimited("dev:%s Cannot DMA map uncached buffer as IO-coherent attrs:0x%lx\n",
+		pr_warn_ratelimited("dev:%s Cannot DMA map uncached buffer as IO-coherent attrs:0x%x\n",
 				    dev_name(attachment->dev), map_attrs);
 		mutex_unlock(&buffer->lock);
 		return ERR_PTR(-EINVAL);
