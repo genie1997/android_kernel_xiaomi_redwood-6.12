@@ -6,7 +6,7 @@
 
 #include <linux/device.h>
 #include <linux/dma-buf.h>
-#include <linux/dma-noncoherent.h>
+#include <linux/dma-map-ops.h>
 #include <linux/err.h>
 #include <linux/export.h>
 #include <linux/file.h>
@@ -17,6 +17,7 @@
 #include <linux/rbtree.h>
 #include <linux/slab.h>
 #include <linux/msm_dma_iommu_mapping.h>
+#include <linux/qcom-dma-mapping.h>
 #define CREATE_TRACE_POINTS
 #include <trace/events/ion.h>
 
