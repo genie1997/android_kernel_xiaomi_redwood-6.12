@@ -10,6 +10,7 @@
 #include <linux/err.h>
 #include <linux/export.h>
 #include <linux/file.h>
+#include <linux/iommu-dma.h>
 #include <linux/kthread.h>
 #include <linux/list.h>
 #include <linux/mm.h>
@@ -506,7 +507,11 @@ static int ion_sgl_sync_range(struct device *dev, struct scatterlist *sgl,
 			break;
 
 		if (i > 0) {
-			if (!get_dma_ops(dev))
+			/*
+			 * Only dma-direct devices skip this; on 6.12 devices behind
+			 * iommu-dma have no dma_ops either.
+			 */
+			if (!get_dma_ops(dev) && !use_dma_iommu(dev))
 				return 0;
 
 			pr_warn_ratelimited("Partial cmo only supported with 1 segment\n"
