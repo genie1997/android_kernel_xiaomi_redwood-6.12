@@ -14,6 +14,7 @@
 #include <linux/list.h>
 #include <linux/mm.h>
 #include <linux/mm_types.h>
+#include <linux/of.h>
 #include <linux/rbtree.h>
 #include <linux/slab.h>
 #include <linux/msm_dma_iommu_mapping.h>
@@ -98,7 +99,27 @@ struct msm_ion_dma_buf_attachment {
 	struct sg_table *table;
 	struct list_head list;
 	bool dma_mapped;
+	bool coherent_hint_cached;
 };
+
+/*
+ * 5.4 kept this hint in struct device, set by of_dma_configure(); 6.12 has no
+ * such field, so read the same property here, on the node or any parent.
+ */
+static bool ion_dev_coherent_hint_cached(struct device *dev)
+{
+	struct device_node *np = of_node_get(dev->of_node);
+
+	while (np) {
+		if (of_property_read_bool(np, "dma-coherent-hint-cached")) {
+			of_node_put(np);
+			return true;
+		}
+		np = of_get_next_parent(np);
+	}
+
+	return false;
+}
 
 static int msm_ion_dma_buf_attach(struct dma_buf *dmabuf,
 			      struct dma_buf_attachment *attachment)
@@ -120,6 +141,7 @@ static int msm_ion_dma_buf_attach(struct dma_buf *dmabuf,
 	a->table = table;
 	a->dev = attachment->dev;
 	a->dma_mapped = false;
+	a->coherent_hint_cached = ion_dev_coherent_hint_cached(attachment->dev);
 	INIT_LIST_HEAD(&a->list);
 
 	attachment->priv = a;
@@ -170,7 +192,7 @@ static struct sg_table
 
 	if ((buffer->flags & ION_FLAG_CACHED) &&
 	    hlos_accessible_buffer(buffer) &&
-	    dev_is_dma_coherent_hint_cached(attachment->dev))
+	    a->coherent_hint_cached)
 		map_attrs |= DMA_ATTR_FORCE_COHERENT;
 
 	if (((dev_is_dma_coherent(attachment->dev) &&
@@ -255,7 +277,7 @@ static void msm_ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
 
 	if ((buffer->flags & ION_FLAG_CACHED) &&
 	    hlos_accessible_buffer(buffer) &&
-	    dev_is_dma_coherent_hint_cached(attachment->dev))
+	    a->coherent_hint_cached)
 		map_attrs |= DMA_ATTR_FORCE_COHERENT;
 
 	if (map_attrs & DMA_ATTR_SKIP_CPU_SYNC)
