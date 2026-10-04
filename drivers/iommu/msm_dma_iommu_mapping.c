@@ -14,9 +14,7 @@
 
 struct msm_iommu_map {
 	struct device *dev;
-	struct msm_iommu_data *data;
 	struct list_head data_node;
-	struct list_head dev_node;
 	struct scatterlist *sgl;
 	enum dma_data_direction dir;
 	unsigned long attrs;
@@ -49,7 +47,6 @@ static void msm_iommu_map_free(struct msm_iommu_map *map)
 			   map->attrs | DMA_ATTR_SKIP_CPU_SYNC);
 	sg_free_table(&table);
 	list_del(&map->data_node);
-	list_del(&map->dev_node);
 	kfree(map);
 }
 
@@ -78,7 +75,6 @@ int msm_dma_map_sg_attrs(struct device *dev, struct scatterlist *sgl, int nents,
 	struct msm_iommu_data *data = dmabuf->priv;
 	struct msm_iommu_map *map;
 
-	mutex_lock(&dev->iommu_map_lock);
 	mutex_lock(&data->lock);
 	map = msm_iommu_map_lookup(data, dev);
 	if (map) {
@@ -96,20 +92,17 @@ int msm_dma_map_sg_attrs(struct device *dev, struct scatterlist *sgl, int nents,
 		if (dma_map_sg_attrs(dev, sgl, nents, dir, attrs)) {
 			map = kmalloc(sizeof(*map), GFP_KERNEL | __GFP_NOFAIL);
 			map->sgl = clone_sgl(sgl, nents);
-			map->data = data;
 			map->dev = dev;
 			map->dir = dir;
 			map->nents = nents;
 			map->refcount = 2;
 			map->attrs = attrs;
 			list_add(&map->data_node, &data->map_list);
-			list_add(&map->dev_node, &dev->iommu_map_list);
 		} else {
 			nents = 0;
 		}
 	}
 	mutex_unlock(&data->lock);
-	mutex_unlock(&dev->iommu_map_lock);
 
 	return nents;
 }
@@ -121,48 +114,19 @@ void msm_dma_unmap_sg_attrs(struct device *dev, struct scatterlist *sgl,
 	struct msm_iommu_data *data = dmabuf->priv;
 	struct msm_iommu_map *map;
 
-	mutex_lock(&dev->iommu_map_lock);
 	mutex_lock(&data->lock);
 	map = msm_iommu_map_lookup(data, dev);
 	if (map && !--map->refcount)
 		msm_iommu_map_free(map);
 	mutex_unlock(&data->lock);
-	mutex_unlock(&dev->iommu_map_lock);
-}
-
-void msm_dma_unmap_all_for_dev(struct device *dev)
-{
-	struct msm_iommu_map *map, *tmp;
-
-	mutex_lock(&dev->iommu_map_lock);
-	list_for_each_entry_safe(map, tmp, &dev->iommu_map_list, dev_node) {
-		struct msm_iommu_data *data = map->data;
-
-		mutex_lock(&data->lock);
-		msm_iommu_map_free(map);
-		mutex_unlock(&data->lock);
-	}
-	mutex_unlock(&dev->iommu_map_lock);
 }
 
 void msm_dma_buf_freed(struct msm_iommu_data *data)
 {
 	struct msm_iommu_map *map, *tmp;
-	int retry = 0;
 
-	do {
-		mutex_lock(&data->lock);
-		list_for_each_entry_safe(map, tmp, &data->map_list, data_node) {
-			struct device *dev = map->dev;
-
-			if (!mutex_trylock(&dev->iommu_map_lock)) {
-				retry = 1;
-				break;
-			}
-
-			msm_iommu_map_free(map);
-			mutex_unlock(&dev->iommu_map_lock);
-		}
-		mutex_unlock(&data->lock);
-	} while (retry--);
+	mutex_lock(&data->lock);
+	list_for_each_entry_safe(map, tmp, &data->map_list, data_node)
+		msm_iommu_map_free(map);
+	mutex_unlock(&data->lock);
 }
