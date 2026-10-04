@@ -1,1 +1,1 @@
-obj-y += audio/ dsp/
+obj-y += audio/ dsp/ securemsm/

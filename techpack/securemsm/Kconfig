@@ -1,0 +1,6 @@
+config QSEECOM
+	bool "QSEECom driver"
+	depends on QCOM_SCM && QTEE_SHM_BRIDGE && QCOM_SECURE_BUFFER && ION_MSM_HEAPS
+	help
+	  /dev/qseecom, through which the vendor libraries load trusted apps
+	  and talk to them (keymaster, gatekeeper and the qseecomd listeners).

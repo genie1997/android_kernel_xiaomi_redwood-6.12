@@ -1,0 +1,6 @@
+ccflags-y += -I$(srctree)/techpack/securemsm -I$(srctree)/techpack/securemsm/linux \
+	-I$(srctree)/techpack/securemsm/include/uapi -I$(srctree)/techpack/securemsm/include/uapi/linux
+
+obj-$(CONFIG_QSEECOM) += qseecom.o
+qseecom-y := qseecom/qseecom.o
+qseecom-$(CONFIG_COMPAT) += qseecom/qseecom_32bit_impl.o
