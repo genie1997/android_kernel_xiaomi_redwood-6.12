@@ -155,12 +155,6 @@ static inline int mem_buf_current_vmid(void)
 	return -EINVAL;
 }
 
-static inline int mem_buf_dma_buf_copy_vmperm(struct dma_buf *dmabuf, int **vmids, int **perms,
-				int *nr_acl_entries)
-{
-	return -EINVAL;
-}
-
 static inline int mem_buf_lend(struct dma_buf *dmabuf, struct mem_buf_lend_kernel_arg *arg)
 {
 	return -EINVAL;
@@ -186,11 +180,6 @@ static inline bool is_mem_buf_dma_buf(struct dma_buf *dmabuf)
 	return false;
 }
 
-static inline bool mem_buf_dma_buf_exclusive_owner(struct dma_buf *dmabuf)
-{
-	return false;
-}
-
 static inline int mem_buf_dma_buf_get_vmperm(struct dma_buf *dmabuf, const int **vmids,
 				const int **perms, int *nr_acl_entries)
 {
@@ -203,12 +192,35 @@ static inline int mem_buf_dma_buf_get_memparcel_hdl(struct dma_buf *dmabuf,
 	return -EINVAL;
 }
 
+#endif /* CONFIG_QCOM_MEM_BUF_DEV */
+
+#if !IS_ENABLED(CONFIG_QCOM_MEM_BUF_DEV)
+#if IS_ENABLED(CONFIG_ION_MSM_HEAPS)
+/* Without mem-buf, ION answers these for its own dma-bufs from the ION flags */
+int mem_buf_dma_buf_copy_vmperm(struct dma_buf *dmabuf, int **vmids, int **perms,
+		int *nr_acl_entries);
+bool mem_buf_dma_buf_exclusive_owner(struct dma_buf *dmabuf);
+int mem_buf_dma_buf_set_destructor(struct dma_buf *dmabuf,
+				   mem_buf_dma_buf_destructor dtor,
+				   void *dtor_data);
+#else
+static inline int mem_buf_dma_buf_copy_vmperm(struct dma_buf *dmabuf, int **vmids, int **perms,
+				int *nr_acl_entries)
+{
+	return -EINVAL;
+}
+
+static inline bool mem_buf_dma_buf_exclusive_owner(struct dma_buf *dmabuf)
+{
+	return false;
+}
+
 static inline int mem_buf_dma_buf_set_destructor(struct dma_buf *dmabuf,
 				   mem_buf_dma_buf_destructor dtor,
 				   void *dtor_data)
 {
 	return -EINVAL;
 }
-
-#endif /* CONFIG_QCOM_MEM_BUF_DEV */
+#endif /* CONFIG_ION_MSM_HEAPS */
+#endif /* !CONFIG_QCOM_MEM_BUF_DEV */
 #endif /* _MEM_BUF_H */

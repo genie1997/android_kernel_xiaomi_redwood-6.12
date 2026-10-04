@@ -49,6 +49,8 @@ struct ion_buffer {
 	struct sg_table *sg_table;
 	struct list_head attachments;
 	struct msm_iommu_data iommu_data;
+	int (*dtor)(void *dtor_data);
+	void *dtor_data;
 };
 
 /**
@@ -327,6 +329,11 @@ int ion_free(struct ion_buffer *buffer);
  */
 
 size_t ion_query_heaps_kernel(struct ion_heap_data *hdata, size_t size);
+
+/**
+ * is_ion_dma_buf - true if @dmabuf was exported by ION
+ */
+bool is_ion_dma_buf(struct dma_buf *dmabuf);
 #else
 
 static inline int __ion_device_add_heap(struct ion_heap *heap,
@@ -402,6 +409,11 @@ static inline size_t ion_query_heaps_kernel(struct ion_heap_data *hdata,
 					 size_t size)
 {
 	return 0;
+}
+
+static inline bool is_ion_dma_buf(struct dma_buf *dmabuf)
+{
+	return false;
 }
 #endif /* CONFIG_ION */
 #endif /* _ION_KERNEL_H */

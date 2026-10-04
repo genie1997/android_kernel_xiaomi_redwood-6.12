@@ -3,6 +3,8 @@
  * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/ion.h>
+#include <linux/mem-buf.h>
 #include <linux/slab.h>
 #include <soc/qcom/secure_buffer.h>
 #include "ion_secure_util.h"
@@ -89,6 +91,67 @@ int get_ion_flags(u32 vmid)
 	return -EINVAL;
 }
 EXPORT_SYMBOL(get_ion_flags);
+
+/* Same rule the 5.4 qseecom used: only ION_FLAG_SECURE buffers leave HLOS */
+bool mem_buf_dma_buf_exclusive_owner(struct dma_buf *dmabuf)
+{
+	unsigned long flags;
+
+	if (!is_ion_dma_buf(dmabuf) || dma_buf_get_flags(dmabuf, &flags))
+		return false;
+
+	return !(flags & ION_FLAG_SECURE);
+}
+EXPORT_SYMBOL_GPL(mem_buf_dma_buf_exclusive_owner);
+
+int mem_buf_dma_buf_copy_vmperm(struct dma_buf *dmabuf, int **vmids,
+				int **perms, int *nr_acl_entries)
+{
+	unsigned long flags;
+	unsigned int nelems;
+	int *vmid_list, *perms_list;
+	int i, ret;
+
+	if (!is_ion_dma_buf(dmabuf))
+		return -EINVAL;
+
+	ret = dma_buf_get_flags(dmabuf, &flags);
+	if (ret)
+		return ret;
+
+	nelems = (flags & ION_FLAG_SECURE) ? ion_get_flags_num_vm_elems(flags) : 1;
+	if (!nelems)
+		return -EINVAL;
+
+	vmid_list = kcalloc(nelems, sizeof(*vmid_list), GFP_KERNEL);
+	perms_list = kcalloc(nelems, sizeof(*perms_list), GFP_KERNEL);
+	if (!vmid_list || !perms_list) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	if (flags & ION_FLAG_SECURE) {
+		ret = ion_populate_vm_list(flags, (unsigned int *)vmid_list, nelems);
+		if (ret)
+			goto err;
+		for (i = 0; i < nelems; i++)
+			perms_list[i] = msm_secure_get_vmid_perms(vmid_list[i]);
+	} else {
+		vmid_list[0] = VMID_HLOS;
+		perms_list[0] = PERM_READ | PERM_WRITE | PERM_EXEC;
+	}
+
+	*vmids = vmid_list;
+	*perms = perms_list;
+	*nr_acl_entries = nelems;
+	return 0;
+
+err:
+	kfree(vmid_list);
+	kfree(perms_list);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(mem_buf_dma_buf_copy_vmperm);
 
 static unsigned int count_set_bits(unsigned long val)
 {

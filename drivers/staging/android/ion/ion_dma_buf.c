@@ -6,6 +6,7 @@
  */
 
 #include <linux/device.h>
+#include <linux/mem-buf.h>
 #include <linux/mm.h>
 #include <linux/scatterlist.h>
 #include <linux/slab.h>
@@ -153,6 +154,20 @@ static void ion_dma_buf_release(struct dma_buf *dmabuf)
 {
 	struct ion_buffer *buffer = to_iommu_data(dmabuf->priv);
 	struct ion_heap *heap = buffer->heap;
+	int ret;
+
+	/*
+	 * 5.4 ran this from dma_buf_release() and kept the memory if it failed,
+	 * since another VM may still have access to it.
+	 */
+	if (buffer->dtor) {
+		ret = buffer->dtor(buffer->dtor_data);
+		if (ret < 0) {
+			pr_warn_ratelimited("ion: leaking a %zu byte buffer, its destructor failed: %d\n",
+					    buffer->size, ret);
+			return;
+		}
+	}
 
 	if (heap->buf_ops.release)
 		return heap->buf_ops.release(dmabuf);
@@ -336,6 +351,31 @@ static const struct dma_buf_ops dma_buf_ops = {
 	.vunmap = ion_dma_buf_vunmap,
 	.get_flags = ion_dma_buf_get_flags,
 };
+
+bool is_ion_dma_buf(struct dma_buf *dmabuf)
+{
+	return dmabuf->ops == &dma_buf_ops;
+}
+EXPORT_SYMBOL_GPL(is_ion_dma_buf);
+
+int mem_buf_dma_buf_set_destructor(struct dma_buf *dmabuf,
+				   mem_buf_dma_buf_destructor dtor,
+				   void *dtor_data)
+{
+	struct ion_buffer *buffer;
+
+	if (!is_ion_dma_buf(dmabuf))
+		return -EINVAL;
+
+	buffer = to_iommu_data(dmabuf->priv);
+	mutex_lock(&buffer->lock);
+	buffer->dtor = dtor;
+	buffer->dtor_data = dtor_data;
+	mutex_unlock(&buffer->lock);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(mem_buf_dma_buf_set_destructor);
 
 struct dma_buf *ion_dmabuf_alloc(struct ion_device *dev, size_t len,
 				 unsigned int heap_id_mask,
