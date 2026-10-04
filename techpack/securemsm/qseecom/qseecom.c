@@ -2141,6 +2141,50 @@ perf_enable_exit:
 	return ret;
 }
 
+static int qseecom_scale_bus_bandwidth(struct qseecom_dev_handle *data,
+						void __user *argp)
+{
+	int32_t ret = 0;
+	int32_t req_mode;
+
+	if (qseecom.no_clock_support)
+		return 0;
+
+	ret = copy_from_user(&req_mode, argp, sizeof(req_mode));
+	if (ret) {
+		pr_err("copy_from_user failed\n");
+		return ret;
+	}
+	if (req_mode > HIGH) {
+		pr_err("Invalid bandwidth mode (%d)\n", req_mode);
+		return -EINVAL;
+	}
+
+	/*
+	 * Register bus bandwidth needs if bus scaling feature is enabled;
+	 * otherwise, qseecom enable/disable clocks for the client directly.
+	 */
+	if (qseecom.support_bus_scaling) {
+		mutex_lock(&qsee_bw_mutex);
+		ret = __qseecom_register_bus_bandwidth_needs(data, req_mode);
+		mutex_unlock(&qsee_bw_mutex);
+	} else {
+		pr_debug("Bus scaling feature is NOT enabled\n");
+		pr_debug("request bandwidth mode %d for the client\n",
+				req_mode);
+		if (req_mode != INACTIVE) {
+			ret = qseecom_perf_enable(data);
+			if (ret)
+				pr_err("Failed to vote for clock with err %d\n",
+						ret);
+		} else {
+			qsee_disable_clock_vote(data, CLK_DFAB);
+			qsee_disable_clock_vote(data, CLK_SFPB);
+		}
+	}
+	return ret;
+}
+
 static void __qseecom_add_bw_scale_down_timer(uint32_t duration)
 {
 	if (qseecom.no_clock_support)
@@ -8351,6 +8395,91 @@ long qseecom_ioctl(struct file *file,
 		if (ret)
 			pr_err("qseecom_get_qseos_version: %d\n", ret);
 		atomic_dec(&data->ioctl_count);
+		break;
+	}
+	case QSEECOM_IOCTL_PERF_ENABLE_REQ:{
+		mutex_lock(&app_access_lock);
+		if ((data->type != QSEECOM_GENERIC) &&
+			(data->type != QSEECOM_CLIENT_APP)) {
+			pr_err("perf enable req: invalid handle (%d)\n",
+								data->type);
+			mutex_unlock(&app_access_lock);
+			ret = -EINVAL;
+			break;
+		}
+		if ((data->type == QSEECOM_CLIENT_APP) &&
+			(data->client.app_id == 0)) {
+			pr_err("perf enable req:invalid handle(%d) appid(%d)\n",
+					data->type, data->client.app_id);
+			mutex_unlock(&app_access_lock);
+			ret = -EINVAL;
+			break;
+		}
+		atomic_inc(&data->ioctl_count);
+		if (qseecom.support_bus_scaling) {
+			mutex_lock(&qsee_bw_mutex);
+			__qseecom_register_bus_bandwidth_needs(data, HIGH);
+			mutex_unlock(&qsee_bw_mutex);
+		} else {
+			ret = qseecom_perf_enable(data);
+			if (ret)
+				pr_err("Fail to vote for clocks %d\n", ret);
+		}
+		atomic_dec(&data->ioctl_count);
+		mutex_unlock(&app_access_lock);
+		break;
+	}
+	case QSEECOM_IOCTL_PERF_DISABLE_REQ:{
+		mutex_lock(&app_access_lock);
+		if ((data->type != QSEECOM_SECURE_SERVICE) &&
+			(data->type != QSEECOM_CLIENT_APP)) {
+			pr_err("perf disable req: invalid handle (%d)\n",
+								data->type);
+			mutex_unlock(&app_access_lock);
+			ret = -EINVAL;
+			break;
+		}
+		if ((data->type == QSEECOM_CLIENT_APP) &&
+			(data->client.app_id == 0)) {
+			pr_err("perf disable: invalid handle (%d)app_id(%d)\n",
+					data->type, data->client.app_id);
+			mutex_unlock(&app_access_lock);
+			ret = -EINVAL;
+			break;
+		}
+		atomic_inc(&data->ioctl_count);
+		if (!qseecom.support_bus_scaling) {
+			qsee_disable_clock_vote(data, CLK_DFAB);
+			qsee_disable_clock_vote(data, CLK_SFPB);
+		} else {
+			mutex_lock(&qsee_bw_mutex);
+			qseecom_unregister_bus_bandwidth_needs(data);
+			mutex_unlock(&qsee_bw_mutex);
+		}
+		atomic_dec(&data->ioctl_count);
+		mutex_unlock(&app_access_lock);
+		break;
+	}
+
+	case QSEECOM_IOCTL_SET_BUS_SCALING_REQ: {
+		/* If crypto clock is not handled by HLOS, return directly. */
+		if (qseecom.no_clock_support) {
+			pr_debug("crypto clock is not handled by HLOS\n");
+			break;
+		}
+		mutex_lock(&app_access_lock);
+		if ((data->client.app_id == 0) ||
+			(data->type != QSEECOM_CLIENT_APP)) {
+			pr_err("set bus scale: invalid handle (%d) appid(%d)\n",
+					data->type, data->client.app_id);
+			mutex_unlock(&app_access_lock);
+			ret = -EINVAL;
+			break;
+		}
+		atomic_inc(&data->ioctl_count);
+		ret = qseecom_scale_bus_bandwidth(data, argp);
+		atomic_dec(&data->ioctl_count);
+		mutex_unlock(&app_access_lock);
 		break;
 	}
 	case QSEECOM_IOCTL_LOAD_EXTERNAL_ELF_REQ: {

@@ -172,6 +172,12 @@ struct file;
 #define QSEECOM_IOCTL_GET_QSEOS_VERSION_REQ \
 	_IOWR(QSEECOM_IOC_MAGIC, 10, struct qseecom_qseos_version_req)
 
+#define QSEECOM_IOCTL_PERF_ENABLE_REQ \
+	_IO(QSEECOM_IOC_MAGIC, 11)
+
+#define QSEECOM_IOCTL_PERF_DISABLE_REQ \
+	_IO(QSEECOM_IOC_MAGIC, 12)
+
 #define QSEECOM_IOCTL_LOAD_EXTERNAL_ELF_REQ \
 	_IOWR(QSEECOM_IOC_MAGIC, 13, struct qseecom_load_img_req)
 
@@ -186,6 +192,9 @@ struct file;
 
 #define QSEECOM_IOCTL_SEND_MODFD_RESP \
 	_IOWR(QSEECOM_IOC_MAGIC, 21, struct qseecom_send_modfd_listener_resp)
+
+#define QSEECOM_IOCTL_SET_BUS_SCALING_REQ \
+	_IOWR(QSEECOM_IOC_MAGIC, 23, int)
 
 #define QSEECOM_IOCTL_SEND_MODFD_CMD_64_REQ \
 	_IOWR(QSEECOM_IOC_MAGIC, 35, struct qseecom_send_modfd_cmd_req)
