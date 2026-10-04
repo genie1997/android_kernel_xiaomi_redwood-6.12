@@ -5,8 +5,9 @@
  */
 
 #include <linux/dma-buf.h>
-#include <linux/dma-noncoherent.h>
+#include <linux/dma-map-ops.h>
 #include <linux/msm_dma_iommu_mapping.h>
+#include <linux/qcom-dma-mapping.h>
 #include <linux/scatterlist.h>
 #include <linux/slab.h>
 #include <asm/barrier.h>
