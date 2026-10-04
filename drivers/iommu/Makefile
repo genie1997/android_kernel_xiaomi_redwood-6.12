@@ -36,3 +36,4 @@ obj-$(CONFIG_QCOM_IOMMU_UTIL) += qcom_iommu_util.o
 qcom_iommu_util-objs += qcom-iommu-util.o
 qcom_iommu_util-$(CONFIG_IOMMU_IO_PGTABLE_FAST) += qcom-dma-iommu-generic.o io-pgtable-fast.o dma-mapping-fast.o
 qcom_iommu_util-$(CONFIG_IOMMU_IO_PGTABLE_LPAE) += qcom-io-pgtable-arm.o qcom-io-pgtable-alloc.o
+obj-$(CONFIG_QCOM_LAZY_MAPPING) += msm_dma_iommu_mapping.o

@@ -575,4 +575,16 @@ config QCOM_IOMMU_UTIL
 
 	  Say N here if unsure.
 
+config QCOM_LAZY_MAPPING
+	bool "Reference counted iommu-mapping support"
+	depends on ION
+	depends on IOMMU_API
+	help
+	  ION buffers may be shared between several software clients.
+	  Reference counting the mapping may simplify coordination between
+	  these clients, and decrease latency by preventing multiple
+	  map/unmaps of the same region.
+
+	  If unsure, say N here.
+
 endif # IOMMU_SUPPORT
