@@ -1899,7 +1899,7 @@ static int power_supply_read_temp(struct thermal_zone_device *tzd,
 	s64 delta;
 
 	WARN_ON(tzd == NULL);
-	psy = tzd->devdata;
+	psy = thermal_zone_device_priv(tzd);
 	bcdev = power_supply_get_drvdata(psy);
 	pst = &bcdev->psy_list[PSY_TYPE_XM];
 	batt_pst = &bcdev->psy_list[PSY_TYPE_BATTERY];
@@ -1950,8 +1950,10 @@ static int battery_chg_init_psy(struct battery_chg_dev *bcdev)
 
 #ifdef CONFIG_BQ_FUEL_GAUGE
 	psy = bcdev->psy_list[PSY_TYPE_BATTERY].psy;
-	psy->tzd = thermal_zone_device_register(psy->desc->name,
-					0, 0, psy, &psy_tzd_ops, NULL, 0, 0);
+	psy->tzd = thermal_tripless_zone_device_register(psy->desc->name,
+					psy, &psy_tzd_ops, NULL);
+	if (!IS_ERR(psy->tzd))
+		thermal_zone_device_enable(psy->tzd);
 #endif
 
 	bcdev->psy_list[PSY_TYPE_USB].psy =
