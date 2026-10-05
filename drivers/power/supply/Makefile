@@ -117,3 +117,5 @@ obj-$(CONFIG_CHARGER_SURFACE)	+= surface_charger.o
 obj-$(CONFIG_BATTERY_UG3105)	+= ug3105_battery.o
 obj-$(CONFIG_CHARGER_QCOM_SMB2)	+= qcom_pmi8998_charger.o
 obj-$(CONFIG_FUEL_GAUGE_MM8013)	+= mm8013.o
+obj-$(CONFIG_QTI_BATTERY_CHARGER)	+= qti_battery_charger_main.o
+qti_battery_charger_main-y += qti_battery_charger.o qti_typec_class.o
