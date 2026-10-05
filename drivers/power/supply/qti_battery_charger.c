@@ -5212,7 +5212,7 @@ error:
 	return rc;
 }
 
-static int battery_chg_remove(struct platform_device *pdev)
+static void battery_chg_remove(struct platform_device *pdev)
 {
 	struct battery_chg_dev *bcdev = platform_get_drvdata(pdev);
 	int rc;
@@ -5231,12 +5231,8 @@ static int battery_chg_remove(struct platform_device *pdev)
 	unregister_reboot_notifier(&bcdev->reboot_notifier);
 	qti_typec_class_deinit(bcdev->typec_class);
 	rc = pmic_glink_unregister_client(bcdev->client);
-	if (rc < 0) {
+	if (rc < 0)
 		pr_err("Error unregistering from pmic_glink, rc=%d\n", rc);
-		return rc;
-	}
-
-	return 0;
 }
 
 static const struct of_device_id battery_chg_match_table[] = {
