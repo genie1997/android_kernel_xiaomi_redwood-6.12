@@ -1452,84 +1452,6 @@ static int usb_psy_set_icl(struct battery_chg_dev *bcdev, u32 prop_id, int val)
 }
 
 #ifdef CONFIG_MACH_XIAOMI
-typedef enum {
-	POWER_SUPPLY_USB_REAL_TYPE_HVDCP2			= 0x80,
-	POWER_SUPPLY_USB_REAL_TYPE_HVDCP3			= 0x81,
-	POWER_SUPPLY_USB_REAL_TYPE_HVDCP3P5			= 0x82,
-	POWER_SUPPLY_USB_REAL_TYPE_USB_FLOAT 		= 0x83,
-	POWER_SUPPLY_USB_REAL_TYPE_HVDCP3_CLASSB	= 0x84,
-} power_supply_usb_type;
-
-struct quick_charge {
-	int adap_type;
-	enum power_supply_quick_charge_type adap_cap;
-};
-
-struct quick_charge adapter_cap[11] = {
-	{ POWER_SUPPLY_USB_TYPE_SDP,	QUICK_CHARGE_NORMAL },
-	{ POWER_SUPPLY_USB_TYPE_DCP,	QUICK_CHARGE_NORMAL },
-	{ POWER_SUPPLY_USB_TYPE_CDP,	QUICK_CHARGE_NORMAL },
-	{ POWER_SUPPLY_USB_TYPE_ACA,	QUICK_CHARGE_NORMAL },
-	{ POWER_SUPPLY_USB_REAL_TYPE_USB_FLOAT,	QUICK_CHARGE_NORMAL },
-	{ POWER_SUPPLY_USB_TYPE_PD,		QUICK_CHARGE_FAST },
-	{ POWER_SUPPLY_USB_REAL_TYPE_HVDCP2,	QUICK_CHARGE_FAST },
-	{ POWER_SUPPLY_USB_REAL_TYPE_HVDCP3,	QUICK_CHARGE_FAST },
-	{ POWER_SUPPLY_USB_REAL_TYPE_HVDCP3_CLASSB,	QUICK_CHARGE_FLASH },
-	{ POWER_SUPPLY_USB_REAL_TYPE_HVDCP3P5,	QUICK_CHARGE_FLASH },
-	{0, 0},
-};
-
-static u8 get_quick_charge_type(struct battery_chg_dev *bcdev)
-{
-	int i = 0, verify_digiest = 0;
-	u8 rc;
-	struct psy_state *pst = &bcdev->psy_list[PSY_TYPE_BATTERY];
-	enum power_supply_usb_type real_charger_type = 0;
-	int	batt_health;
-	u32 apdo_max;
-
-	rc = read_property_id(bcdev, pst, BATT_HEALTH);
-	if (rc < 0)
-		return rc;
-
-	batt_health = pst->prop[BATT_HEALTH];
-
-	pst = &bcdev->psy_list[PSY_TYPE_USB];
-	rc = read_property_id(bcdev, pst, USB_REAL_TYPE);
-	if (rc < 0)
-		return rc;
-
-	real_charger_type = pst->prop[USB_REAL_TYPE];
-	pst = &bcdev->psy_list[PSY_TYPE_XM];
-	rc = read_property_id(bcdev, pst, XM_PROP_PD_VERIFED);
-	verify_digiest = pst->prop[XM_PROP_PD_VERIFED];
-
-	rc = read_property_id(bcdev, pst, XM_PROP_APDO_MAX);
-	apdo_max =  pst->prop[XM_PROP_APDO_MAX];
-
-	if ((batt_health == POWER_SUPPLY_HEALTH_COLD)
-		|| (batt_health == POWER_SUPPLY_HEALTH_WARM)
-		|| (batt_health == POWER_SUPPLY_HEALTH_OVERHEAT)
-		|| (batt_health == POWER_SUPPLY_HEALTH_OVERVOLTAGE))
-		return QUICK_CHARGE_NORMAL;
-
-	if (real_charger_type == POWER_SUPPLY_USB_TYPE_PD_PPS && verify_digiest == 1) {
-		if (apdo_max >= 50)
-			return QUICK_CHARGE_SUPER;
-		else
-			return QUICK_CHARGE_TURBE;
-	} else if (real_charger_type == POWER_SUPPLY_USB_TYPE_PD_PPS)
-		return QUICK_CHARGE_FAST;
-
-	while (adapter_cap[i].adap_type != 0) {
-		if (real_charger_type == adapter_cap[i].adap_type)
-			return adapter_cap[i].adap_cap;
-		i++;
-	}
-
-	return QUICK_CHARGE_NORMAL;
-}
-
 static int battery_psy_set_fcc(struct battery_chg_dev *bcdev, u32 prop_id, int val)
 {
 	struct psy_state *pst = &bcdev->psy_list[PSY_TYPE_BATTERY];
@@ -1557,12 +1479,6 @@ static int usb_psy_get_prop(struct power_supply *psy,
 	int prop_id, rc;
 
 	pval->intval = -ENODATA;
-#ifdef CONFIG_MACH_XIAOMI
-	if (prop == POWER_SUPPLY_PROP_QUICK_CHARGE_TYPE) {
-		pval->intval = get_quick_charge_type(bcdev);
-		return 0;
-	}
-#endif
 
 	prop_id = get_property_id(pst, prop);
 	if (prop_id < 0)
@@ -1624,9 +1540,6 @@ static enum power_supply_property usb_props[] = {
 	POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT,
 	POWER_SUPPLY_PROP_USB_TYPE,
 	POWER_SUPPLY_PROP_TEMP,
-#ifdef CONFIG_MACH_XIAOMI
-	POWER_SUPPLY_PROP_QUICK_CHARGE_TYPE,
-#endif
 	POWER_SUPPLY_PROP_SCOPE,
 };
 
