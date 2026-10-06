@@ -38,11 +38,7 @@
 /*
  * PMR735a specific diff for xiaomi sm7325 platform
  */
-&pmr735a_debug {
-	status = "disabled";
-};
-
-&pmr735a_spmi {
+&pmr735a_1 {
 	status = "disabled";
 };
 
