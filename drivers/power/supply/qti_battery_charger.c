@@ -5177,6 +5177,7 @@ static int battery_chg_probe(struct platform_device *pdev)
 	INIT_WORK(&bcdev->usb_type_work, battery_chg_update_usb_type_work);
 #ifdef CONFIG_MACH_XIAOMI
 	INIT_WORK(&bcdev->notify_blankstate_work, notify_blankstate_changed_work);
+	INIT_DELAYED_WORK(&bcdev->xm_prop_change_work, generate_xm_charge_uvent);
 #endif
 	bcdev->dev = dev;
 
@@ -5288,8 +5289,6 @@ static int battery_chg_probe(struct platform_device *pdev)
 	schedule_work(&bcdev->usb_type_work);
 
 #ifdef CONFIG_MACH_XIAOMI
-	INIT_DELAYED_WORK(&bcdev->xm_prop_change_work, generate_xm_charge_uvent);
-
 	bcdev->slave_fg_verify_flag = false;
 	bcdev->shutdown_delay_en = true;
 	bcdev->hw_version_build = 0;
@@ -5317,6 +5316,10 @@ reg_error:
 #ifdef CONFIG_DRM_PANEL
 	if (active_panel)
 		drm_panel_notifier_unregister(active_panel, &bcdev->drm_notifier);
+#endif
+#ifdef CONFIG_MACH_XIAOMI
+	cancel_work_sync(&bcdev->notify_blankstate_work);
+	cancel_delayed_work_sync(&bcdev->xm_prop_change_work);
 #endif
 	return rc;
 }
@@ -5349,6 +5352,10 @@ static void battery_chg_remove(struct platform_device *pdev)
 	rc = pmic_glink_unregister_client(bcdev->client);
 	if (rc < 0)
 		pr_err("Error unregistering from pmic_glink, rc=%d\n", rc);
+#ifdef CONFIG_MACH_XIAOMI
+	cancel_work_sync(&bcdev->notify_blankstate_work);
+	cancel_delayed_work_sync(&bcdev->xm_prop_change_work);
+#endif
 }
 
 static const struct of_device_id battery_chg_match_table[] = {
