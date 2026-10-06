@@ -40,7 +40,7 @@ EXPORT_SYMBOL(get_panel);
 
 static struct mi_thermal_device {
 	struct device *dev;
-	struct class *class;
+	const struct class *class;
 	struct attribute_group attrs;
 } mi_thermal_dev;
 
@@ -532,7 +532,7 @@ static struct attribute *mi_thermal_dev_attr_group[] = {
 static void create_thermal_message_node(void)
 {
 	int ret = 0;
-	struct class *cls = NULL;
+	const struct class *cls = NULL;
 	struct kernfs_node *class_sd = NULL;
 	struct kernfs_node *thermal_sd = NULL;
 	struct kernfs_node *sysfs_sd = NULL;
