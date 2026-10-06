@@ -559,8 +559,9 @@ static void create_thermal_message_node(void)
 		mi_thermal_dev.class = cls;
 		mi_thermal_dev.dev = device_create(mi_thermal_dev.class, NULL,
 						   'H', NULL, "thermal_message");
-		if (!mi_thermal_dev.dev) {
+		if (IS_ERR(mi_thermal_dev.dev)) {
 			pr_err("%s create device dev err\n", __func__);
+			mi_thermal_dev.dev = NULL;
 			return;
 		}
 
@@ -628,7 +629,7 @@ static int mi_thermal_notify(struct notifier_block *self, unsigned long event,
 		break;
 	}
 
-	if (screen_last_status != screen_state) {
+	if (mi_thermal_dev.dev && screen_last_status != screen_state) {
 		sysfs_notify(&mi_thermal_dev.dev->kobj, NULL, "screen_state");
 		screen_last_status = screen_state;
 	}
