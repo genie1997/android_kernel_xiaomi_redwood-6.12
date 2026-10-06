@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/*
+ * Reserved memory as redwood's firmware lays it out, which differs from
+ * the later yupik firmware that yupik.dtsi describes.
+ */
+
+/delete-node/ &xbl_aop_mem;
+/delete-node/ &video_mem;
+/delete-node/ &pil_cdsp_mem;
+
+&pil_adsp_mem {
+	reg = <0x0 0x86700000 0x0 0x4000000>;
+};
+
+&reserved_memory {
+	xbl_aop_mem: xbl_aop_mem@80600000 {
+		no-map;
+		reg = <0x0 0x80600000 0x0 0x260000>;
+	};
+
+	pil_video_mem: cvp@8b200000 {
+		no-map;
+		reg = <0x0 0x8b200000 0x0 0x500000>;
+	};
+
+	pil_cdsp_mem: cdsp@9c700000 {
+		no-map;
+		reg = <0x0 0x9c700000 0x0 0x1e00000>;
+	};
+};

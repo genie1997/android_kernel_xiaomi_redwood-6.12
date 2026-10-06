@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include "yupik.dtsi"
+#include "yupik-redwood-reserved-memory.dtsi"
+
+/* Same root as yupik.dts, the board identity comes from the redwood overlay */
+/ {
+	model = "Qualcomm Technologies, Inc. Yupik SoC";
+	compatible = "qcom,yupik";
+	qcom,board-id = <0 0>;
+};
