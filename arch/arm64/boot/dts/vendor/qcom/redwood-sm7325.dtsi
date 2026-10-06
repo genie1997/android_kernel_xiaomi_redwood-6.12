@@ -2,9 +2,6 @@
 
 #include "redwood-pinctrl.dtsi"
 #include "xiaomi-sm7325-common.dtsi"
-#include "camera/redwood-sm7325-camera-sensor.dtsi"
-#include "display/redwood-sm7325-sde-display.dtsi"
-#include "redwood-audio-overlay.dtsi"
 
 &removed_mem {
 	reg = <0x0 0xc0000000 0x0 0x6800000>;
