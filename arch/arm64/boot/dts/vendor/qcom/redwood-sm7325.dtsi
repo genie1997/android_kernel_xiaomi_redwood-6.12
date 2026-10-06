@@ -3,8 +3,13 @@
 #include "redwood-pinctrl.dtsi"
 #include "xiaomi-sm7325-common.dtsi"
 
-&removed_mem {
-	reg = <0x0 0xc0000000 0x0 0x6800000>;
+&reserved_memory {
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+	removed_region@c0000000 {
+		reg = <0x0 0xc0000000 0x0 0x6800000>;
+	};
 };
 
 /*
@@ -196,6 +201,8 @@
 // Awinic AW88261 Smart Amp
 &qupv3_se3_i2c {
 	status = "ok";
+	#address-cells = <1>;
+	#size-cells = <0>;
 
 	/* TOP Smart PA */
 	aw882xx_smartpa@35 {
@@ -408,6 +415,8 @@
 
 &qupv3_se13_spi {
 	status = "ok";
+	#address-cells = <1>;
+	#size-cells = <0>;
 	qcom,rt;
 	pinctrl-1 = <&qupv3_se13_spi_sleep &qupv3_se13_spi_sleep_cs>;
 
@@ -450,6 +459,9 @@
 };
 
 &soc {
+	#address-cells = <1>;
+	#size-cells = <1>;
+
 	fingerprint_goodix {
 		compatible = "goodix,fingerprint";
 		l3c_vdd-supply = <&L3C>;

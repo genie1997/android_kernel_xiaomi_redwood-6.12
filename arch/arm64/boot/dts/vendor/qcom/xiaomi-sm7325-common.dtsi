@@ -299,6 +299,9 @@
 
 &qupv3_se15_spi {
 	status = "ok";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
 	ir-spi@0 {
 		compatible = "ir-spi-led";
 		reg = <0>;
