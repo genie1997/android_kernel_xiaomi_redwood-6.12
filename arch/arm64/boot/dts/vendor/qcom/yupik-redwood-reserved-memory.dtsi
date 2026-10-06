@@ -29,3 +29,37 @@
 		reg = <0x0 0x9c700000 0x0 0x1e00000>;
 	};
 };
+
+/* No trusted VM on redwood, its carveouts are RAM for Linux */
+/delete-node/ &pil_trustedvm_mem;
+/delete-node/ &qrtr_shbuf;
+/delete-node/ &chan0_shbuf;
+/delete-node/ &chan1_shbuf;
+
+&soc {
+	qcom,trustedvm@d0800000 {
+		/delete-property/ memory-region;
+		status = "disabled";
+	};
+
+	qcom,guestvm_loader {
+		status = "disabled";
+	};
+
+	qcom,svm_neuron_block {
+		status = "disabled";
+
+		channel@0 {
+			/delete-property/ shared-buffer;
+		};
+
+		channel@1 {
+			/delete-property/ shared-buffer;
+		};
+	};
+
+	qrtr-haven {
+		/delete-property/ shared-buffer;
+		status = "disabled";
+	};
+};
