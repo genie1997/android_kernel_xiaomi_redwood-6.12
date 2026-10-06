@@ -734,7 +734,7 @@ static int __init mi_thermal_interface_init(void)
 	ret = power_supply_reg_notifier(&usb_state.psy_nb);
 	if (ret < 0)
 		pr_err("%s: usb online notifier registration failed err: %d\n",
-		       ret);
+		       __func__, ret);
 
 	return 0;
 }
