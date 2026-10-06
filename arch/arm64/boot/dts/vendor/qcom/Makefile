@@ -1,5 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0
-dtb-$(CONFIG_ARCH_YUPIK) += yupik.dtb
+# Qualcomm's DT headers come before ACK's, as in Qualcomm's own DT build
+DTC_INCLUDE := $(srctree)/arch/arm64/boot/dts/vendor/include $(DTC_INCLUDE)
 
-# ABL applies the board overlay on top of this base, so it needs its symbols
-DTC_FLAGS_yupik := -@
+# Applied at build time, so a target missing from the base fails here and not in ABL
+yupik-redwood-sm7325-overlay-dtbs := yupik.dtb redwood-sm7325-overlay.dtbo
+
+dtb-$(CONFIG_ARCH_YUPIK) += yupik-redwood-sm7325-overlay.dtb yupik.dtb redwood-sm7325-overlay.dtbo
