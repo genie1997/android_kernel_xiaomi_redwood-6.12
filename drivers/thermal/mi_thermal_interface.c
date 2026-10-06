@@ -110,9 +110,7 @@ static void cpu_limits_set_level(unsigned int cpu, unsigned int max_freq)
 		if (cpufreq_dev->id == cpu) {
 			for (level = 0; level <= cpufreq_dev->max_level; level++) {
 				if (max_freq >= cpufreq_dev->freq_table[level].frequency) {
-					level = level - 3;
-					if (level < 0)
-						level = 0;
+					level = level > 3 ? level - 3 : 0;
 					cpufreq_set_level(cpufreq_dev, level);
 					break;
 				}
