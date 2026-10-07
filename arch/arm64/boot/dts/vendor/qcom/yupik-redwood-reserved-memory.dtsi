@@ -80,3 +80,23 @@
 &soc {
 	/delete-node/ qcom_ramoops;
 };
+
+/* Regions for drivers this kernel doesn't build, none of them reserved on the phone */
+/delete-node/ &kinfo_mem;
+/delete-node/ &va_md_mem;
+/delete-node/ &dump_mem;
+/delete-node/ &non_secure_display_memory;
+
+&soc {
+	/delete-node/ google,debug-kinfo;
+	/delete-node/ va_mini_dump;
+
+	mem_dump {
+		/delete-property/ memory-region;
+		status = "disabled";
+	};
+
+	qcom,dma-heaps {
+		/delete-node/ qcom,display;
+	};
+};
