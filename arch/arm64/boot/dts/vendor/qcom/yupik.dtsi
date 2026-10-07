@@ -3148,7 +3148,6 @@
 #include "msm-rdbg.dtsi"
 #include "yupik-thermal.dtsi"
 #include "yupik-walt.dtsi"
-#include "yupik-coresight.dtsi"
 
 /* HS UART */
 &qupv3_se7_4uart {
