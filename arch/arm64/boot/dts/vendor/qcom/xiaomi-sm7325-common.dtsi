@@ -105,31 +105,25 @@
  * PMK8350 specific diff for Xiaomi SM7325 platform
  */
 &pmk8350_adc_tm {
-	io-channels = <&pmk8350_vadc PM7325_ADC7_AMUX_THM1_100K_PU>,
-				  <&pmk8350_vadc PM7325_ADC7_AMUX_THM2_100K_PU>,
-				  <&pmk8350_vadc PM7325_ADC7_AMUX_THM3_100K_PU>,
-				  <&pmk8350_vadc PM7325_ADC7_AMUX_THM4_100K_PU>,
-				  <&pmk8350_vadc PM7325_ADC7_AMUX_THM5_100K_PU>,
-				  <&pmk8350_vadc PMK8350_ADC7_AMUX_THM1_100K_PU>,
-				  <&pmk8350_vadc PM7325B_ADC7_GPIO2_100K_PU>,
-				  <&pmk8350_vadc PM7325_ADC7_GPIO3_100K_PU>;
-
 	pm7325b_chg_skin_therm {
-		reg = <PM7325B_ADC7_GPIO2_100K_PU>;
+		reg = <5>;
+		io-channels = <&pmk8350_vadc PM7325B_ADC7_GPIO2_100K_PU>;
 		qcom,ratiometric;
-		qcom,hw-settle-time = <200>;
+		qcom,hw-settle-time-us = <200>;
 	};
 
 	pm7325_pa_4gtherm {
-		reg = <PM7325_ADC7_AMUX_THM5_100K_PU>;
+		reg = <6>;
+		io-channels = <&pmk8350_vadc PM7325_ADC7_AMUX_THM5_100K_PU>;
 		qcom,ratiometric;
-		qcom,hw-settle-time = <200>;
+		qcom,hw-settle-time-us = <200>;
 	};
 
 	pm7325_pa_5gtherm {
-		reg = <PM7325_ADC7_GPIO3_100K_PU>;
+		reg = <7>;
+		io-channels = <&pmk8350_vadc PM7325_ADC7_GPIO3_100K_PU>;
 		qcom,ratiometric;
-		qcom,hw-settle-time = <200>;
+		qcom,hw-settle-time-us = <200>;
 	};
 };
 
@@ -224,7 +218,7 @@
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
 		thermal-governor = "user_space";
-		thermal-sensors = <&pmk8350_adc_tm PM7325B_ADC7_GPIO2_100K_PU>;
+		thermal-sensors = <&pmk8350_adc_tm 5>;
 		wake-capable-sensor;
 
 		trips {
