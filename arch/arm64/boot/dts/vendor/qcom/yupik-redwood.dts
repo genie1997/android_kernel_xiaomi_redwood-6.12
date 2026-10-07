@@ -18,6 +18,13 @@
 	/delete-node/ qcom,dma-heaps;
 };
 
+/* redwood boots from UFS only: no boot-device fuse check, as on the 5.4 base */
+&ufshc_mem {
+	/delete-property/ boot_device_type;
+	/delete-property/ nvmem-cells;
+	/delete-property/ nvmem-cell-names;
+};
+
 &firmware {
 	android {
 		compatible = "android,firmware";
