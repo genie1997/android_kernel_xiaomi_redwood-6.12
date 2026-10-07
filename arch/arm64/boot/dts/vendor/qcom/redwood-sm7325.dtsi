@@ -26,35 +26,27 @@
 /*
  * PMK8350 device specific diff for Xiaomi Redwood platform
  */
-&pmk8350 {
-	pm8350_adc_tm_iio: adc_tm_iio@3400 {
-		compatible = "qcom,adc-tm7-iio";
-		reg = <0x3400>;
-		#thermal-sensor-cells = <1>;
-		#address-cells = <1>;
-		#size-cells = <0>;
+&soc {
+	/* All 8 ADC-TM slots are taken, these are read on demand */
+	pm7325b_batt_therm_bridge: pm7325b_batt_therm_bridge {
+		compatible = "generic-adc-thermal";
+		io-channels = <&pmk8350_vadc PM7325B_ADC7_AMUX_THM1_100K_PU>;
+		io-channel-names = "sensor-channel";
+		#thermal-sensor-cells = <0>;
+	};
 
-		io-channels = <&pmk8350_vadc PM7325B_ADC7_AMUX_THM1_100K_PU>,
-					  <&pmk8350_vadc PM7325B_ADC7_AMUX_THM4_100K_PU>,
-					  <&pmk8350_vadc PM7325B_ADC7_GPIO3_100K_PU>;
+	pm7325b_conn_therm_bridge: pm7325b_conn_therm_bridge {
+		compatible = "generic-adc-thermal";
+		io-channels = <&pmk8350_vadc PM7325B_ADC7_AMUX_THM4_100K_PU>;
+		io-channel-names = "sensor-channel";
+		#thermal-sensor-cells = <0>;
+	};
 
-		pm7325b_batt_therm {
-			reg = <PM7325B_ADC7_AMUX_THM1_100K_PU>;
-			qcom,ratiometric;
-			qcom,hw-settle-time = <200>;
-		};
-
-		pm7325b_conn_therm {
-			reg = <PM7325B_ADC7_AMUX_THM4_100K_PU>;
-			qcom,ratiometric;
-			qcom,hw-settle-time = <200>;
-		};
-
-		pm7325b_modem1_pa1 {
-			reg = <PM7325B_ADC7_GPIO3_100K_PU>;
-			qcom,ratiometric;
-			qcom,hw-settle-time = <200>;
-		};
+	pm7325b_modem1_pa1_bridge: pm7325b_modem1_pa1_bridge {
+		compatible = "generic-adc-thermal";
+		io-channels = <&pmk8350_vadc PM7325B_ADC7_GPIO3_100K_PU>;
+		io-channel-names = "sensor-channel";
+		#thermal-sensor-cells = <0>;
 	};
 };
 
@@ -62,9 +54,10 @@
 	/delete-node/ pm7325_pa_5gtherm;
 
 	pm7325_modem1_pa0 {
-		reg = <PM7325_ADC7_GPIO3_100K_PU>;
+		reg = <7>;
+		io-channels = <&pmk8350_vadc PM7325_ADC7_GPIO3_100K_PU>;
 		qcom,ratiometric;
-		qcom,hw-settle-time = <200>;
+		qcom,hw-settle-time-us = <200>;
 	};
 };
 
@@ -121,7 +114,7 @@
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
 		thermal-governor = "user_space";
-		thermal-sensors = <&pm8350_adc_tm_iio PM7325B_ADC7_AMUX_THM1_100K_PU>;
+		thermal-sensors = <&pm7325b_batt_therm_bridge>;
 		wake-capable-sensor;
 
 		trips {
@@ -137,7 +130,7 @@
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
 		thermal-governor = "user_space";
-		thermal-sensors = <&pm8350_adc_tm_iio PM7325B_ADC7_AMUX_THM4_100K_PU>;
+		thermal-sensors = <&pm7325b_conn_therm_bridge>;
 		wake-capable-sensor;
 
 		trips {
@@ -153,7 +146,7 @@
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
 		thermal-governor = "user_space";
-		thermal-sensors = <&pmk8350_adc_tm PM7325_ADC7_AMUX_THM5_100K_PU>;
+		thermal-sensors = <&pmk8350_adc_tm 6>;
 		wake-capable-sensor;
 
 		trips {
@@ -169,7 +162,7 @@
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
 		thermal-governor = "user_space";
-		thermal-sensors = <&pmk8350_adc_tm PM7325_ADC7_GPIO3_100K_PU>;
+		thermal-sensors = <&pmk8350_adc_tm 7>;
 		wake-capable-sensor;
 
 		trips {
@@ -185,7 +178,7 @@
 		polling-delay-passive = <0>;
 		polling-delay = <0>;
 		thermal-governor = "user_space";
-		thermal-sensors = <&pm8350_adc_tm_iio PM7325B_ADC7_GPIO3_100K_PU>;
+		thermal-sensors = <&pm7325b_modem1_pa1_bridge>;
 		wake-capable-sensor;
 
 		trips {
