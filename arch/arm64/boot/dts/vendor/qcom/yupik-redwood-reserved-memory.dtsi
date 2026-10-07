@@ -95,8 +95,4 @@
 		/delete-property/ memory-region;
 		status = "disabled";
 	};
-
-	qcom,dma-heaps {
-		/delete-node/ qcom,display;
-	};
 };

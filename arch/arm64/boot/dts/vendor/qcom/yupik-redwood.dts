@@ -4,12 +4,18 @@
 
 #include "yupik.dtsi"
 #include "yupik-redwood-reserved-memory.dtsi"
+#include "yupik-ion.dtsi"
 
 /* Same root as yupik.dts, the board identity comes from the redwood overlay */
 / {
 	model = "Qualcomm Technologies, Inc. Yupik SoC";
 	compatible = "qcom,yupik";
 	qcom,board-id = <0 0>;
+};
+
+/* The ION driver serves these heaps, as on the 5.4 base; nothing here reads qcom,dma-heaps */
+&soc {
+	/delete-node/ qcom,dma-heaps;
 };
 
 &firmware {
