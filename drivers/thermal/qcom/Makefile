@@ -8,3 +8,4 @@ obj-$(CONFIG_QCOM_SPMI_ADC_TM5)	+= qcom-spmi-adc-tm5.o
 obj-$(CONFIG_QCOM_SPMI_TEMP_ALARM)	+= qcom-spmi-temp-alarm.o
 obj-$(CONFIG_QCOM_LMH)		+= lmh.o
 obj-$(CONFIG_QTI_THERMAL_LIMITS_DCVS)	+= msm_lmh_dcvs.o
+obj-$(CONFIG_QTI_THERMAL_VENDOR_HOOK)	+= qti_thermal_vendor_hooks.o
