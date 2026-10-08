@@ -1052,12 +1052,10 @@ static void tsens_check_persist_data_feature(struct tsens_priv *priv,
 	}
 }
 
-static int init_cold_interrupt(struct tsens_priv *priv,
-				struct platform_device *op, u32 ver_minor)
+static int init_cold_interrupt(struct tsens_priv *priv, u32 ver_minor)
 {
 
 	struct device *dev = priv->dev;
-	int ret = 0;
 
 	if (tsens_version(priv) > VER_1_X &&  ver_minor > 5) {
 		/* COLD interrupt is present only on v2.6+ */
@@ -1066,15 +1064,11 @@ static int init_cold_interrupt(struct tsens_priv *priv,
 						dev,
 						priv->tm_map,
 						priv->fields[COLD_STATUS]);
-		if (IS_ERR(priv->rf[COLD_STATUS])) {
-			ret = PTR_ERR(priv->rf[COLD_STATUS]);
-			goto err_put_device;
-		}
+		if (IS_ERR(priv->rf[COLD_STATUS]))
+			return PTR_ERR(priv->rf[COLD_STATUS]);
 	}
 
-err_put_device:
-	put_device(&op->dev);
-	return ret;
+	return 0;
 }
 
 int __init init_common(struct tsens_priv *priv)
@@ -1255,7 +1249,7 @@ int __init init_common(struct tsens_priv *priv)
 		regmap_field_write(priv->rf[CC_MON_MASK], 1);
 	}
 
-	ret = init_cold_interrupt(priv, op, ver_minor);
+	ret = init_cold_interrupt(priv, ver_minor);
 	spin_lock_init(&priv->ul_lock);
 
 	/* VER_0 interrupt doesn't need to be enabled */
