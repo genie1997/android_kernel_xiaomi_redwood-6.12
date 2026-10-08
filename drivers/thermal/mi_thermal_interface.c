@@ -74,7 +74,7 @@ static atomic_t market_download_limit = ATOMIC_INIT(0);
 static atomic_t modem_limit = ATOMIC_INIT(0);
 static atomic_t poor_modem_limit = ATOMIC_INIT(0);
 static atomic_t temp_state = ATOMIC_INIT(0);
-static atomic_t sconfig = ATOMIC_INIT(10);
+static atomic_t sconfig = ATOMIC_INIT(0);
 static atomic_t wifi_limit = ATOMIC_INIT(0);
 
 static const char *board_sensor;
