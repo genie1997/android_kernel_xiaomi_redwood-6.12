@@ -24,6 +24,26 @@
 };
 
 /*
+ * PM7325B device specific diff for Xiaomi Redwood platform
+ */
+&pm7325b_gpios {
+	/* GPIO2 and GPIO3 are thermistor inputs, high impedance keeps their ADC reading right */
+	pm7325b_chg_skin_therm {
+		pm7325b_chg_skin_therm_default: pm7325b_chg_skin_therm_default {
+			pins = "gpio2";
+			bias-high-impedance;
+		};
+	};
+
+	pm7325b_modem1_pa1 {
+		pm7325b_modem1_pa1_default: pm7325b_modem1_pa1_default {
+			pins = "gpio3";
+			bias-high-impedance;
+		};
+	};
+};
+
+/*
  * PMK8350 device specific diff for Xiaomi Redwood platform
  */
 &soc {
@@ -62,6 +82,9 @@
 };
 
 &pmk8350_vadc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pm7325b_chg_skin_therm_default &pm7325b_modem1_pa1_default>;
+
 	/delete-node/ pm7325_pa_5gtherm;
 
 	pm7325_modem1_pa0 {
