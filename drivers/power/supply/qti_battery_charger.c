@@ -511,6 +511,7 @@ struct battery_chg_dev {
 	bool				shutdown_delay_en;
 	/*dual battery authentic flag*/
 	bool				slave_fg_verify_flag;
+	bool				battery_auth;
 #endif
 	bool				restrict_chg_en;
 	/* To track the driver initialization status */
@@ -1999,6 +2000,23 @@ static void battery_chg_subsys_up_work(struct work_struct *work)
 			pr_err("Failed to set ICL(%u uA), rc=%d\n",
 				bcdev->usb_icl_ua, rc);
 	}
+
+#ifdef CONFIG_MACH_XIAOMI
+	if (bcdev->curr_thermal_level) {
+		rc = write_property_id(bcdev, &bcdev->psy_list[PSY_TYPE_BATTERY],
+				BATT_CHG_CTRL_LIM, bcdev->curr_thermal_level);
+		if (rc < 0)
+			pr_err("Failed to set ccl:%d, rc=%d\n",
+				bcdev->curr_thermal_level, rc);
+	}
+
+	if (bcdev->battery_auth) {
+		rc = write_property_id(bcdev, &bcdev->psy_list[PSY_TYPE_XM],
+				XM_PROP_AUTHENTIC, 1);
+		if (rc < 0)
+			pr_err("Failed to set battery authentic, rc=%d\n", rc);
+	}
+#endif
 }
 
 static int wireless_fw_send_firmware(struct battery_chg_dev *bcdev,
@@ -2698,6 +2716,7 @@ static ssize_t authentic_store(const struct class *c,
 	if (kstrtobool(buf, &val))
 		return -EINVAL;
 
+	bcdev->battery_auth = val;
 	pr_debug("authentic_store: %d\n", val);
 	rc = write_property_id(bcdev, &bcdev->psy_list[PSY_TYPE_XM],
 				XM_PROP_AUTHENTIC, val);
