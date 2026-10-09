@@ -1637,11 +1637,6 @@ static int battery_psy_set_charge_current(struct battery_chg_dev *bcdev,
 	u32 fcc_ua, prev_fcc_ua;
 #endif
 
-#ifdef CONFIG_MACH_XIAOMI
-	if (val == bcdev->curr_thermal_level)
-	      return 0;
-#endif
-
 	if (!bcdev->num_thermal_levels)
 		return 0;
 
@@ -1660,8 +1655,8 @@ static int battery_psy_set_charge_current(struct battery_chg_dev *bcdev,
 				BATT_CHG_CTRL_LIM, val);
 	if (rc < 0)
 		pr_err("Failed to set ccl:%d, rc=%d\n", val, rc);
-
-	bcdev->curr_thermal_level = val;
+	else
+		bcdev->curr_thermal_level = val;
 #else
 	if (val < 0 || val > bcdev->num_thermal_levels)
 		return -EINVAL;
