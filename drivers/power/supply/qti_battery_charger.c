@@ -5082,11 +5082,17 @@ static int battery_chg_notify(struct notifier_block *self, unsigned long event,
 	switch (*blank) {
 	case DRM_PANEL_BLANK_POWERDOWN:
 #ifdef CONFIG_MACH_XIAOMI
-	case DRM_PANEL_BLANK_LP:
 		blank_state = 1;
 #endif
 		battery_chg_notify_disable(bcdev);
 		break;
+#ifdef CONFIG_MACH_XIAOMI
+	case DRM_PANEL_BLANK_LP:
+		/* An always-on display still shows the charging state */
+		blank_state = 1;
+		battery_chg_notify_enable(bcdev);
+		break;
+#endif
 	case DRM_PANEL_BLANK_UNBLANK:
 #ifdef CONFIG_MACH_XIAOMI
 		blank_state = 0;
