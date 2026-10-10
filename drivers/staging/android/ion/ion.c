@@ -381,3 +381,6 @@ err_reg:
 	return ret;
 }
 subsys_initcall(ion_device_create);
+
+MODULE_DESCRIPTION("Ion memory allocator");
+MODULE_LICENSE("GPL v2");
