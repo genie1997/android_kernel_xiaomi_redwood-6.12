@@ -28,29 +28,6 @@
 #include <linux/errno.h>
 #include <linux/list.h>
 #include <linux/mutex.h>
-#include <linux/notifier.h>
-
-/* A hardware display blank change occurred */
-#define DRM_PANEL_EVENT_BLANK		0x01
-/* A hardware display blank early change occurred */
-#define DRM_PANEL_EARLY_EVENT_BLANK	0x02
-
-enum {
-	/* panel: power on */
-	DRM_PANEL_BLANK_UNBLANK,
-	/* panel: power off */
-	DRM_PANEL_BLANK_POWERDOWN,
-	/* panel: low power mode */
-	DRM_PANEL_BLANK_LP,
-	/* fps change */
-	DRM_PANEL_BLANK_FPS_CHANGE,
-};
-
-struct drm_panel_notifier {
-	int refresh_rate;
-	void *data;
-	uint32_t id;
-};
 
 struct backlight_device;
 struct dentry;
@@ -268,13 +245,6 @@ struct drm_panel {
 	struct mutex follower_lock;
 
 	/**
-	 * @nh:
-	 *
-	 * panel notifier list head
-	 */
-	struct blocking_notifier_head nh;
-
-	/**
 	 * @prepare_prev_first:
 	 *
 	 * The previous controller should be prepared first, before the prepare
@@ -305,13 +275,6 @@ void drm_panel_init(struct drm_panel *panel, struct device *dev,
 
 void drm_panel_add(struct drm_panel *panel);
 void drm_panel_remove(struct drm_panel *panel);
-
-int drm_panel_notifier_register(struct drm_panel *panel,
-	struct notifier_block *nb);
-int drm_panel_notifier_unregister(struct drm_panel *panel,
-	struct notifier_block *nb);
-int drm_panel_notifier_call_chain(struct drm_panel *panel,
-	unsigned long val, void *v);
 
 int drm_panel_prepare(struct drm_panel *panel);
 int drm_panel_unprepare(struct drm_panel *panel);

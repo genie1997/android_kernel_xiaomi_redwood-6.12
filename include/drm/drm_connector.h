@@ -2121,13 +2121,6 @@ struct drm_connector {
 	 * @hdmi: HDMI-related variable and properties.
 	 */
 	struct drm_connector_hdmi hdmi;
-
-	/**
-	 * @panel:
-	 *
-	 * Can find the panel which connected to drm_connector.
-	 */
-	struct drm_panel *panel;
 };
 
 #define obj_to_connector(x) container_of(x, struct drm_connector, base)
