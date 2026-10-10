@@ -1185,3 +1185,22 @@ config HIST_TRIGGERS_DEBUG
 source "kernel/trace/rv/Kconfig"
 
 endif # FTRACE
+
+config IPC_LOGGING
+	tristate "Debug Logging for IPC Drivers"
+	depends on DEBUG_FS && FTRACE
+	help
+	  IPC Logging driver provides a logging option for IPC Drivers.
+	  This provides a cyclic buffer based logging support in a driver
+	  specific context. This driver also provides a debugfs interface
+	  to dump the logs in a live fashion.
+
+	  If in doubt, say no.
+
+config IPC_LOG_MINIDUMP_BUFFERS
+	int "Ipc log buffers count that can be dumped with minidump"
+	depends on IPC_LOGGING
+	default 0
+	help
+	  This option is used to configure maximum number of ipc log
+	  buffers that can be dumped by minidump.
