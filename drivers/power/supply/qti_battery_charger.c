@@ -2603,7 +2603,7 @@ static ssize_t verify_digest_store(const struct class *c,
 	int i;
 
 	memset(kbuf, 0, sizeof(kbuf));
-	strncpy(kbuf, buf, count - 1);
+	strncpy(kbuf, buf, min_t(size_t, count - 1, 2 * BATTERY_DIGEST_LEN));
 	StringToHex(kbuf, random, &i);
 	rc = write_verify_digest_prop_id(bcdev, &bcdev->psy_list[PSY_TYPE_XM],
 		XM_PROP_VERIFY_DIGEST, random);
