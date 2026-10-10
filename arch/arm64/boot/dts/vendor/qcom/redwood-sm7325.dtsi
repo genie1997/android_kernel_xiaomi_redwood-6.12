@@ -498,6 +498,11 @@
 	};
 };
 
+/* the debug UART only reaches test pads, so no boot output goes to a port nothing reads */
+&qupv3_se5_2uart {
+	status = "disabled";
+};
+
 &sdhc_2 {
 	status = "disabled";
 };
