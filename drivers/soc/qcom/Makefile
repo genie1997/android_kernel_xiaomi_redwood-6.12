@@ -47,5 +47,6 @@ obj-$(CONFIG_QTI_PMIC_GLINK) += qti_pmic_glink.o
 obj-$(CONFIG_QTI_ALTMODE_GLINK) += altmode-glink.o
 obj-$(CONFIG_QCOM_EUD) += eud.o
 obj-$(CONFIG_QCOM_SECURE_BUFFER) += secure_buffer.o
+obj-$(CONFIG_QCOM_PANEL_EVENT_NOTIFIER) += panel_event_notifier.o
 obj-$(CONFIG_QCOM_WDT_CORE) += qcom_wdt_core.o
 CFLAGS_qcom_wdt_core.o := -I$(srctree)/include/linux

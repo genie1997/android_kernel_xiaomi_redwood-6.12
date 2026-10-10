@@ -469,4 +469,14 @@ config QCOM_WATCHDOG_USERSPACE_PET
 	  interval that matches the time set in the pet-time config.
 	  The feature is supported through device sysfs files.
 
+config QCOM_PANEL_EVENT_NOTIFIER
+	tristate "panel event notifier"
+	depends on DRM
+	help
+	  Enabling this option adds panel event notifier driver.
+	  This driver is responsible for notifying clients interested in display
+	  panel events such as panel on , panel off, fps change etc.  clients
+	  can use these notifications for power saving or align its operations
+	  with display panel power state.
+
 endmenu
