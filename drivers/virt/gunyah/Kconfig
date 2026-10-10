@@ -60,3 +60,12 @@ config GUNYAH_QCOM_TRUSTED_VM
 	  firmware.
 
 	  Say Y/M here if unsure and you want to support QTVMs.
+
+config GH_VIRT_WATCHDOG
+	tristate "Gunyah Virtual Watchdog Driver"
+	depends on QCOM_WDT_CORE
+	help
+	  This enables the Qualcomm Technologies, Inc. watchdog module for
+	  the Gunyah hypervisor. It provides an interface to perform watchdog
+	  actions such as setting the bark/bite time and also petting the
+	  watchdog in the hypervisor.
