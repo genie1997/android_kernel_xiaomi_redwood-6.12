@@ -26,9 +26,7 @@
 #include <linux/ktime.h>
 #include <linux/string.h>
 #endif
-#ifdef CONFIG_DRM_PANEL
-#include <drm/drm_panel.h>
-#endif
+#include <linux/soc/qcom/panel_event_notifier.h>
 #include "qti_typec_class.h"
 
 #define MSG_OWNER_BC			32778
@@ -471,9 +469,7 @@ struct battery_chg_dev {
 	struct dentry			*debugfs_dir;
 	/* extcon for VBUS/ID notification for USB for micro USB */
 	struct extcon_dev		*extcon;
-#ifdef CONFIG_DRM_PANEL
-	struct notifier_block		drm_notifier;
-#endif
+	void				*notifier_cookie;
 	u32				*thermal_levels;
 	const char			*wls_fw_name;
 	int				curr_thermal_level;
@@ -5053,78 +5049,100 @@ static void notify_blankstate_changed_work(struct work_struct *work)
 }
 #endif
 
-#ifdef CONFIG_DRM_PANEL
-static struct drm_panel *active_panel;
-
-static int drm_check_dt(struct device_node *np)
+static void panel_event_notifier_callback(enum panel_event_notifier_tag tag,
+			struct panel_event_notification *notification, void *data)
 {
-	int i;
-	int count;
-	struct device_node *node;
-	struct drm_panel *panel;
+	struct battery_chg_dev *bcdev = data;
 
-	count = of_count_phandle_with_args(np, "qcom,display-panels", NULL);
-	if (count <= 0)
-		return 0;
-
-	for (i = 0; i < count; i++) {
-		node = of_parse_phandle(np, "qcom,display-panels", i);
-		panel = of_drm_find_panel(node);
-		of_node_put(node);
-		if (!IS_ERR(panel)) {
-			active_panel = panel;
-			return 0;
-		}
+	if (!notification) {
+		pr_debug("Invalid panel notification\n");
+		return;
 	}
 
-	return PTR_ERR(panel);
-}
-
-static int battery_chg_notify(struct notifier_block *self, unsigned long event,
-			      void *data)
-{
-	struct battery_chg_dev *bcdev = container_of(self, struct battery_chg_dev,
-						     drm_notifier);
-	struct drm_panel_notifier *evdata = data;
-	int *blank = evdata->data;
-
 #ifdef CONFIG_MACH_XIAOMI
-	if (event != DRM_PANEL_EVENT_BLANK)
-		return NOTIFY_DONE;
+	if (notification->notif_data.early_trigger)
+		return;
 #endif
 
-	switch (*blank) {
-	case DRM_PANEL_BLANK_POWERDOWN:
+	pr_debug("panel event received, type: %d\n", notification->notif_type);
+	switch (notification->notif_type) {
+	case DRM_PANEL_EVENT_BLANK:
 #ifdef CONFIG_MACH_XIAOMI
 		blank_state = 1;
 #endif
 		battery_chg_notify_disable(bcdev);
 		break;
 #ifdef CONFIG_MACH_XIAOMI
-	case DRM_PANEL_BLANK_LP:
+	case DRM_PANEL_EVENT_BLANK_LP:
 		/* An always-on display still shows the charging state */
 		blank_state = 1;
 		battery_chg_notify_enable(bcdev);
 		break;
 #endif
-	case DRM_PANEL_BLANK_UNBLANK:
+	case DRM_PANEL_EVENT_UNBLANK:
 #ifdef CONFIG_MACH_XIAOMI
 		blank_state = 0;
 #endif
 		battery_chg_notify_enable(bcdev);
 		break;
 	default:
-		pr_debug("Ignore panel event: %d\n", *blank);
-		break;
+		pr_debug("Ignore panel event: %d\n", notification->notif_type);
+		return;
 	}
 
 #ifdef CONFIG_MACH_XIAOMI
 	schedule_work(&bcdev->notify_blankstate_work);
 #endif
-
-	return NOTIFY_OK;
 }
-#endif
+
+static int battery_chg_register_panel_notifier(struct battery_chg_dev *bcdev)
+{
+	struct device_node *np = bcdev->dev->of_node;
+	struct device_node *pnode;
+	struct drm_panel *panel, *active_panel = NULL;
+	void *cookie = NULL;
+	int i, count, rc;
+
+	count = of_count_phandle_with_args(np, "qcom,display-panels", NULL);
+	if (count <= 0)
+		return 0;
+
+	for (i = 0; i < count; i++) {
+		pnode = of_parse_phandle(np, "qcom,display-panels", i);
+		if (!pnode)
+			return -ENODEV;
+
+		panel = of_drm_find_panel(pnode);
+		of_node_put(pnode);
+		if (!IS_ERR(panel)) {
+			active_panel = panel;
+			break;
+		}
+	}
+
+	if (!active_panel) {
+		rc = PTR_ERR(panel);
+		if (rc != -EPROBE_DEFER)
+			dev_err(bcdev->dev, "Failed to find active panel, rc=%d\n", rc);
+		return rc;
+	}
+
+	cookie = panel_event_notifier_register(
+			PANEL_EVENT_NOTIFICATION_PRIMARY,
+			PANEL_EVENT_NOTIFIER_CLIENT_BATTERY_CHARGER,
+			active_panel,
+			panel_event_notifier_callback,
+			(void *)bcdev);
+	if (IS_ERR(cookie)) {
+		rc = PTR_ERR(cookie);
+		dev_err(bcdev->dev, "Failed to register panel event notifier, rc=%d\n", rc);
+		return rc;
+	}
+
+	pr_debug("register panel notifier successful\n");
+	bcdev->notifier_cookie = cookie;
+	return 0;
+}
 
 static int battery_chg_probe(struct platform_device *pdev)
 {
@@ -5201,24 +5219,9 @@ static int battery_chg_probe(struct platform_device *pdev)
 #endif
 	bcdev->dev = dev;
 
-#ifdef CONFIG_DRM_PANEL
-	rc = drm_check_dt(bcdev->dev->of_node);
-	if (rc) {
-		pr_err("Failed to parse active panel\n");
-		return (rc == -EPROBE_DEFER) ? rc : -ENODEV;
-	}
-
-	bcdev->drm_notifier.notifier_call = battery_chg_notify;
-	if (active_panel) {
-		rc = drm_panel_notifier_register(active_panel, &bcdev->drm_notifier);
-		if (rc) {
-			pr_err("Failed to register DRM panel notifier, rc=%d\n", rc);
-			return rc;
-		} else {
-			pr_info("Registered DRM panel notifier successfully\n");
-		}
-	}
-#endif
+	rc = battery_chg_register_panel_notifier(bcdev);
+	if (rc < 0)
+		return rc;
 
 	client_data.id = MSG_OWNER_BC;
 	client_data.name = "battery_charger";
@@ -5333,10 +5336,8 @@ error:
 	unregister_reboot_notifier(&bcdev->reboot_notifier);
 	pmic_glink_unregister_client(bcdev->client);
 reg_error:
-#ifdef CONFIG_DRM_PANEL
-	if (active_panel)
-		drm_panel_notifier_unregister(active_panel, &bcdev->drm_notifier);
-#endif
+	if (bcdev->notifier_cookie)
+		panel_event_notifier_unregister(bcdev->notifier_cookie);
 #ifdef CONFIG_MACH_XIAOMI
 	cancel_work_sync(&bcdev->notify_blankstate_work);
 	cancel_delayed_work_sync(&bcdev->xm_prop_change_work);
@@ -5355,10 +5356,8 @@ static void battery_chg_remove(struct platform_device *pdev)
 	up_write(&bcdev->state_sem);
 
 	qti_typec_class_deinit(bcdev->typec_class);
-#ifdef CONFIG_DRM_PANEL
-	if (active_panel)
-		drm_panel_notifier_unregister(active_panel, &bcdev->drm_notifier);
-#endif
+	if (bcdev->notifier_cookie)
+		panel_event_notifier_unregister(bcdev->notifier_cookie);
 
 	device_init_wakeup(bcdev->dev, false);
 	debugfs_remove_recursive(bcdev->debugfs_dir);
