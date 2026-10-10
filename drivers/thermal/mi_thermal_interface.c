@@ -17,26 +17,14 @@
 #include <linux/string.h>
 #include <linux/suspend.h>
 #include <linux/thermal.h>
-#ifdef CONFIG_DRM_PANEL
-#include <drm/drm_panel.h>
-#endif
+#include <linux/soc/qcom/panel_event_notifier.h>
+#include <linux/workqueue.h>
 
 #include <net/netlink.h>
 #include <net/genetlink.h>
 
 #include "thermal_core.h"
 #include "../base/base.h"
-
-#ifdef CONFIG_DRM_PANEL
-static struct drm_panel *active_panel;
-static struct notifier_block drm_notifier;
-
-struct drm_panel *get_panel(void)
-{
-	return active_panel;
-}
-EXPORT_SYMBOL(get_panel);
-#endif
 
 static struct mi_thermal_device {
 	struct device *dev;
@@ -583,59 +571,69 @@ static void destroy_thermal_message_node(void)
 	}
 }
 
-#ifdef CONFIG_DRM_PANEL
-static int thermal_check_panel(struct device_node *np)
+static void mi_thermal_panel_callback(enum panel_event_notifier_tag tag,
+		struct panel_event_notification *notification, void *data)
 {
-	int i, count;
-	struct device_node *node;
-	struct drm_panel *panel;
+	if (!notification || notification->notif_data.early_trigger)
+		return;
 
-	count = of_count_phandle_with_args(np, "qcom,display-panels", NULL);
-	if (count <= 0)
-		return 0;
-
-	for (i = 0; i < count; i++) {
-		node = of_parse_phandle(np, "qcom,display-panels", i);
-		panel = of_drm_find_panel(node);
-		of_node_put(node);
-		if (!IS_ERR(panel)) {
-			active_panel = panel;
-			return 0;
-		}
-	}
-
-	return PTR_ERR(panel);
-}
-
-static int mi_thermal_notify(struct notifier_block *self, unsigned long event,
-			     void *data)
-{
-	struct drm_panel_notifier *evdata = data;
-	int *blank = evdata->data;
-
-	if (event != DRM_PANEL_EVENT_BLANK)
-		return NOTIFY_DONE;
-
-	switch (*blank) {
-	case DRM_PANEL_BLANK_UNBLANK:
+	switch (notification->notif_type) {
+	case DRM_PANEL_EVENT_UNBLANK:
 		screen_state = 1;
 		break;
-	case DRM_PANEL_BLANK_LP:
-	case DRM_PANEL_BLANK_POWERDOWN:
+	case DRM_PANEL_EVENT_BLANK:
+	case DRM_PANEL_EVENT_BLANK_LP:
 		screen_state = 0;
 		break;
 	default:
-		break;
+		return;
 	}
 
 	if (mi_thermal_dev.dev && screen_last_status != screen_state) {
 		sysfs_notify(&mi_thermal_dev.dev->kobj, NULL, "screen_state");
 		screen_last_status = screen_state;
 	}
-
-	return NOTIFY_OK;
 }
-#endif
+
+static struct device_node *panel_np;
+static void *panel_cookie;
+static int panel_retries = 10;
+
+/* the panel shows up when the display driver probes, which may be after this module */
+static void mi_thermal_panel_register(struct work_struct *work);
+static DECLARE_DELAYED_WORK(panel_dw, mi_thermal_panel_register);
+
+static void mi_thermal_panel_register(struct work_struct *work)
+{
+	struct device_node *node;
+	struct drm_panel *panel = ERR_PTR(-ENODEV);
+	int i, count;
+
+	count = of_count_phandle_with_args(panel_np, "qcom,display-panels", NULL);
+	for (i = 0; i < count; i++) {
+		node = of_parse_phandle(panel_np, "qcom,display-panels", i);
+		panel = of_drm_find_panel(node);
+		of_node_put(node);
+		if (!IS_ERR(panel))
+			break;
+	}
+
+	if (IS_ERR(panel)) {
+		if (PTR_ERR(panel) == -EPROBE_DEFER && panel_retries-- > 0)
+			schedule_delayed_work(&panel_dw, 5 * HZ);
+		else
+			pr_err("%s: no active panel: %ld\n", __func__, PTR_ERR(panel));
+		return;
+	}
+
+	panel_cookie = panel_event_notifier_register(PANEL_EVENT_NOTIFICATION_PRIMARY,
+			PANEL_EVENT_NOTIFIER_CLIENT_THERMAL, panel,
+			mi_thermal_panel_callback, NULL);
+	if (IS_ERR(panel_cookie)) {
+		pr_err("%s: panel event notifier: %ld\n", __func__, PTR_ERR(panel_cookie));
+		panel_cookie = NULL;
+	}
+}
 
 static int usb_online_callback(struct notifier_block *nb, unsigned long val,
 			       void *data)
@@ -689,7 +687,6 @@ static int of_parse_thermal_message(void)
 static int __init mi_thermal_interface_init(void)
 {
 	int ret = 0;
-#ifdef CONFIG_DRM_PANEL
 	struct device_node *node;
 
 	node = of_find_node_by_name(NULL, "mi-thermal-interface");
@@ -697,13 +694,6 @@ static int __init mi_thermal_interface_init(void)
 		pr_err("%s: Cannot find mi-thermal-interface node\n", __func__);
 		return ret;
 	}
-
-	ret = thermal_check_panel(node);
-	if (ret == -EPROBE_DEFER) {
-		pr_err("%s: Failed to parse active panel\n", __func__);
-		return ret;
-	}
-#endif
 
 	cpu_thermal_init();
 
@@ -714,18 +704,12 @@ static int __init mi_thermal_interface_init(void)
 
 	create_thermal_message_node();
 
-#ifdef CONFIG_DRM_PANEL
-	drm_notifier.notifier_call = mi_thermal_notify;
-	if (active_panel) {
-		ret = drm_panel_notifier_register(active_panel, &drm_notifier);
-		if (ret)
-			pr_err("%s: Failed to register DRM panel notifier, rc=%d\n",
-			       __func__, ret);
-		else
-			pr_info("%s: Registered DRM panel notifier successfully\n",
-				__func__);
+	if (of_count_phandle_with_args(node, "qcom,display-panels", NULL) > 0) {
+		panel_np = node;
+		schedule_delayed_work(&panel_dw, 0);
+	} else {
+		of_node_put(node);
 	}
-#endif
 
 	INIT_WORK(&usb_state.usb_state_work, usb_online_work);
 	usb_state.psy_nb.notifier_call = usb_online_callback;
@@ -740,10 +724,9 @@ late_initcall(mi_thermal_interface_init);
 
 static void __exit mi_thermal_interface_exit(void)
 {
-#ifdef CONFIG_DRM_PANEL
-	if (active_panel)
-		drm_panel_notifier_unregister(active_panel, &drm_notifier);
-#endif
+	cancel_delayed_work_sync(&panel_dw);
+	panel_event_notifier_unregister(panel_cookie);
+	of_node_put(panel_np);
 	destroy_thermal_message_node();
 	destory_thermal_cpu();
 }
