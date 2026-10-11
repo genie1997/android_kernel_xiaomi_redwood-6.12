@@ -576,7 +576,7 @@ config QCOM_IOMMU_UTIL
 	  Say N here if unsure.
 
 config QCOM_LAZY_MAPPING
-	bool "Reference counted iommu-mapping support"
+	tristate "Reference counted iommu-mapping support"
 	depends on ION
 	depends on IOMMU_API
 	help
