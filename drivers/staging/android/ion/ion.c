@@ -10,6 +10,7 @@
 #include <linux/bitmap.h>
 #include <linux/device.h>
 #include <linux/dma-buf.h>
+#include <linux/dma-mapping.h>
 #include <linux/err.h>
 #include <linux/export.h>
 #include <linux/file.h>
@@ -29,6 +30,7 @@
 #define ION_CURRENT_ABI_VERSION  2
 
 static struct ion_device *internal_dev;
+struct device *ion_dma_dev;
 
 /* Entry into ION allocator for rest of the kernel */
 struct dma_buf *ion_alloc(size_t len, unsigned int heap_id_mask,
@@ -371,6 +373,13 @@ static int ion_device_create(void)
 		goto err_reg;
 	}
 
+	ion_dma_dev = idev->dev.this_device;
+	ret = dma_coerce_mask_and_coherent(ion_dma_dev, DMA_BIT_MASK(64));
+	if (ret) {
+		misc_deregister(&idev->dev);
+		goto err_reg;
+	}
+
 	init_rwsem(&idev->lock);
 	plist_head_init(&idev->heaps);
 	internal_dev = idev;
@@ -383,4 +392,5 @@ err_reg:
 subsys_initcall(ion_device_create);
 
 MODULE_DESCRIPTION("Ion memory allocator");
+MODULE_IMPORT_NS(DMA_BUF);
 MODULE_LICENSE("GPL v2");

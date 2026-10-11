@@ -52,6 +52,9 @@ extern int ion_free(struct ion_buffer *buffer);
 /* ion heap helpers */
 extern int ion_heap_cleanup(struct ion_heap *heap);
 
+/* the ion misc device, set up for plain non-coherent DMA: cache maintenance through the DMA API */
+extern struct device *ion_dma_dev;
+
 u64 ion_get_total_heap_bytes(void);
 
 #endif /* _ION_PRIVATE_H */

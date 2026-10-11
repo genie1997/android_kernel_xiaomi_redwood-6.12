@@ -9,7 +9,7 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
-#include <linux/dma-map-ops.h>
+#include <linux/dma-mapping.h>
 
 #include "ion_private.h"
 
@@ -162,9 +162,7 @@ EXPORT_SYMBOL_GPL(ion_buffer_zero);
 
 void ion_buffer_prep_noncached(struct ion_buffer *buffer)
 {
-	struct scatterlist *sg;
 	struct sg_table *table;
-	int i;
 
 	if (WARN_ONCE(!buffer || !buffer->sg_table,
 		      "%s needs a buffer and a sg_table", __func__) ||
@@ -173,8 +171,9 @@ void ion_buffer_prep_noncached(struct ion_buffer *buffer)
 
 	table = buffer->sg_table;
 
-	for_each_sg(table->sgl, sg, table->orig_nents, i)
-		arch_dma_prep_coherent(sg_page(sg), sg->length);
+	/* map + unmap both ways = clean and invalidate the buffer's lines, as arch_dma_prep_coherent() did */
+	if (!dma_map_sgtable(ion_dma_dev, table, DMA_BIDIRECTIONAL, 0))
+		dma_unmap_sgtable(ion_dma_dev, table, DMA_BIDIRECTIONAL, 0);
 }
 EXPORT_SYMBOL_GPL(ion_buffer_prep_noncached);
 
