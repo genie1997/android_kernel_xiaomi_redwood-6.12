@@ -1,27 +1,27 @@
 config SND_EVENT
-	bool "Audio subsystem event notifier"
+	tristate "Audio subsystem event notifier"
 
 config MSM_QDSP6_PDR
-	bool "QDSP6 protection domain restart notifications"
+	tristate "QDSP6 protection domain restart notifications"
 	depends on QCOM_PDR_HELPERS
 
 config MSM_QDSP6_SSR
 	bool
 
 config MSM_QDSP6_NOTIFIER
-	bool "QDSP6 audio service notifier"
+	tristate "QDSP6 audio service notifier"
 	depends on QCOM_RPROC_COMMON && QCOM_PDR_HELPERS
 	select MSM_QDSP6_PDR
 	select MSM_QDSP6_SSR
 
 config MSM_QDSP6_APRV2_RPMSG
-	bool "QDSP6 APR v2 over rpmsg"
+	tristate "QDSP6 APR v2 over rpmsg"
 	depends on RPMSG && QCOM_SCM
 	select SND_EVENT
 	select MSM_QDSP6_NOTIFIER
 
 config MSM_ADSP_LOADER
-	bool "ADSP loader"
+	tristate "ADSP loader"
 	depends on MSM_QDSP6_APRV2_RPMSG && REMOTEPROC
 	help
 	  Boots the ADSP when userspace writes /sys/kernel/boot_adsp/boot.
