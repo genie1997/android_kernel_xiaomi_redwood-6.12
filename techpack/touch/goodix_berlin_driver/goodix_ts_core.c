@@ -2454,6 +2454,7 @@ static void goodix_set_game_work(struct work_struct *work)
 			temp_value = xm_intf.touch_mode[Touch_Edge_Filter][SET_CUR_VALUE];
 			data1 &= 0x3F;
 			data1 |= (temp_value << 6);
+			break;
 		case Touch_Expert_Mode:
 			temp_value = xm_intf.touch_mode[Touch_Expert_Mode][SET_CUR_VALUE];
 			break;
@@ -2493,11 +2494,11 @@ static int goodix_set_cur_value(int gtp_mode, int gtp_value)
 		return 0;
 	}
 
-	xm_intf.touch_mode[gtp_mode][SET_CUR_VALUE] = gtp_value;
-	if (gtp_mode >= Touch_Mode_NUM) {
+	if (gtp_mode < 0 || gtp_mode >= Touch_Mode_NUM) {
 		ts_err("gtp mode is error:%d", gtp_mode);
 		return -EINVAL;
 	}
+	xm_intf.touch_mode[gtp_mode][SET_CUR_VALUE] = gtp_value;
 
 	if (xm_intf.touch_mode[gtp_mode][SET_CUR_VALUE] >
 			xm_intf.touch_mode[gtp_mode][GET_MAX_VALUE]) {
