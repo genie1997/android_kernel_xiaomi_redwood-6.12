@@ -29,6 +29,7 @@
 #include "hfi_crtc.h"
 #include "hfi_color_proc.h"
 #include "hfi_defs_display_color.h"
+#include "sde_uapi_lahaina.h"
 
 #define ALIGNED_OFFSET (U32_MAX & ~(LTM_GUARD_BYTES))
 #define ALIGNED_OFFSET_RGB_HIST (U32_MAX & ~(RGB_HIST_GUARD_BYTES))
@@ -1775,6 +1776,15 @@ static int _sde_cp_crtc_cache_blob_property(struct drm_crtc *crtc,
 	if (!blob) {
 		DRM_ERROR("invalid blob id %lld feature %d\n", val, prop_node->feature);
 		return -EINVAL;
+	}
+	if (blob->length != prop_node->prop_blob_sz) {
+		struct drm_property *property = drm_property_find(crtc->dev, NULL,
+				prop_node->property_id);
+
+		if (property)
+			blob = sde_uapi_lahaina_blob(crtc->dev, property->name, blob);
+		if (!blob)
+			return -ENOMEM;
 	}
 	if (blob->length != prop_node->prop_blob_sz) {
 		DRM_ERROR("invalid blob len %zd exp %d feature %d\n",

@@ -5,6 +5,7 @@
  */
 
 #include "msm_prop.h"
+#include "sde_uapi_lahaina.h"
 
 void msm_property_init(struct msm_property_info *info,
 		struct drm_mode_object *base,
@@ -453,6 +454,8 @@ int msm_property_atomic_set(struct msm_property_info *info,
 				if (blob) {
 					DBG("Blob %u saved", blob->base.id);
 					val = blob->base.id;
+					blob = sde_uapi_lahaina_blob(info->dev,
+							property->name, blob);
 				}
 
 				/* save the new blob */
