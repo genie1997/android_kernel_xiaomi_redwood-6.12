@@ -39,3 +39,4 @@ obj-$(CONFIG_NVMEM_REBOOT_MODE) += nvmem-reboot-mode.o
 obj-$(CONFIG_POWER_MLXBF) += pwr-mlxbf.o
 obj-$(CONFIG_POWER_RESET_QCOM_DOWNLOAD_MODE) += qcom-dload-mode.o
 obj-$(CONFIG_POWER_RESET_QCOM_REBOOT_REASON) += qcom-reboot-reason.o
+obj-$(CONFIG_POWER_RESET_QCOM_TEST_BOOTLOADER) += qcom-test-bootloader.o

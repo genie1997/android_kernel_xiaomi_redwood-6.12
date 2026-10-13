@@ -343,4 +343,13 @@ config POWER_RESET_QCOM_REBOOT_REASON
           to boot the MSM board to fastboot mode.
           If unsure, say Y.
 
+config POWER_RESET_QCOM_TEST_BOOTLOADER
+	bool "Stop every reset in the bootloader (test builds)"
+	depends on POWER_RESET_QCOM_REBOOT_REASON
+	help
+	  Test builds only: once the reboot reason driver is up, the restart
+	  reason is preset to "bootloader". A panic, a watchdog reset or a
+	  restart without a command then stops in fastboot instead of booting
+	  the test kernel again, and the RAM log is kept for the next boot.
+
 endif
