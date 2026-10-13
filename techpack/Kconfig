@@ -1,6 +1,7 @@
 menu "Qualcomm techpack drivers"
 
 source "techpack/audio/Kconfig"
+source "techpack/display/Kconfig"
 source "techpack/dsp/Kconfig"
 source "techpack/securemsm/Kconfig"
 

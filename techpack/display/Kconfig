@@ -1,0 +1,8 @@
+config MSM_DRM
+	tristate "Display driver"
+	depends on m && DRM && COMMON_CLK_QCOM && PINCTRL_MSM && SPMI_MSM_PMIC_ARB
+	depends on QCOM_SCM && QCOM_SOCINFO && QCOM_RPMH && QCOM_LLCC && QCOM_PANEL_EVENT_NOTIFIER
+	depends on ION_MSM_HEAPS && QCOM_IOMMU_UTIL && QCOM_LAZY_MAPPING
+	help
+	  msm_drm: the SDE display engine, the DSI panel path and writeback
+	  the vendor composer drives, built with config/redwooddisp.conf.
