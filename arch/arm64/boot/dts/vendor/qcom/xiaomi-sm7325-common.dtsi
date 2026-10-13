@@ -236,6 +236,36 @@
 	};
 };
 
+&qmi_sensor {
+	modem {
+		/* the 6.12 driver lacks msm_skin_therm; an unknown name fails its whole probe */
+		qcom,qmi-sensor-names = "pa",
+					"pa_1",
+					"qfe_wtr0",
+					"modem_tsens",
+					"qfe_mmw0",
+					"qfe_mmw1",
+					"qfe_mmw2",
+					"qfe_mmw3",
+					"xo_therm",
+					"qfe_mmw_streamer0",
+					"qfe_mmw0_mod",
+					"qfe_mmw1_mod",
+					"qfe_mmw2_mod",
+					"qfe_mmw3_mod",
+					"qfe_ret_pa0",
+					"qfe_wtr_pa0",
+					"qfe_wtr_pa1",
+					"qfe_wtr_pa2",
+					"qfe_wtr_pa3",
+					"sys_therm1",
+					"modem_tsens1",
+					"mmw_pa1",
+					"mmw_pa2",
+					"mmw_pa3";
+	};
+};
+
 &thermal_zones {
 	/* Xiaomi's thermal daemon and HAL look these zones up by their 5.4 names */
 	quiet-therm {
@@ -263,6 +293,11 @@
 	};
 
 	modem-lte-sub6-pa2 {
+		status = "disabled";
+	};
+
+	/* its sensor is left out of the modem list above */
+	msm-skin-therm {
 		status = "disabled";
 	};
 
