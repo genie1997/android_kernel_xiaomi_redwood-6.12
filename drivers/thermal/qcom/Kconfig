@@ -61,3 +61,12 @@ config QTI_THERMAL_VENDOR_HOOK
 	   It registers for thermal cooling device stats vendor hook and
 	   disables cooling stats for different thermal cooling devices
 	   selectively.
+
+config QTI_QMI_SENSOR
+	tristate "QTI QMI sensor driver"
+	depends on QCOM_QMI_HELPERS && THERMAL
+	help
+	   This enables to list the QTI remote subsystem temperature sensors.
+	   This driver can read the temperature of the remote sensor.
+	   These sensors can take thresholds and notify the thermal
+	   framework when the threshold is reached.
