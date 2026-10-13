@@ -13,6 +13,15 @@ menuconfig UIO
 
 if UIO
 
+config UIO_MSM_SHAREDMEM
+	tristate "MSM shared memory driver"
+	default n
+	help
+	  Provides the clients with their respective alloted shared memory
+	  addresses which are used as transport buffer.
+
+	  If you don't know what to do here, say N.
+
 config UIO_CIF
 	tristate "generic Hilscher CIF Card driver"
 	depends on PCI
