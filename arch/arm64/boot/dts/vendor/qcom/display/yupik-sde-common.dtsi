@@ -1,5 +1,3 @@
-#include <dt-bindings/clock/mdss-5nm-pll-clk.h>
-
 &soc {
 	mdss_mdp: qcom,mdss_mdp@ae00000 {
 		compatible = "qcom,sde-kms";

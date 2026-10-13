@@ -1,7 +1,6 @@
 // Written by Divyanshu-Modi <Atom-X-Devs https://github.com/Atom-X-Devs>
 
-#include <dt-bindings/clock/mdss-5nm-pll-clk.h>
-#include <dt-bindings/clock/qcom,dispcc-yupik.h>
+#include <dt-bindings/clock/qcom,dispcc-sc7280.h>
 #include "dsi-panel-m20-36-02-0a-dsc-vid.dtsi"
 #include "dsi-panel-m20-42-0d-0b-dsc-vid.dtsi"
 

@@ -1,8 +1,6 @@
 #include "yupik-sde-common.dtsi"
-#include <dt-bindings/regulator/qcom,rpmh-regulator-levels.h>
-#include <dt-bindings/clock/mdss-5nm-pll-clk.h>
-#include <dt-bindings/clock/qcom,dispcc-yupik.h>
-#include <dt-bindings/clock/qcom,gcc-yupik.h>
+#include <dt-bindings/clock/qcom,dispcc-sc7280.h>
+#include <dt-bindings/clock/qcom,gcc-sc7280.h>
 #include <dt-bindings/clock/qcom,rpmh.h>
 
 &soc {
