@@ -506,11 +506,7 @@ static void altmode_state_cb(void *priv, enum pmic_glink_state state)
 		/* As of now, nothing to do */
 		break;
 	case PMIC_GLINK_STATE_UP:
-		mutex_lock(&amdev->client_lock);
-		if (!list_empty(&amdev->client_list))
-			schedule_delayed_work(&amdev->send_pan_en_work,
-						msecs_to_jiffies(20));
-		mutex_unlock(&amdev->client_lock);
+		schedule_delayed_work(&amdev->send_pan_en_work, msecs_to_jiffies(20));
 		break;
 	default:
 		return;
@@ -743,6 +739,9 @@ static int altmode_probe(struct platform_device *pdev)
 		dev_warn(dev, "Error in creating ipc_log_context\n");
 
 	altmode_notify_clients(amdev);
+
+	/* The remote Type-C stack reports no port state, UCSI included, before PAN EN */
+	schedule_delayed_work(&amdev->send_pan_en_work, msecs_to_jiffies(20));
 
 	return 0;
 
