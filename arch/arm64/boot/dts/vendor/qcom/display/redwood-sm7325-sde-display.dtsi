@@ -6,7 +6,7 @@
 #include "dsi-panel-m20-42-0d-0b-dsc-vid.dtsi"
 
 &mdss_mdp {
-	connectors = <&smmu_sde_unsec &smmu_sde_sec &sde_wb &sde_dsi &sde_rscc &sde_dp>;
+	connectors = <&smmu_sde_unsec &smmu_sde_sec &sde_wb &sde_dsi &sde_rscc>;
 };
 
 &soc {
