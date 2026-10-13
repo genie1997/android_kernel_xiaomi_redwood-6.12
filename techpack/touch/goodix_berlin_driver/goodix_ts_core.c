@@ -1904,6 +1904,10 @@ out:
 	return 0;
 }
 
+#ifdef GOODIX_XIAOMI_TOUCHFEATURE
+static bool goodix_game_mode_on(void);
+#endif
+
 /**
  * goodix_ts_resume - Touchscreen resume function
  * Called by PM/FB/EARLYSUSPEN module to wakeup device
@@ -1968,6 +1972,14 @@ out:
 	/* enable palm sensor */
 	if (core_data->palm_status)
 		ret = hw_ops->palm_on(core_data, core_data->palm_status);
+
+	/* the reset dropped the report rate and game mode, send them again */
+	if (core_data->report_rate == 480)
+		hw_ops->switch_report_rate(core_data, true);
+#ifdef GOODIX_XIAOMI_TOUCHFEATURE
+	if (core_data->game_wq && goodix_game_mode_on())
+		queue_work(core_data->game_wq, &core_data->game_work);
+#endif
 
 	/* enable irq */
 	hw_ops->irq_enable(core_data, true);
@@ -2468,6 +2480,11 @@ static void goodix_set_game_work(struct work_struct *work)
 		ts_err("send game mode fail");
 
 	return;
+}
+
+static bool goodix_game_mode_on(void)
+{
+	return !!xm_intf.touch_mode[Touch_Game_Mode][SET_CUR_VALUE];
 }
 
 static int goodix_set_cur_value(int gtp_mode, int gtp_value)
