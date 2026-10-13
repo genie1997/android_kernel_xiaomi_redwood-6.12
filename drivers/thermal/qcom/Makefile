@@ -11,3 +11,5 @@ obj-$(CONFIG_QTI_THERMAL_LIMITS_DCVS)	+= msm_lmh_dcvs.o
 obj-$(CONFIG_QTI_THERMAL_VENDOR_HOOK)	+= qti_thermal_vendor_hooks.o
 obj-$(CONFIG_QTI_QMI_SENSOR)	+= qti_qmi_sensor.o
 qti_qmi_sensor-y		+= qmi_sensors.o thermal_sensor_service_v01.o
+obj-$(CONFIG_QTI_QMI_COOLING_DEVICE)	+= qti_qmi_cdev.o
+qti_qmi_cdev-y			+= qmi_cooling.o thermal_mitigation_device_service_v01.o
