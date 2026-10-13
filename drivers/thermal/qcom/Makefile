@@ -13,3 +13,4 @@ obj-$(CONFIG_QTI_QMI_SENSOR)	+= qti_qmi_sensor.o
 qti_qmi_sensor-y		+= qmi_sensors.o thermal_sensor_service_v01.o
 obj-$(CONFIG_QTI_QMI_COOLING_DEVICE)	+= qti_qmi_cdev.o
 qti_qmi_cdev-y			+= qmi_cooling.o thermal_mitigation_device_service_v01.o
+obj-$(CONFIG_QTI_CPU_HOTPLUG_COOLING_DEVICE)	+= cpu_hotplug.o
