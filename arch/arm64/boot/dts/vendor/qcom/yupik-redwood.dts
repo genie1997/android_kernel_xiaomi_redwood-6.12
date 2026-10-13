@@ -3,6 +3,7 @@
 /dts-v1/;
 
 #include "yupik.dtsi"
+#include "yupik-audio.dtsi"
 #include "yupik-redwood-reserved-memory.dtsi"
 #include "yupik-ion.dtsi"
 

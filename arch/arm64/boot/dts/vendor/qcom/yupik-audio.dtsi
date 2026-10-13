@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+&soc {
+	/* The vendor starts the ADSP through /sys/kernel/boot_adsp, which this loader creates */
+	adsp_loader: qcom,msm-adsp-loader {
+		compatible = "qcom,adsp-loader";
+		qcom,adsp-state = <0>;
+		qcom,rproc-handle = <&adsp_pas>;
+	};
+};
