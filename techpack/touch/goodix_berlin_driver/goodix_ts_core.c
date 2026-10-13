@@ -1353,6 +1353,7 @@ static irqreturn_t goodix_ts_threadirq_func(int irq, void *data)
 		ret = ext_module->funcs->irq_event(core_data, ext_module);
 		if (ret == EVT_CANCEL_IRQEVT) {
 			mutex_unlock(&goodix_modules.mutex);
+			pm_relax(core_data->bus->dev);
 			return IRQ_HANDLED;
 		}
 	}
