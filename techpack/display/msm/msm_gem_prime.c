@@ -29,9 +29,7 @@
 #include <linux/version.h>
 #include <linux/mem-buf.h>
 #include <soc/qcom/secure_buffer.h>
-#if (KERNEL_VERSION(6, 1, 0) <= LINUX_VERSION_CODE)
-#include <linux/qti-smmu-proxy-callbacks.h>
-#elif (KERNEL_VERSION(5, 15, 0) > LINUX_VERSION_CODE)
+#if (KERNEL_VERSION(5, 15, 0) > LINUX_VERSION_CODE)
 #include <linux/ion.h>
 #include <linux/msm_ion.h>
 #endif
