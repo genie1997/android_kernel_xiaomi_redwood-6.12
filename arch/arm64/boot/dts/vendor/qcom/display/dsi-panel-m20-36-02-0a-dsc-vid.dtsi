@@ -204,21 +204,37 @@
 			];
 			mi,mdss-dsi-doze-lbm-nolp-command-state = "dsi_hs_mode";
 
-			mi,mdss-dsi-fps-120-gamma-command = [
-				39 01 00 00 00 00 02 2F 00
-			];
-			mi,mdss-dsi-fps-120-gamma-command-state = "dsi_lp_mode";
-
-			mi,mdss-dsi-fps-60-gamma-command = [
-				39 01 00 00 00 00 02 2F 02
-			];
-			mi,mdss-dsi-fps-60-gamma-command-state = "dsi_lp_mode";
-
 			mi,mdss-dsi-pre-doze-to-off-command = [
 				39 01 00 00 00 00 06 F0 55 AA 52 08 01
 				39 01 00 00 00 00 02 CE 0C
 			];
 			mi,mdss-dsi-pre-doze-to-off-command-state = "dsi_hs_mode";
+
+			qcom,mdss-dsi-dfps-commands {
+				fps-120 {
+					qcom,dsi-fps-value = <120>;
+					qcom,mdss-dsi-fps-switch-command = [
+						39 01 00 00 00 00 02 2F 00
+					];
+					qcom,mdss-dsi-fps-switch-command-state = "dsi_lp_mode";
+					qcom,mdss-dsi-post-panel-on-command = [
+						39 01 00 00 00 00 02 2F 00
+					];
+					qcom,mdss-dsi-post-on-command-state = "dsi_lp_mode";
+				};
+
+				fps-60 {
+					qcom,dsi-fps-value = <60>;
+					qcom,mdss-dsi-fps-switch-command = [
+						39 01 00 00 00 00 02 2F 02
+					];
+					qcom,mdss-dsi-fps-switch-command-state = "dsi_lp_mode";
+					qcom,mdss-dsi-post-panel-on-command = [
+						39 01 00 00 00 00 02 2F 02
+					];
+					qcom,mdss-dsi-post-on-command-state = "dsi_lp_mode";
+				};
+			};
 		};
 
 	};
