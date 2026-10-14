@@ -146,6 +146,8 @@ struct dsi_backlight_config {
 	u32 bl_min_level;
 	u32 bl_max_level;
 	u32 brightness_max_level;
+	/* brightness the backlight starts at, until userspace sets one */
+	u32 brightness_init_level;
 	/* current brightness value */
 	u32 brightness;
 	u32 bl_level;
