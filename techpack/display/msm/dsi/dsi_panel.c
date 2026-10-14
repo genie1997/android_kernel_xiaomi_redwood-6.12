@@ -469,7 +469,8 @@ static int dsi_panel_set_pinctrl_state(struct dsi_panel *panel, bool enable, boo
 	return rc;
 }
 
-int dsi_panel_power_on(struct dsi_panel *panel, bool is_cont_splash)
+static int __dsi_panel_power_on(struct dsi_panel *panel, bool is_cont_splash,
+		bool reset)
 {
 	int rc = 0;
 
@@ -497,7 +498,7 @@ int dsi_panel_power_on(struct dsi_panel *panel, bool is_cont_splash)
 	/* For HFI continuous splash case - avoid panel-reset GPIO */
 	if (is_cont_splash && panel->disp_op == MSM_DISP_OP_HFI) {
 		DSI_DEBUG("[%s] skipping panel reset in hfi path with cont-splash\n", panel->name);
-	} else {
+	} else if (reset) {
 		rc = dsi_panel_reset(panel);
 		if (rc) {
 			DSI_ERR("[%s] failed to reset panel, rc=%d\n", panel->name, rc);
@@ -524,6 +525,11 @@ error_disable_vregs:
 
 exit:
 	return rc;
+}
+
+int dsi_panel_power_on(struct dsi_panel *panel, bool is_cont_splash)
+{
+	return __dsi_panel_power_on(panel, is_cont_splash, true);
 }
 
 int dsi_panel_power_off(struct dsi_panel *panel)
@@ -5842,17 +5848,11 @@ int dsi_panel_pre_prepare(struct dsi_panel *panel)
 
 	mutex_lock(&panel->panel_lock);
 
-	/* If LP11_INIT is set, panel will be powered up during prepare() */
-	if (panel->lp11_init)
-		goto error;
-
-	rc = dsi_panel_power_on(panel, false);
-	if (rc) {
+	/* with LP11_INIT the reset waits for prepare(), once the lanes are in LP11 */
+	rc = __dsi_panel_power_on(panel, false, !panel->lp11_init);
+	if (rc)
 		DSI_ERR("[%s] panel power on failed, rc=%d\n", panel->name, rc);
-		goto error;
-	}
 
-error:
 	mutex_unlock(&panel->panel_lock);
 	return rc;
 }
@@ -6031,9 +6031,9 @@ int dsi_panel_prepare(struct dsi_panel *panel)
 	mutex_lock(&panel->panel_lock);
 
 	if (panel->lp11_init) {
-		rc = dsi_panel_power_on(panel, false);
+		rc = dsi_panel_reset(panel);
 		if (rc) {
-			DSI_ERR("[%s] panel power on failed, rc=%d\n",
+			DSI_ERR("[%s] failed to reset panel, rc=%d\n",
 			       panel->name, rc);
 			goto error;
 		}
