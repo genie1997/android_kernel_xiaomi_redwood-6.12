@@ -27,10 +27,15 @@
 						"qcom,sde-ebi-bus";
 	};
 
+	smmu_sde_iommu_region_partition: smmu_sde_iommu_region_partition {
+		iommu-addresses = <&smmu_sde_unsec 0x0 0x00020000>,
+				  <&smmu_sde_sec 0x0 0x00020000>;
+	};
+
 	smmu_sde_unsec: qcom,smmu_sde_unsec_cb {
 		compatible = "qcom,smmu_sde_unsec";
 		iommus = <&apps_smmu 0x900 0x402>;
-		qcom,iommu-dma-addr-pool = <0x00020000 0xfffe0000>;
+		memory-region = <&smmu_sde_iommu_region_partition>;
 		qcom,iommu-faults = "non-fatal";
 		qcom,iommu-earlymap; /* for cont-splash */
 		dma-coherent-hint-cached;
@@ -40,7 +45,7 @@
 		compatible = "qcom,smmu_sde_sec";
 		iommus = <&apps_smmu 0x901 0x0>,
 			<&apps_smmu 0xD01 0x0>;
-		qcom,iommu-dma-addr-pool = <0x00020000 0xfffe0000>;
+		memory-region = <&smmu_sde_iommu_region_partition>;
 		qcom,iommu-faults = "non-fatal";
 		qcom,iommu-vmid = <0xa>;
 	};
