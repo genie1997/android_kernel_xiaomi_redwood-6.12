@@ -257,6 +257,7 @@ struct dsi_display_ops {
  * @dsi_hfi_info:         HFI adapter information
  * @display_ops:          HWIO/HFI display ops
  * @enabled:	      Boolean to indicate display enabled.
+ * @mi_dev:           mi_display sysfs device of this display.
  */
 struct dsi_display {
 	struct platform_device *pdev;
@@ -369,6 +370,9 @@ struct dsi_display {
 	struct dsi_display_ops display_ops;
 
 	bool enabled;
+#if IS_ENABLED(CONFIG_DSI_MI_DISPLAY)
+	struct device *mi_dev;
+#endif
 };
 
 int dsi_display_dev_probe(struct platform_device *pdev);

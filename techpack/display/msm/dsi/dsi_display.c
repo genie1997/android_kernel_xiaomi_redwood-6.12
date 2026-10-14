@@ -28,6 +28,7 @@
 #include "dsi_parser.h"
 #include "dsi_sim_bridge.h"
 #include "dsi_display_manager.h"
+#include "dsi_mi_display.h"
 #include "dsi_hfi.h"
 #include "hfi_kms.h"
 
@@ -6686,6 +6687,8 @@ static int dsi_display_bind(struct device *dev,
 		display->display_type = "primary";
 	}
 
+	dsi_mi_display_init(display);
+
 	goto error;
 
 error_host_deinit:
@@ -6732,6 +6735,9 @@ static void dsi_display_unbind(struct device *dev,
 		DSI_ERR("invalid display\n");
 		return;
 	}
+
+	/* outside display_lock: removal waits for readers that take it */
+	dsi_mi_display_deinit(display);
 
 	mutex_lock(&display->display_lock);
 
@@ -9193,6 +9199,7 @@ int dsi_display_set_mode(struct dsi_display *display,
 			 u32 flags)
 {
 	int rc = 0;
+	bool fps_changed;
 	struct dsi_display_mode adj_mode;
 	struct dsi_mode_info timing;
 
@@ -9239,7 +9246,11 @@ int dsi_display_set_mode(struct dsi_display *display,
 			timing.h_active, timing.v_active, timing.refresh_rate,
 			adj_mode.priv_info->clk_rate_hz);
 
+	fps_changed = display->panel->cur_mode->timing.refresh_rate !=
+			adj_mode.timing.refresh_rate;
 	memcpy(display->panel->cur_mode, &adj_mode, sizeof(adj_mode));
+	if (fps_changed)
+		dsi_mi_display_fps_changed(display);
 error:
 	mutex_unlock(&display->display_lock);
 	return rc;
@@ -10804,12 +10815,15 @@ void __init dsi_display_register(void)
 	dsi_display_parse_boot_display_selection();
 
 	dsi_sim_bridge_register();
+	if (dsi_mi_display_register())
+		DSI_ERR("failed to register the mi_display class\n");
 	platform_driver_register(&dsi_display_driver);
 }
 
 void __exit dsi_display_unregister(void)
 {
 	platform_driver_unregister(&dsi_display_driver);
+	dsi_mi_display_unregister();
 	dsi_sim_bridge_unregister();
 	dsi_ctrl_drv_unregister();
 	dsi_phy_drv_unregister();
