@@ -1472,6 +1472,13 @@ static int dsi_panel_parse_misc_host_config(struct dsi_host_common_cfg *host,
 	host->skip_pps_update = utils->read_bool(utils->data,
 					"qcom,mdss-dsi-panel-skip-pps-update");
 
+	val = 0;
+	rc = utils->read_u32(utils->data, "qcom,mdss-dsi-phy-voltage", &val);
+	if (!rc) {
+		host->phy_voltage = val;
+		DSI_DEBUG("[%s] phy_voltage = 0x%x\n", name, val);
+	}
+
 	return 0;
 }
 

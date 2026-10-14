@@ -131,6 +131,7 @@ struct dsi_phy_per_lane_cfgs {
  * @phy_type:         Phy-type (Dphy/Cphy).
  * @bit_clk_rate_hz: DSI bit clk rate in HZ.
  * @split_link:       DSI split link config data.
+ * @phy_voltage:      PHY regulator voltage code, 0 for the default.
  */
 struct dsi_phy_cfg {
 	struct dsi_phy_per_lane_cfgs lanecfg;
@@ -145,6 +146,7 @@ struct dsi_phy_cfg {
 	unsigned long bit_clk_rate_hz;
 	struct dsi_split_link_config split_link;
 	u32 data_lanes;
+	u32 phy_voltage;
 };
 
 struct dsi_phy_hw;

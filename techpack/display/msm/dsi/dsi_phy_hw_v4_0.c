@@ -426,6 +426,10 @@ static void dsi_phy_hw_dphy_enable(struct dsi_phy_hw *phy,
 		vreg_ctrl_1 = 0x19;
 	}
 
+	/* a panel that needs another LDO voltage names it in its DT */
+	if (cfg->phy_voltage)
+		vreg_ctrl_0 = cfg->phy_voltage;
+
 	split_link_enabled = cfg->split_link.enabled;
 	lanes_per_sublink = cfg->split_link.lanes_per_sublink;
 	/* de-assert digital and pll power down */

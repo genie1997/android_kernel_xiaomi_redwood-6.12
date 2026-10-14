@@ -643,6 +643,7 @@ struct dsi_split_link_config {
  * @dma_sched_window:	 Determines the width of the window during the
  *			 DSI command will be sent by the HW.
  * @skip_pps_update:	 Skip sending pps command.
+ * @phy_voltage:         PHY regulator voltage code set by the panel, 0 for the default.
  */
 struct dsi_host_common_cfg {
 	enum dsi_pixel_format dst_format;
@@ -674,6 +675,7 @@ struct dsi_host_common_cfg {
 	u32 dma_sched_line;
 	u32 dma_sched_window;
 	bool skip_pps_update;
+	u32 phy_voltage;
 };
 
 /**
