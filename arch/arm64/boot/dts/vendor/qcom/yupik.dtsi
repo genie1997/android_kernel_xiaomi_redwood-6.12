@@ -3022,6 +3022,7 @@
 #include "yupik-pinctrl.dtsi"
 #include "ipcc-test-yupik.dtsi"
 #include "yupik-regulators.dtsi"
+#include "display/yupik-sde.dtsi"
 #include "yupik-pcie.dtsi"
 
 &gcc_ufs_phy_gdsc {
