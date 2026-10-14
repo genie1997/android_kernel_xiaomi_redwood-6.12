@@ -115,11 +115,9 @@
 		qcom,sde-sspp-clk-status =
 				<0x2b0 0>,
 				 <0x2b0 12>, <0x2b8 12>, <0x2c8 12>;
-		qcom,sde-sspp-csc-off = <0x1a00>;
 		qcom,sde-csc-type = "csc-10bit";
 		qcom,sde-qseed-sw-lib-rev = "qseedv3lite";
 		qcom,sde-qseed-scalar-version = <0x3000>;
-		qcom,sde-sspp-qseed-off = <0xa00>;
 		qcom,sde-mixer-linewidth = <2560>;
 		qcom,sde-sspp-linewidth = <2400>;
 		qcom,sde-vig-sspp-linewidth = <4096>;
@@ -136,7 +134,6 @@
 		qcom,sde-macrotile-mode = <0x1>;
 		qcom,sde-smart-panel-align-mode = <0xc>;
 		qcom,sde-panic-per-pipe;
-		qcom,sde-has-cdp;
 		qcom,sde-has-src-split;
 		qcom,sde-pipe-order-version = <0x1>;
 		qcom,sde-has-dim-layer;
@@ -147,8 +144,6 @@
 		qcom,sde-min-core-ib-kbps = <2500000>;
 		qcom,sde-min-llcc-ib-kbps = <0>;
 		qcom,sde-min-dram-ib-kbps = <1600000>;
-		qcom,sde-dram-channels = <2>;
-		qcom,sde-num-nrt-paths = <0>;
 
 		qcom,sde-uidle-off = <0x80000>;
 		qcom,sde-uidle-size = <0x70>;

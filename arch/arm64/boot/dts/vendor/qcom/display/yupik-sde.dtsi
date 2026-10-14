@@ -12,8 +12,6 @@
 		reg-names = "drv", "wrapper";
 		qcom,sde-rsc-version = <4>;
 
-		qcom,sde-dram-channels = <2>;
-
 		vdd-supply = <&disp_cc_mdss_core_gdsc>;
 		clocks = <&dispcc DISP_CC_MDSS_RSCC_VSYNC_CLK>,
 				<&dispcc DISP_CC_MDSS_NON_GDSC_AHB_CLK>,

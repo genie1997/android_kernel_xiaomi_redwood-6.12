@@ -3,15 +3,11 @@
 		qcom,mdss-dsi-panel-name = "xiaomi 42 0d 0b video mode dsc dsi panel";
 		qcom,mdss-dsi-panel-type = "dsi_video_mode";
 		qcom,mdss-dsi-virtual-channel-id = <0>;
-		qcom,mdss-dsi-stream = <0>;
 		qcom,mdss-dsi-bpp = <30>;
 		qcom,mdss-dsi-color-order = "rgb_swap_rgb";
-		qcom,mdss-dsi-underflow-color = <0xff>;
-		qcom,mdss-dsi-border-color = <0>;
 		qcom,dsi-ctrl-num = <0>;
 		qcom,dsi-phy-num = <0>;
 		qcom,mdss-dsi-traffic-mode = "burst_mode";
-		qcom,mdss-dsi-lane-map = "lane_map_0123";
 		qcom,mdss-dsi-bllp-eof-power-mode;
 		qcom,mdss-dsi-bllp-power-mode;
 		qcom,mdss-dsi-lane-0-state;
@@ -51,10 +47,6 @@
 				qcom,mdss-dsi-v-front-porch = <20>;
 				qcom,mdss-dsi-v-pulse-width = <4>;
 				qcom,mdss-dsi-h-sync-pulse = <0>;
-				qcom,mdss-dsi-h-left-border = <0>;
-				qcom,mdss-dsi-h-right-border = <0>;
-				qcom,mdss-dsi-v-top-border = <0>;
-				qcom,mdss-dsi-v-bottom-border = <0>;
 
 				qcom,mdss-dsi-on-command = [
 					15 01 00 00 00 00 02 53 20
@@ -111,7 +103,6 @@
 				qcom,mdss-dsi-off-command-state = "dsi_lp_mode";
 
 				qcom,mdss-dsi-lp1-command = [ ];
-				qcom,mdss-dsi-lp1-commandd-state = "dsi_hs_mode";
 
 				qcom,mdss-dsi-nolp-command = [ ];
 				qcom,mdss-dsi-nolp-command-state = "dsi_hs_mode";
@@ -135,16 +126,6 @@
 	qcom,mdss-dsi-display-timings {
 		timing@0{
 			mi,mdss-dsc-panel-id = <0x004D3230 0x00420D00>;
-
-			mi,mdss-dsi-hbm-on-command = [
-				39 01 00 00 00 00 03 51 0F FF
-			];
-			mi,mdss-dsi-hbm-on-command-state = "dsi_hs_mode";
-
-			mi,mdss-dsi-hbm-off-command = [
-				39 01 00 00 00 00 03 51 07 FF
-			];
-			mi,mdss-dsi-hbm-off-command-state = "dsi_hs_mode";
 
 			mi,mdss-dsi-doze-hbm-command = [
 				39 01 00 00 00 00 07 51 00 F5 07 FF 03 FF
