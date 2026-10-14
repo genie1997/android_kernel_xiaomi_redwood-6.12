@@ -81,6 +81,13 @@
 	qcom,sde-dspp-ltm-off = <0x15300>;
 };
 
+&disp_rsc_drv0 {
+	sde_rsc_rpmh {
+		compatible = "qcom,sde-rsc-rpmh";
+		cell-index = <0>;
+	};
+};
+
 &mdss_dsi0 {
 	vdda-1p2-supply = <&L6B>;
 	refgen-supply = <&refgen>;
