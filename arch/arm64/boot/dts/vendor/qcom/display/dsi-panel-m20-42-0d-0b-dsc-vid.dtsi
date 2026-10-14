@@ -116,6 +116,9 @@
 				qcom,mdss-dsc-bit-per-component = <10>;
 				qcom,mdss-dsc-bit-per-pixel = <8>;
 				qcom,mdss-dsc-block-prediction-enable;
+				qcom,mdss-dsc-rc-range-min-qp = <0 4 5 5 7 7 7 7 7 8 9 9 9 12 16>;
+				qcom,mdss-dsc-rc-range-bpg-offset = <2 0 0 (-2) (-4) (-6) (-8) (-8)
+					(-8) (-10) (-10) (-10) (-12) (-12) (-12)>;
 			};
 
 		};
@@ -125,8 +128,6 @@
 &dsi_m20_42_0d_0b_dsc_vid {
 	qcom,mdss-dsi-display-timings {
 		timing@0{
-			mi,mdss-dsc-panel-id = <0x004D3230 0x00420D00>;
-
 			mi,mdss-dsi-doze-hbm-command = [
 				39 01 00 00 00 00 07 51 00 F5 07 FF 03 FF
 			];
