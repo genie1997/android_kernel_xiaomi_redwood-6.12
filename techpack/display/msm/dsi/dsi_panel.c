@@ -3589,6 +3589,46 @@ static int dsi_panel_parse_phy_timing(struct dsi_display_mode *mode,
 	return rc;
 }
 
+static bool dsi_panel_read_dsc_rc_row(struct dsi_parser_utils *utils,
+				const char *name, u32 *val, int lo, int hi)
+{
+	int i;
+
+	if (utils->read_u32_array(utils->data, name, val, DSC_NUM_BUF_RANGES))
+		return false;
+
+	for (i = 0; i < DSC_NUM_BUF_RANGES; i++) {
+		if ((int)val[i] < lo || (int)val[i] > hi) {
+			DSI_ERR("%s[%d] = %d out of range, ignored\n", name, i,
+				(int)val[i]);
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/* rate control rows a panel was validated with, where they differ from the standard ones */
+static void dsi_panel_parse_dsc_rc_rows(struct drm_dsc_config *dsc,
+				struct dsi_parser_utils *utils)
+{
+	u32 min_qp[DSC_NUM_BUF_RANGES], bpg[DSC_NUM_BUF_RANGES];
+	bool has_min_qp, has_bpg;
+	int i;
+
+	has_min_qp = dsi_panel_read_dsc_rc_row(utils,
+			"qcom,mdss-dsc-rc-range-min-qp", min_qp, 0, 31);
+	has_bpg = dsi_panel_read_dsc_rc_row(utils,
+			"qcom,mdss-dsc-rc-range-bpg-offset", bpg, -32, 31);
+
+	for (i = 0; i < DSC_NUM_BUF_RANGES; i++) {
+		if (has_min_qp)
+			dsc->rc_range_params[i].range_min_qp = min_qp[i];
+		if (has_bpg)
+			dsc->rc_range_params[i].range_bpg_offset = bpg[i];
+	}
+}
+
 static int dsi_panel_parse_dsc_params(struct dsi_display_mode *mode,
 				struct dsi_parser_utils *utils)
 {
@@ -3750,6 +3790,8 @@ static int dsi_panel_parse_dsc_params(struct dsi_display_mode *mode,
 		rc = -EINVAL;
 		goto error;
 	}
+
+	dsi_panel_parse_dsc_rc_rows(&priv_info->dsc.config, utils);
 
 	priv_info->dsc.rc_override_v1 = utils->read_bool(utils->data,
 		"qcom,mdss-dsc-rc-override_v1");
