@@ -646,7 +646,7 @@ static inline void reset_unique_index(int index)
 
 /**
  * fastrpc_minidump_add_region - Add mini dump region
- * @fastrpc_mmap       : Input structure mmap
+ * @map: Input structure mmap
  *
  * Returns int
  */
@@ -681,7 +681,7 @@ static int fastrpc_minidump_add_region(struct fastrpc_mmap *map)
 
 /**
  * fastrpc_minidump_remove_region - Remove mini dump region if added
- * @fastrpc_mmap       : Input structure mmap
+ * @map: Input structure mmap
  *
  * Returns int
  */
@@ -4021,9 +4021,8 @@ static int fastrpc_channel_open(struct fastrpc_file *fl, uint32_t flags);
 static int fastrpc_dsp_restart_handler(struct fastrpc_file *fl, int locked, bool dump_req);
 
 /**
- * check_daemon_name_support
- * check if sharing daemon name to DSP is supported
- * @arg1: fastrpc user instance.
+ * check_daemon_name_support - check if sharing daemon name to DSP is supported
+ * @fl: fastrpc user instance.
  *
  * Returns capability (1 if supported, 0 if not)
  */
