@@ -1481,6 +1481,9 @@ int kgsl_drawobj_cmd_add_cmdlist(struct kgsl_device *device,
 	if (ret <= 0)
 		return ret;
 
+	/* Entries sit sizeof(obj) apart, the user size may span the whole list */
+	size = min_t(u32, size, sizeof(obj));
+
 	for (i = 0; i < count; i++) {
 		if (copy_struct_from_user(&obj, sizeof(obj), ptr, size))
 			return -EFAULT;
@@ -1519,6 +1522,9 @@ int kgsl_drawobj_cmd_add_memlist(struct kgsl_device *device,
 	ret = _verify_input_list(count, ptr, size);
 	if (ret <= 0)
 		return ret;
+
+	/* Entries sit sizeof(obj) apart, the user size may span the whole list */
+	size = min_t(u32, size, sizeof(obj));
 
 	for (i = 0; i < count; i++) {
 		if (copy_struct_from_user(&obj, sizeof(obj), ptr, size))
@@ -1597,6 +1603,9 @@ int kgsl_drawobj_sync_add_synclist(struct kgsl_device *device,
 
 	if (syncobj->synclist == NULL)
 		return -ENOMEM;
+
+	/* Entries sit sizeof(syncpoint) apart, the user size may span the whole list */
+	size = min_t(u32, size, sizeof(syncpoint));
 
 	for (i = 0; i < count; i++) {
 		if (copy_struct_from_user(&syncpoint, sizeof(syncpoint), ptr, size))

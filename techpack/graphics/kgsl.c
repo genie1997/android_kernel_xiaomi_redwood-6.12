@@ -3902,6 +3902,8 @@ long kgsl_ioctl_gpuobj_sync(struct kgsl_device_private *dev_priv,
 	uint64_t size = 0;
 	int i;
 	void __user *ptr;
+	/* Entries sit sizeof(*objs) apart, obj_len may span the whole list */
+	u32 obj_len = min_t(u32, param->obj_len, sizeof(*objs));
 
 	if (param->count == 0 || param->count > 128)
 		return -EINVAL;
@@ -3920,7 +3922,7 @@ long kgsl_ioctl_gpuobj_sync(struct kgsl_device_private *dev_priv,
 
 	for (i = 0; i < param->count; i++) {
 		ret = copy_struct_from_user(&objs[i], sizeof(*objs), ptr,
-			param->obj_len);
+			obj_len);
 		if (ret)
 			goto out;
 
