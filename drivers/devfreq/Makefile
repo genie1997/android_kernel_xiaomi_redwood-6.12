@@ -6,6 +6,10 @@ obj-$(CONFIG_DEVFREQ_GOV_PERFORMANCE)	+= governor_performance.o
 obj-$(CONFIG_DEVFREQ_GOV_POWERSAVE)	+= governor_powersave.o
 obj-$(CONFIG_DEVFREQ_GOV_USERSPACE)	+= governor_userspace.o
 obj-$(CONFIG_DEVFREQ_GOV_PASSIVE)	+= governor_passive.o
+obj-$(CONFIG_DEVFREQ_GOV_QCOM_GPUBW_MON)	+= governor_gpubw_mon.o
+obj-$(CONFIG_DEVFREQ_GOV_QCOM_ADRENO_TZ)	+= governor_msm_adreno_tz.o
+CFLAGS_governor_gpubw_mon.o := -I$(srctree)
+CFLAGS_governor_msm_adreno_tz.o := -I$(srctree)
 
 # DEVFREQ Drivers
 obj-$(CONFIG_ARM_EXYNOS_BUS_DEVFREQ)	+= exynos-bus.o
