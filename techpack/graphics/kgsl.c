@@ -13,6 +13,7 @@
 #include <linux/dma-map-ops.h>
 #include <linux/fdtable.h>
 #include <linux/io.h>
+#include <linux/ion.h>
 #include <linux/mem-buf.h>
 #include <linux/mman.h>
 #include <linux/mm_types.h>
@@ -3156,6 +3157,17 @@ static int kgsl_setup_dma_buf(struct kgsl_device *device,
 				struct kgsl_mem_entry *entry,
 				struct dma_buf *dmabuf);
 
+/* ION keeps the cache mode in the buffer flags, other exporters hand out cached buffers */
+static bool kgsl_dma_buf_cached(struct dma_buf *dmabuf)
+{
+	unsigned long flags;
+
+	if (!is_ion_dma_buf(dmabuf))
+		return true;
+
+	return !dma_buf_get_flags(dmabuf, &flags) && (flags & ION_FLAG_CACHED);
+}
+
 static long _gpuobj_map_dma_buf(struct kgsl_device *device,
 		struct kgsl_pagetable *pagetable,
 		struct kgsl_mem_entry *entry,
@@ -3200,21 +3212,19 @@ static long _gpuobj_map_dma_buf(struct kgsl_device *device,
 	if (IS_ERR(dmabuf))
 		return PTR_ERR(dmabuf);
 
-	/*
-	 * DMA BUFS are always cached so make sure that is reflected in
-	 * the memdesc.
-	 */
-	entry->memdesc.flags |=
-		FIELD_PREP(KGSL_CACHEMODE_MASK, KGSL_CACHEMODE_WRITEBACK);
+	if (kgsl_dma_buf_cached(dmabuf)) {
+		entry->memdesc.flags |=
+			FIELD_PREP(KGSL_CACHEMODE_MASK, KGSL_CACHEMODE_WRITEBACK);
 
-	/*
-	 * Enable I/O coherency if it is 1) a thing, and either
-	 * 2) enabled by default or 3) enabled by the caller
-	 */
-	if (kgsl_mmu_has_feature(device, KGSL_MMU_IO_COHERENT) &&
-			(IS_ENABLED(CONFIG_QCOM_KGSL_IOCOHERENCY_DEFAULT) ||
-			 iocoherent))
-		entry->memdesc.flags |= KGSL_MEMFLAGS_IOCOHERENT;
+		/*
+		 * Enable I/O coherency if it is 1) a thing, and either
+		 * 2) enabled by default or 3) enabled by the caller
+		 */
+		if (kgsl_mmu_has_feature(device, KGSL_MMU_IO_COHERENT) &&
+				(IS_ENABLED(CONFIG_QCOM_KGSL_IOCOHERENCY_DEFAULT) ||
+				 iocoherent))
+			entry->memdesc.flags |= KGSL_MEMFLAGS_IOCOHERENT;
+	}
 
 	ret = kgsl_setup_dma_buf(device, pagetable, entry, dmabuf);
 	if (ret)
