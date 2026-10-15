@@ -234,7 +234,7 @@
 
 		status = "disabled";
 
-		pcie0_rp: pcie0_rp {
+		pcie0_rp: pcie@0 {
 			reg = <0 0 0 0 0>;
 		};
 	};
@@ -535,7 +535,7 @@
 				0x0a44 0x03 0x0>;
 
 		status = "disabled";
-		pcie1_rp: pcie1_rp {
+		pcie1_rp: pcie@0 {
 			reg = <0 0 0 0 0>;
 		};
 	};
