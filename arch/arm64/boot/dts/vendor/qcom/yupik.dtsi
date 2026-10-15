@@ -3024,6 +3024,8 @@
 #include "ipcc-test-yupik.dtsi"
 #include "yupik-regulators.dtsi"
 #include "display/yupik-sde.dtsi"
+#include "gpu/yupik-gpu.dtsi"
+#include "gpu/yupik-gpu-pwrlevels.dtsi"
 #include "yupik-pcie.dtsi"
 
 &gcc_ufs_phy_gdsc {
