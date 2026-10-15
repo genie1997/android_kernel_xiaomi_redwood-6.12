@@ -976,7 +976,6 @@ static void fastrpc_mmap_free(struct fastrpc_mmap *map, uint32_t flags)
 	struct fastrpc_apps *me = &gfa;
 	struct fastrpc_file *fl;
 	int vmid, cid = -1, err = 0;
-	struct fastrpc_session_ctx *sess;
 	unsigned long irq_flags = 0;
 
 	if (!map)
@@ -1050,11 +1049,6 @@ static void fastrpc_mmap_free(struct fastrpc_mmap *map, uint32_t flags)
 	} else {
 		if (!fl)
 			goto bail;
-
-		if (map->secure)
-			sess = fl->secsctx;
-		else
-			sess = fl->sctx;
 
 		vmid = fl->apps->channel[cid].vmid;
 		if (vmid && map->phys && (me->channel[cid].in_hib == 0)) {
@@ -2434,7 +2428,6 @@ static int get_args(uint32_t kernel, struct smq_invoke_ctx *ctx)
 	int err = 0, j = 0;
 	int mflags = 0;
 	uint64_t *fdlist = NULL;
-	uint32_t *crclist = NULL;
 	uint32_t early_hint;
 	uint64_t *perf_counter = NULL;
 	struct fastrpc_dsp_capabilities *dsp_cap_ptr = NULL;
@@ -2704,7 +2697,6 @@ static int get_args(uint32_t kernel, struct smq_invoke_ctx *ctx)
 	}
 	mutex_unlock(&ctx->fl->map_mutex);
 	fdlist = (uint64_t *)&pages[bufs + handles];
-	crclist = (uint32_t *)&fdlist[M_FDLIST];
 	/* reset fds, crc and early wakeup hint memory */
 	/* remote process updates these values before responding */
 	memset(fdlist, 0, sizeof(uint64_t)*M_FDLIST + sizeof(uint32_t)*M_CRCLIST +
@@ -8143,7 +8135,7 @@ static int fastrpc_cb_probe(struct device *dev)
 	struct gen_pool *gen_pool = NULL;
 	struct iommu_domain *domain = NULL;
 	const char *name;
-	int err = 0, cid = -1, i = 0;
+	int err = 0, i = 0;
 	u32 sharedcb_count = 0, j = 0;
 	uint32_t dma_addr_pool[2] = {0, 0};
 
@@ -8165,7 +8157,6 @@ static int fastrpc_cb_probe(struct device *dev)
 		err = -ECHRNG;
 		goto bail;
 	}
-	cid = i;
 	chan = &gcinfo[i];
 	VERIFY(err, chan->sesscount < NUM_SESSIONS);
 	if (err) {
