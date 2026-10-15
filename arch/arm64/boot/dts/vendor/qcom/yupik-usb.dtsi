@@ -15,7 +15,7 @@
 
 		#address-cells = <2>;
 		#size-cells = <2>;
-		ranges;
+		ranges = <0x0 0x0 0x0 0x0 0xffffffff>;
 
 		interrupts-extended = <&pdc 14 IRQ_TYPE_EDGE_RISING>,
 			     <&intc GIC_SPI 130 IRQ_TYPE_LEVEL_HIGH>,
@@ -313,7 +313,7 @@
 
 		#address-cells = <2>;
 		#size-cells = <2>;
-		ranges;
+		ranges = <0x0 0x0 0x0 0x0 0xffffffff>;
 
 		interrupts-extended = <&pdc 12 IRQ_TYPE_EDGE_RISING>,
 			     <&intc GIC_SPI 241 IRQ_TYPE_LEVEL_HIGH>,
