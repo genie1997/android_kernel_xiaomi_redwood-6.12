@@ -1,2 +1,7 @@
 obj-$(CONFIG_MSM_CDSP_LOADER) += cdsp-loader.o
 cdsp-loader-y := dsp/cdsp-loader.o
+
+ccflags-y += -I$(src)/include/linux -I$(src)/include/uapi -DDSP_TRACE_INCLUDE_PATH=$(src)/dsp
+obj-$(CONFIG_MSM_ADSPRPC) += frpc-adsprpc.o
+frpc-adsprpc-y := dsp/adsprpc.o dsp/adsprpc_rpmsg.o
+frpc-adsprpc-$(CONFIG_COMPAT) += dsp/adsprpc_compat.o

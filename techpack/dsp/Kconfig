@@ -3,3 +3,12 @@ config MSM_CDSP_LOADER
 	depends on REMOTEPROC
 	help
 	  Boots the CDSP when userspace writes /sys/kernel/boot_cdsp/boot.
+
+config MSM_ADSPRPC
+	tristate "QTI FastRPC driver"
+	depends on RPMSG && QCOM_SCM && QCOM_SOCINFO && QCOM_PDR_HELPERS && QCOM_RPROC_COMMON
+	help
+	  Provides a communication mechanism that allows clients to
+	  make remote method invocations across processor boundary to
+	  applications/compute DSP processor.
+	  Say M if you want to enable this module.
