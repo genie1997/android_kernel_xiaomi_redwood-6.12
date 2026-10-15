@@ -81,7 +81,8 @@ ifeq ($(CONFIG_ARCH_SM6150), y)
 	subdir-ccflags-y += $(LE_EXTRA_CFLAGS)
 endif
 
-ccflags-y += -I$(KGSL_PATH) -I$(KGSL_PATH)/include/linux -I$(KGSL_PATH)/include -I$(KERNEL_SRC)/drivers/devfreq
+ccflags-y += -I$(KGSL_PATH) -I$(KGSL_PATH)/include/linux -I$(KGSL_PATH)/include \
+	-I$(KGSL_PATH)/../mm-drivers/hw_fence/include
 
 obj-$(CONFIG_QCOM_KGSL) += msm_kgsl.o
 
@@ -163,9 +164,7 @@ msm_kgsl-y += \
 	adreno_ringbuffer.o \
 	adreno_snapshot.o \
 	adreno_sysfs.o \
-	adreno_trace.o \
-	governor_msm_adreno_tz.o \
-	governor_gpubw_mon.o
+	adreno_trace.o
 
 msm_kgsl-$(CONFIG_COMPAT) += adreno_compat.o
 msm_kgsl-$(CONFIG_QCOM_KGSL_CORESIGHT) += adreno_coresight.o
