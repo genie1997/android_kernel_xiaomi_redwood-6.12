@@ -387,10 +387,20 @@ enum dsi_cmd_set_type {
  * OEMs can add custom command types before DSI_CUSTOM_CMD_SET_MAX.
  *
  * @DSI_CUSTOM_CMD_SET_CMD_TYPE_1:       Custom command type 1
+ * @DSI_CUSTOM_CMD_SET_DOZE_HBM:         Enter doze at the brighter AOD level
+ * @DSI_CUSTOM_CMD_SET_DOZE_HBM_NOLP:    Leave the brighter doze
+ * @DSI_CUSTOM_CMD_SET_DOZE_LBM:         Enter doze at the dimmer AOD level
+ * @DSI_CUSTOM_CMD_SET_DOZE_LBM_NOLP:    Leave the dimmer doze
+ * @DSI_CUSTOM_CMD_SET_PRE_DOZE_TO_OFF:  Sent before the off commands when off from doze
  * @DSI_CUSTOM_CMD_SET_MAX
  */
 enum dsi_custom_cmd_set_type {
 	DSI_CUSTOM_CMD_SET_CMD_TYPE_1 = DSI_CUSTOM_CMD_SET_START_IDX,
+	DSI_CUSTOM_CMD_SET_DOZE_HBM,
+	DSI_CUSTOM_CMD_SET_DOZE_HBM_NOLP,
+	DSI_CUSTOM_CMD_SET_DOZE_LBM,
+	DSI_CUSTOM_CMD_SET_DOZE_LBM_NOLP,
+	DSI_CUSTOM_CMD_SET_PRE_DOZE_TO_OFF,
 	DSI_CUSTOM_CMD_SET_MAX
 };
 

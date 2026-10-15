@@ -148,6 +148,8 @@ struct dsi_backlight_config {
 	u32 brightness_max_level;
 	/* brightness the backlight starts at, until userspace sets one */
 	u32 brightness_init_level;
+	/* level last sent to the panel, after scaling */
+	u32 sent_bl_level;
 	/* current brightness value */
 	u32 brightness;
 	u32 bl_level;
@@ -441,6 +443,8 @@ struct dsi_panel {
 
 	int panel_test_gpio;
 	int power_mode;
+	/* doze HBM/LBM set the panel is in, 0 when not dozing with them */
+	int doze_set;
 	bool powered;
 	enum dsi_panel_physical_type panel_type;
 	bool need_post_on_supply;
