@@ -25,7 +25,7 @@
 #include <linux/arch_topology.h>
 #include <linux/hash.h>
 #include <linux/msm_ion.h>
-#include <linux/qcom_scm.h>
+#include <linux/firmware/qcom/qcom_scm.h>
 #include <linux/ipc_logging.h>
 #include <linux/remoteproc/qcom_rproc.h>
 #include <linux/scatterlist.h>
@@ -34,6 +34,7 @@
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/of_platform.h>
+#include <linux/platform_device.h>
 #include <linux/dma-map-ops.h>
 #include <linux/cma.h>
 #include <linux/sort.h>
@@ -5789,7 +5790,7 @@ int fastrpc_internal_mmap(struct fastrpc_file *fl,
 		}
 		dma_attr = DMA_ATTR_DELAYED_UNMAP | DMA_ATTR_NO_KERNEL_MAPPING;
 		if (ud->flags == ADSP_MMAP_ADD_PAGES_LLC)
-			dma_attr |= DMA_ATTR_SYS_CACHE_ONLY;
+			dma_attr |= DMA_ATTR_SYS_CACHE;
 		err = fastrpc_buf_alloc(fl, ud->size, dma_attr, ud->flags,
 						USERHEAP_BUF, &rbuf);
 		if (err)
@@ -8250,8 +8251,8 @@ static int fastrpc_cb_probe(struct device *dev)
 		sess->smmu.dev->dma_parms = devm_kzalloc(sess->smmu.dev,
 			sizeof(*sess->smmu.dev->dma_parms), GFP_KERNEL);
 
-	dma_set_max_seg_size(sess->smmu.dev, DMA_BIT_MASK(32));
-	dma_set_seg_boundary(sess->smmu.dev, (unsigned long)DMA_BIT_MASK(64));
+	dma_set_max_seg_size(sess->smmu.dev, UINT_MAX);
+	dma_set_seg_boundary(sess->smmu.dev, ULONG_MAX);
 
 	of_property_read_u32_array(dev->of_node, "qcom,iommu-dma-addr-pool",
 			dma_addr_pool, 2);
@@ -8337,7 +8338,8 @@ static int fastrpc_cb_probe(struct device *dev)
 		}
 		/* Map the allocated memory with fixed IOVA and is shared to remote subsystem */
 		err = iommu_map_sg(domain, frpc_gen_addr_pool[0], sgt.sgl,
-					sgt.nents, IOMMU_READ | IOMMU_WRITE | IOMMU_CACHE);
+					sgt.nents, IOMMU_READ | IOMMU_WRITE | IOMMU_CACHE,
+					GFP_KERNEL);
 		if (err < 0) {
 			ADSPRPC_ERR("iommu_map_sg failed with err %d", err);
 			goto iommu_map_bail;
@@ -8984,7 +8986,7 @@ static struct device fastrpc_bus = {
 	.init_name	= "fastrpc"
 };
 
-static int fastrpc_bus_match(struct device *dev, struct device_driver *driver)
+static int fastrpc_bus_match(struct device *dev, const struct device_driver *driver)
 {
 	struct fastrpc_apps *me = &gfa;
 	struct fastrpc_driver *frpc_driver = to_fastrpc_driver(driver);
@@ -9188,7 +9190,7 @@ static int __init fastrpc_device_init(void)
 				NUM_DEVICES));
 	if (err)
 		goto cdev_init_bail;
-	me->class = class_create(THIS_MODULE, "fastrpc");
+	me->class = class_create("fastrpc");
 	VERIFY(err, !IS_ERR(me->class));
 	if (err)
 		goto class_create_bail;
