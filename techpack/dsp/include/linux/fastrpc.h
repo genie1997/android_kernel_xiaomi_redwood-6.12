@@ -94,7 +94,7 @@ struct fastrpc_driver {
 					enum fastrpc_driver_status status);
 };
 
-#define to_fastrpc_driver(x) container_of((x), struct fastrpc_driver, driver)
+#define to_fastrpc_driver(x) container_of_const((x), struct fastrpc_driver, driver)
 
 //#if IS_ENABLED(CONFIG_MSM_ADSPRPC) || IS_ENABLED(CONFIG_MSM_ADSPRPC_TRUSTED)
 /**
