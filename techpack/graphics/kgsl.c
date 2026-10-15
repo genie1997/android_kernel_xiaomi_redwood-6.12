@@ -22,6 +22,7 @@
 #include <linux/of.h>
 #include <linux/of_fdt.h>
 #include <linux/pm_runtime.h>
+#include <linux/qcom-dma-mapping.h>
 #include <linux/security.h>
 #include <linux/sort.h>
 #include <linux/string_helpers.h>
@@ -3461,6 +3462,10 @@ static int kgsl_setup_dma_buf(struct kgsl_device *device,
 	 */
 	if (entry->memdesc.flags & KGSL_MEMFLAGS_IOCOHERENT)
 		attach->dma_map_attrs |= DMA_ATTR_SKIP_CPU_SYNC;
+
+	/* The device is marked DMA-coherent, so an import without I/O coherency has to say so */
+	if (!(entry->memdesc.flags & KGSL_MEMFLAGS_IOCOHERENT))
+		attach->dma_map_attrs |= DMA_ATTR_FORCE_NON_COHERENT;
 
 	metadata->dmabuf = dmabuf;
 	metadata->attach = attach;
