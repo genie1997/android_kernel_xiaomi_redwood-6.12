@@ -53,7 +53,6 @@
 #include <linux/of_reserved_mem.h>
 #include <linux/soc/qcom/pdr.h>
 #include <linux/soc/qcom/qmi.h>
-#include <linux/mem-buf.h>
 #include <linux/iommu.h>
 #include <asm/arch_timer.h>
 #include <linux/genalloc.h>
@@ -1153,75 +1152,19 @@ bail:
 	return err;
 }
 
-static int get_buffer_attr(struct dma_buf *buf, bool *exclusive_access, bool *hlos_access)
-{
-	const int *vmids_list = NULL, *perms = NULL;
-	int err = 0, vmids_list_len = 0;
-
-	*exclusive_access = false;
-	*hlos_access = false;
-	err = mem_buf_dma_buf_get_vmperm(buf, &vmids_list, &perms, &vmids_list_len);
-	if (err)
-		goto bail;
-
-	/*
-	 * If one VM has access to buffer and is the current VM,
-	 * then VM has exclusive access to buffer
-	 */
-	if (vmids_list_len == 1 && vmids_list[0] == mem_buf_current_vmid())
-		*exclusive_access = true;
-
-#if IS_ENABLED(CONFIG_MSM_ADSPRPC_TRUSTED)
-	for (int ii = 0; ii < vmids_list_len; ii++) {
-		if (vmids_list[ii] == VMID_HLOS) {
-			*hlos_access = true;
-			break;
-		}
-	}
-#endif
-
-bail:
-	return err;
-}
-
 static int set_buffer_secure_type(struct fastrpc_mmap *map)
 {
+	unsigned long flags = 0;
 	int err = 0;
-	bool hlos_access = false, exclusive_access = false;
 
-	VERIFY(err, 0 == (err = get_buffer_attr(map->buf, &exclusive_access, &hlos_access)));
+	/* ION marks the buffers it keeps away from the CPU with ION_FLAG_SECURE */
+	err = dma_buf_get_flags(map->buf, &flags);
 	if (err) {
 		ADSPRPC_ERR("failed to obtain buffer attributes for fd %d ret %d\n", map->fd, err);
 		err = -EBADFD;
 		goto bail;
 	}
-#if IS_ENABLED(CONFIG_MSM_ADSPRPC_TRUSTED)
-        /*
-         * PVM (HLOS) can share buffers with TVM, in case buffers are to be shared to secure PD,
-         * PVM is expected to relinquish its ownership to those buffers before sharing.
-         * If PVM still retains access, then those buffers cannot be shared to secure PD.
-         */
-	if (hlos_access) {
-		ADSPRPC_ERR("Buffers with HLOS access (fd %d) are not allowed on TVM\n", map->fd);
-		err = -EACCES;
-		goto bail;
-	}
-#endif
-	/*
-	 * Secure buffers would always be owned by multiple VMs.
-	 * If current VM is the exclusive owner of a buffer, it is considered non-secure.
-	 * In PVM:
-	 *	- CPZ buffers are secure
-	 *	- All other buffers are non-secure
-	 * In TVM:
-	 *	- Since it is a secure environment by default, there are no explicit "secure" buffers
-	 *	- All buffers are marked "non-secure"
-	 */
-#if IS_ENABLED(CONFIG_MSM_ADSPRPC_TRUSTED)
-	map->secure = 0;
-#else
-	map->secure = (exclusive_access) ? 0 : 1;
-#endif
+	map->secure = (flags & ION_FLAG_SECURE) ? 1 : 0;
 
 bail:
 	return err;
