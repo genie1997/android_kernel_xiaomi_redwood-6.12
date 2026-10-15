@@ -4729,7 +4729,7 @@ bail:
 	return err;
 }
 
-int fastrpc_get_info_from_dsp(struct fastrpc_file *fl,
+static int fastrpc_get_info_from_dsp(struct fastrpc_file *fl,
 				uint32_t *dsp_attr_buf,
 				uint32_t dsp_attr_buf_len,
 				uint32_t domain)
@@ -7027,7 +7027,7 @@ int fastrpc_setmode(unsigned long ioctl_param,
 	return err;
 }
 
-int fastrpc_control(struct fastrpc_ioctl_control *cp,
+static int fastrpc_control(struct fastrpc_ioctl_control *cp,
 				void *param, struct fastrpc_file *fl)
 {
 	int err = 0;
@@ -8723,7 +8723,7 @@ union fastrpc_dev_param {
 	struct fastrpc_dev_get_hlos_pid *hpid;
 };
 
-long fastrpc_dev_map_dma(struct fastrpc_device *dev, unsigned long invoke_param)
+static long fastrpc_dev_map_dma(struct fastrpc_device *dev, unsigned long invoke_param)
 {
 	int err = 0;
 	union fastrpc_dev_param p;
@@ -8801,7 +8801,7 @@ bail:
 	return err;
 }
 
-long fastrpc_dev_unmap_dma(struct fastrpc_device *dev, unsigned long invoke_param)
+static long fastrpc_dev_unmap_dma(struct fastrpc_device *dev, unsigned long invoke_param)
 {
 	int err = 0;
 	union fastrpc_dev_param p;
@@ -8872,7 +8872,7 @@ bail:
 	return err;
 }
 
-long fastrpc_dev_get_hlos_pid(struct fastrpc_device *dev, unsigned long invoke_param)
+static long fastrpc_dev_get_hlos_pid(struct fastrpc_device *dev, unsigned long invoke_param)
 {
 	int err = 0;
 	union fastrpc_dev_param p;
