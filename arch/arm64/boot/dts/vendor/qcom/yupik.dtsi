@@ -2999,6 +2999,26 @@
 		qcom,rproc-handle = <&cdsp_pas>;
 	};
 
+	/* The vendor services start the modem and hold the DSPs through /dev/subsys_<node name> */
+	qcom,msm-subsys {
+		compatible = "qcom,msm-subsys";
+
+		adsp {
+			qcom,rproc-handle = <&adsp_pas>;
+			qcom,ssr-name = "lpass";
+		};
+
+		modem {
+			qcom,rproc-handle = <&modem_pas>;
+			qcom,ssr-name = "mpss";
+		};
+
+		cdsp {
+			qcom,rproc-handle = <&cdsp_pas>;
+			qcom,ssr-name = "cdsp";
+		};
+	};
+
 	qcom,msm-adsprpc-mem {
 		compatible = "qcom,msm-adsprpc-mem-region";
 		memory-region = <&adsp_mem>;
