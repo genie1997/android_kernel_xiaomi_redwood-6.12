@@ -933,12 +933,8 @@
 };
 
 &soc {
-	refgen: refgen-regulator@88e7000 {
-		compatible = "qcom,refgen-kona-regulator";
+	refgen: regulator@88e7000 {
+		compatible = "qcom,sc7280-refgen-regulator", "qcom,sm8250-refgen-regulator";
 		reg = <0x88e7000 0x84>;
-		regulator-name = "refgen";
-		proxy-supply = <&refgen>;
-		qcom,proxy-consumer-enable;
-		regulator-enable-ramp-delay = <5>;
 	};
 };
