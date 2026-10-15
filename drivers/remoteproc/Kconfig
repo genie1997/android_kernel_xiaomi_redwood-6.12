@@ -270,6 +270,16 @@ config QCOM_SYSMON
 	  Say y here if your system runs firmware on any other subsystems, e.g.
 	  modem or DSP.
 
+config QCOM_MSM_SUBSYS
+	tristate "Qualcomm msm_subsys interface for remote processors"
+	depends on OF && QCOM_RPROC_COMMON
+	help
+	  Vendor services built for the msm_subsys driver start the modem and
+	  hold the DSPs by opening /dev/subsys_<name>, find them and poll their
+	  state in /sys/bus/msm_subsys, and set their restart level there.
+	  This driver gives that interface to the remote processors listed in
+	  the device tree.
+
 config QCOM_WCNSS_PIL
 	tristate "Qualcomm WCNSS Peripheral Image Loader"
 	depends on OF && ARCH_QCOM
