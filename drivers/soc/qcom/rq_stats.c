@@ -116,16 +116,26 @@ static int __init msm_rq_stats_init(void)
 	return -EPERM;
 #endif
 	rq_wq = create_singlethread_workqueue("rq_stats");
-	WARN_ON(!rq_wq);
+	if (!rq_wq)
+		return -ENOMEM;
 	INIT_WORK(&rq_info.def_timer_work, def_work_fn);
 	spin_lock_init(&rq_lock);
 	rq_info.def_timer_jiffies = DEFAULT_DEF_TIMER_JIFFIES;
 	rq_info.def_timer_last_jiffy = 0;
 	ret = init_rq_attribs();
+	if (ret)
+		goto err_wq;
 
-	if (ret == 0)
-		register_trace_android_vh_jiffies_update(wakeup_user, NULL);
+	ret = register_trace_android_vh_jiffies_update(wakeup_user, NULL);
+	if (ret)
+		goto err_kobj;
 
+	return 0;
+
+err_kobj:
+	kobject_put(rq_info.kobj);
+err_wq:
+	destroy_workqueue(rq_wq);
 	return ret;
 }
 late_initcall(msm_rq_stats_init);
