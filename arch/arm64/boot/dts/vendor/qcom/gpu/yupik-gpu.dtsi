@@ -88,28 +88,6 @@
 		memory-region = <&pil_gpu_micro_code_mem>;
 	};
 
-	qcom,l3-pwrlevels {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		compatible = "qcom,l3-pwrlevels";
-
-		qcom,l3-pwrlevel@0 {
-			reg = <0>;
-			qcom,l3-freq = <0>;
-		};
-
-		qcom,l3-pwrlevel@1 {
-			reg = <1>;
-			qcom,l3-freq = <614400000>;
-		};
-
-		qcom,l3-pwrlevel@2 {
-			reg = <2>;
-			qcom,l3-freq = <1516800000>;
-		};
-	};
-
 	qcom,gpu-models {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -140,14 +118,12 @@
 			reg = <0>;
 			qcom,mempool-page-size = <4096>;
 			qcom,mempool-reserved = <2048>;
-			qcom,mempool-allocate;
 		};
 			/* 8K Page Pool configuration */
 		qcom,gpu-mempool@1 {
 			reg = <1>;
 			qcom,mempool-page-size = <8192>;
 			qcom,mempool-reserved = <1024>;
-			qcom,mempool-allocate;
 		};
 		/* 64K Page Pool configuration */
 		qcom,gpu-mempool@2 {
@@ -202,8 +178,6 @@
 		interrupts = <0 304 IRQ_TYPE_LEVEL_HIGH>,
 			<0 305 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "kgsl_hfi_irq", "kgsl_gmu_irq";
-
-		regulator-names = "vddcx", "vdd";
 
 		iommus = <&kgsl_smmu 0x5 0x400>;
 		qcom,iommu-dma = "disabled";
