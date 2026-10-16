@@ -9171,7 +9171,9 @@ static int __init fastrpc_device_init(void)
 		me->channel[i].subsystemstate = SUBSYSTEM_UP;
 		me->channel[i].rh_dump_dev = NULL;
 		me->channel[i].nb.notifier_call = fastrpc_restart_notifier_cb;
-		me->channel[i].handle = qcom_register_ssr_notifier(
+		/* An entry without a name is a channel this target lacks, skipped on unload too */
+		if (gcinfo[i].name)
+			me->channel[i].handle = qcom_register_ssr_notifier(
 							gcinfo[i].subsys,
 							&me->channel[i].nb);
 		if (i == CDSP_DOMAIN_ID) {
@@ -9205,6 +9207,8 @@ static int __init fastrpc_device_init(void)
 				me->channel[i].buf = buf;
 			}
 		}
+		if (!gcinfo[i].name)
+			continue;
 		if (IS_ERR_OR_NULL(me->channel[i].handle))
 			pr_warn("adsprpc: %s: SSR notifier register failed for %s with err %ld\n",
 				__func__, gcinfo[i].subsys,
