@@ -443,6 +443,8 @@
 		spi-max-frequency = <5000000>;
 		interrupt-parent = <&tlmm>;
 		interrupts = <81 0x2802>;
+		/* Panel ID: low, high = Goodix; high, low = FocalTech */
+		xiaomi,panel-id-gpios = <&tlmm 96 0>, <&tlmm 68 0>;
 
 		/* Goodix */
 		goodix,reset-gpio = <&tlmm 105 0x00>;
