@@ -332,11 +332,10 @@ err_alloc_tx_buf:
 	return ret;
 }
 
-static int goodix_spi_remove(struct spi_device *spi)
+static void goodix_spi_remove(struct spi_device *spi)
 {
 	platform_device_unregister(goodix_pdev);
 	mutex_destroy(&goodix_spi_bus.mutex);
-	return 0;
 }
 
 #ifdef CONFIG_OF

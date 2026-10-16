@@ -1114,7 +1114,7 @@ parse_dt_err:
 	return ret;
 }
 
-static int xiaomi_touch_remove(struct platform_device *pdev)
+static void xiaomi_touch_remove(struct platform_device *pdev)
 {
 	int i;
 
@@ -1157,7 +1157,6 @@ static int xiaomi_touch_remove(struct platform_device *pdev)
 		touch_pdata->touch_data[1] = NULL;
 	}
 
-	return 0;
 }
 
 static const struct of_device_id xiaomi_touch_of_match[] = {
