@@ -2190,7 +2190,7 @@ static ssize_t fts_fod_test_store(struct device *dev,
 	int value = 0;
 	struct fts_ts_data *info = dev_get_drvdata(dev);
 
-	FTS_INFO("%s,buf:%s,count:%u\n", __func__, buf, count);
+	FTS_INFO("%s,buf:%s,count:%zu\n", __func__, buf, count);
 	if (kstrtoint(buf, 10, &value))
 		return -ENODEV;
 
@@ -2494,7 +2494,7 @@ static int fts_reset_mode(int mode)
 	} else if (mode < Touch_Report_Rate)
 		fts_restore_mode_value(mode, GET_DEF_VALUE);
 	else
-		FTS_ERROR("mode:%d don't support");
+		FTS_ERROR("mode:%d don't support", mode);
 
 	FTS_INFO("mode:%d reset", mode);
 
@@ -2512,7 +2512,7 @@ static int fts_get_mode_value(int mode, int value_type)
 		FTS_INFO("mode:%d, value_type:%d, value:%d", mode, value_type,
 			 value);
 	} else
-		FTS_ERROR("mode:%d don't support");
+		FTS_ERROR("mode:%d don't support", mode);
 
 	return value;
 }
