@@ -277,7 +277,7 @@ struct fts_ts_data {
 	bool point_id_changed;
 #endif
 #ifdef CONFIG_DRM_PANEL
-	struct notifier_block drm_notifier;
+	void *notifier_cookie;
 #endif
 	struct mutex cmd_update_mutex;
 	int palm_sensor_switch;

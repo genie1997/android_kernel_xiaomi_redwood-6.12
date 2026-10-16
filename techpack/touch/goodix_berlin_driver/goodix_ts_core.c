@@ -2044,31 +2044,29 @@ static int goodix_ts_pm_resume(struct device *dev)
 #ifdef CONFIG_DRM_PANEL
 static struct drm_panel *active_panel;
 
-static int drm_notifier_callback(struct notifier_block *self, unsigned long event,
-				 void *data)
+static void goodix_panel_notifier_callback(enum panel_event_notifier_tag tag,
+		struct panel_event_notification *notification, void *client_data)
 {
-	struct goodix_ts_core *core_data = container_of(self, struct goodix_ts_core,
-							drm_notifier);
-	struct drm_panel_notifier *evdata = data;
-	int *blank = evdata->data;
+	struct goodix_ts_core *core_data = client_data;
+
+	if (!notification)
+		return;
 
 	flush_workqueue(core_data->event_wq);
 
-	switch (*blank) {
-	case DRM_PANEL_BLANK_POWERDOWN:
-	case DRM_PANEL_BLANK_LP:
-		if (event == DRM_PANEL_EARLY_EVENT_BLANK)
+	switch (notification->notif_type) {
+	case DRM_PANEL_EVENT_BLANK:
+	case DRM_PANEL_EVENT_BLANK_LP:
+		if (notification->notif_data.early_trigger)
 			queue_work(core_data->event_wq, &core_data->suspend_work);
 		break;
-	case DRM_PANEL_BLANK_UNBLANK:
-		if (event == DRM_PANEL_EVENT_BLANK)
+	case DRM_PANEL_EVENT_UNBLANK:
+		if (!notification->notif_data.early_trigger)
 			queue_work(core_data->event_wq, &core_data->resume_work);
 		break;
 	default:
 		break;
 	}
-
-	return NOTIFY_DONE;
 }
 #endif
 
@@ -2215,14 +2213,15 @@ int goodix_ts_stage2_init(struct goodix_ts_core *cd)
 	INIT_WORK(&cd->resume_work, goodix_ts_resume_work);
 
 #ifdef CONFIG_DRM_PANEL
-	cd->drm_notifier.notifier_call = drm_notifier_callback;
-	if (active_panel)
-		ret = drm_panel_notifier_register(active_panel, &cd->drm_notifier);
-	else
-		ret = -ENODEV;
-
-	if (ret)
-		ts_err("Failed to register DRM panel notifier, ret=%d\n", ret);
+	cd->notifier_cookie = panel_event_notifier_register(
+			PANEL_EVENT_NOTIFICATION_PRIMARY,
+			PANEL_EVENT_NOTIFIER_CLIENT_PRIMARY_TOUCH, active_panel,
+			goodix_panel_notifier_callback, cd);
+	if (IS_ERR(cd->notifier_cookie)) {
+		ts_err("Failed to register panel event notifier, ret=%ld\n",
+		       PTR_ERR(cd->notifier_cookie));
+		cd->notifier_cookie = NULL;
+	}
 #endif
 
 #ifdef GOODIX_QGKI
@@ -2884,8 +2883,8 @@ static void goodix_ts_remove(struct platform_device *pdev)
 
 		goodix_ts_unregister_notifier(&ts_esd->esd_notifier);
 #ifdef CONFIG_DRM_PANEL
-		if (active_panel)
-			drm_panel_notifier_unregister(active_panel, &core_data->drm_notifier);
+		if (core_data->notifier_cookie)
+			panel_event_notifier_unregister(core_data->notifier_cookie);
 #endif
 		goodix_ts_pen_dev_remove(core_data);
 		goodix_ts_input_dev_remove(core_data);

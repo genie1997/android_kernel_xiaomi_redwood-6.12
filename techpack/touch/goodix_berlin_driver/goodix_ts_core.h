@@ -38,6 +38,7 @@
 #include <linux/pm_runtime.h>
 #ifdef CONFIG_DRM_PANEL
 #include <drm/drm_panel.h>
+#include <linux/soc/qcom/panel_event_notifier.h>
 #endif
 #include "../xiaomi/xiaomi_touch.h"
 
@@ -551,7 +552,7 @@ struct goodix_ts_core {
 	bool tools_ctrl_sync;
 
 #ifdef CONFIG_DRM_PANEL
-	struct notifier_block drm_notifier;
+	void *notifier_cookie;
 #endif
 	struct notifier_block ts_notifier;
 	struct goodix_ts_esd ts_esd;
