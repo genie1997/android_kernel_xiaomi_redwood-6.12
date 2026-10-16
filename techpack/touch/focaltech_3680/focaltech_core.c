@@ -1927,18 +1927,15 @@ static int fts_parse_dt(struct device *dev, struct fts_ts_platform_data *pdata)
 	}
 
 	/* reset, irq gpio info */
-	pdata->avdd_gpio = of_get_named_gpio_flags(np, "focaltech,avdd-gpio", 0,
-						   &pdata->avdd_gpio_flags);
+	pdata->avdd_gpio = of_get_named_gpio(np, "focaltech,avdd-gpio", 0);
 	if (pdata->avdd_gpio < 0)
 		FTS_ERROR("Unable to get avdd_gpio");
 
-	pdata->reset_gpio = of_get_named_gpio_flags(
-		np, "focaltech,reset-gpio", 0, &pdata->reset_gpio_flags);
+	pdata->reset_gpio = of_get_named_gpio(np, "focaltech,reset-gpio", 0);
 	if (pdata->reset_gpio < 0)
 		FTS_ERROR("Unable to get reset_gpio");
 
-	pdata->irq_gpio = of_get_named_gpio_flags(np, "focaltech,irq-gpio", 0,
-						  &pdata->irq_gpio_flags);
+	pdata->irq_gpio = of_get_named_gpio(np, "focaltech,irq-gpio", 0);
 	if (pdata->irq_gpio < 0)
 		FTS_ERROR("Unable to get irq_gpio");
 

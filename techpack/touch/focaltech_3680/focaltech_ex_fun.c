@@ -98,7 +98,7 @@ static ssize_t fts_debug_write(struct file *filp, const char __user *buff,
 	int writelen = 0;
 	int ret = 0;
 	char tmp[PROC_BUF_SIZE];
-	struct fts_ts_data *ts_data = PDE_DATA(file_inode(filp));
+	struct fts_ts_data *ts_data = pde_data(file_inode(filp));
 	struct ftxxxx_proc *proc = &ts_data->proc;
 
 	if (buflen < 1) {
@@ -258,7 +258,7 @@ static ssize_t fts_debug_read(struct file *filp, char __user *buff,
 	int buflen = count;
 	u8 *readbuf = NULL;
 	u8 tmpbuf[PROC_BUF_SIZE] = { 0 };
-	struct fts_ts_data *ts_data = PDE_DATA(file_inode(filp));
+	struct fts_ts_data *ts_data = pde_data(file_inode(filp));
 	struct ftxxxx_proc *proc = &ts_data->proc;
 
 	if (buflen <= 0) {
@@ -341,7 +341,7 @@ static const struct proc_ops fts_proc_fops = {
 
 static int fts_ta_open(struct inode *inode, struct file *file)
 {
-	struct fts_ts_data *ts_data = PDE_DATA(inode);
+	struct fts_ts_data *ts_data = pde_data(inode);
 
 	if (ts_data->touch_analysis_support) {
 		FTS_INFO("fts_ta open");
@@ -356,7 +356,7 @@ static int fts_ta_open(struct inode *inode, struct file *file)
 
 static int fts_ta_release(struct inode *inode, struct file *file)
 {
-	struct fts_ts_data *ts_data = PDE_DATA(inode);
+	struct fts_ts_data *ts_data = pde_data(inode);
 
 	if (ts_data->touch_analysis_support) {
 		FTS_INFO("fts_ta close");
@@ -371,7 +371,7 @@ static ssize_t fts_ta_read(struct file *filp, char __user *buff, size_t count,
 			   loff_t *ppos)
 {
 	int read_num = (int)count;
-	struct fts_ts_data *ts_data = PDE_DATA(file_inode(filp));
+	struct fts_ts_data *ts_data = pde_data(file_inode(filp));
 
 	if (!ts_data->touch_analysis_support || !ts_data->ta_buf) {
 		FTS_ERROR("touch_analysis is disabled, or ta_buf is NULL");

@@ -180,7 +180,6 @@ static const struct file_operations xiaomitouch_dev_fops = {
 	.unlocked_ioctl = xiaomi_touch_dev_ioctl,
 	.compat_ioctl = xiaomi_touch_dev_ioctl,
 	.release = xiaomi_touch_dev_release,
-	.llseek = no_llseek,
 };
 
 static struct xiaomi_touch xiaomi_touch_dev = {
@@ -1019,7 +1018,7 @@ static int xiaomi_touch_probe(struct platform_device *pdev)
 
 	xiaomi_touch_device = &xiaomi_touch_dev;
 	if (!xiaomi_touch_dev.class)
-		xiaomi_touch_dev.class = class_create(THIS_MODULE, "touch");
+		xiaomi_touch_dev.class = class_create("touch");
 
 	if (!xiaomi_touch_dev.class) {
 		pr_err("%s create device class err\n", __func__);
