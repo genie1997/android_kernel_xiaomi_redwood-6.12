@@ -2950,11 +2950,7 @@ static int __init goodix_ts_core_init(void)
 #endif
 
 	ts_info("Core layer init:%s", GOODIX_DRIVER_VERSION);
-#ifdef CONFIG_TOUCHSCREEN_GOODIX_BRL_SPI
 	ret = goodix_spi_bus_init();
-#else
-	ret = goodix_i2c_bus_init();
-#endif
 	if (ret) {
 		ts_err("failed add bus driver");
 		return ret;
@@ -2966,11 +2962,7 @@ static void __exit goodix_ts_core_exit(void)
 {
 	ts_info("Core layer exit");
 	platform_driver_unregister(&goodix_ts_driver);
-#ifdef CONFIG_TOUCHSCREEN_GOODIX_BRL_SPI
 	goodix_spi_bus_exit();
-#else
-	goodix_i2c_bus_exit();
-#endif
 }
 
 late_initcall(goodix_ts_core_init);
