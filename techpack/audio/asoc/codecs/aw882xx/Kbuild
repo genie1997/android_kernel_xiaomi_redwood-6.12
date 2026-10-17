@@ -1,0 +1,6 @@
+ccflags-y += -I$(srctree)/techpack/audio/include -I$(srctree)/techpack/audio/include/uapi -I$(src)/inc \
+	-include $(srctree)/techpack/audio/config/lahainaautoconf.h
+
+obj-$(CONFIG_SND_SOC_AW882XX) += aw882xx_dlkm.o
+aw882xx_dlkm-y := src/aw882xx.o src/aw882xx_bin_parse.o src/aw882xx_calib.o src/aw882xx_device.o src/aw882xx_dsp.o \
+	src/aw882xx_init.o src/aw882xx_monitor.o src/aw882xx_spin.o

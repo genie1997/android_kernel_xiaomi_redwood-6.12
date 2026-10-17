@@ -25,3 +25,20 @@ config MSM_ADSP_LOADER
 	depends on MSM_QDSP6_APRV2_RPMSG && REMOTEPROC
 	help
 	  Boots the ADSP when userspace writes /sys/kernel/boot_adsp/boot.
+
+config SND_SOC_LAHAINA
+	tristate "Lahaina sound card"
+	depends on SND_SOC && MSM_QDSP6_APRV2_RPMSG && QCOM_SCM && PINCTRL_MSM
+	help
+	  Builds the lahaina sound card the way Qualcomm's lahaina target
+	  does: the q6 DSP interface, the ASoC platform and machine drivers,
+	  SoundWire, the LPASS pin controller, bolero with its RX, TX and VA
+	  macros, the WCD938x codec and the WCD937x and WSA883x codecs the
+	  machine driver calls into.
+
+config SND_SOC_AW882XX
+	tristate "Awinic AW882xx smart amplifier"
+	depends on I2C && SND_SOC_LAHAINA
+	help
+	  The AW882xx speaker amplifiers on the primary TDM interface, with
+	  their calibration through the ADSP.
