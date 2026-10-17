@@ -1456,6 +1456,9 @@ static struct notifier_block ipa3_rmnet_mem_blk = {
 	.notifier_call = ipa3_rmnet_mem_notifier,
 	.priority = INT_MAX,
 };
+
+/* WAN pipes that follow the pool size: the notifier is registered while there is one */
+static atomic_t ipa3_rmnet_mem_users = ATOMIC_INIT(0);
 #endif
 
 /**
@@ -1846,7 +1849,9 @@ int ipa_setup_sys_pipe(struct ipa_sys_connect_params *sys_in, u32 *clnt_hdl)
 				IPADBG("Temp pool capacity for client:%d, value:%u\n",
 						sys_in->client,
 						atomic_read(&ipa3_ctx->ipa_temp_pool_capacity));
-				rmnet_mem_register_notifier(&ipa3_rmnet_mem_blk);
+				ep->sys->rmnet_mem_user = true;
+				if (atomic_inc_return(&ipa3_rmnet_mem_users) == 1)
+					rmnet_mem_register_notifier(&ipa3_rmnet_mem_blk);
 #endif
 			}
 			atomic_set(&ep->sys->repl->pending, 0);
@@ -3945,9 +3950,10 @@ static void ipa3_cleanup_rx(struct ipa3_sys_context *sys)
 		kfree(sys->repl);
 		sys->repl = NULL;
 #ifdef CONFIG_IPA_RMNET_MEM
-		if (sys->ep->client == IPA_CLIENT_APPS_WAN_CONS ||
-			sys->ep->client == IPA_CLIENT_APPS_WAN_COAL_CONS) {
-			rmnet_mem_unregister_notifier(&ipa3_rmnet_mem_blk);
+		if (sys->rmnet_mem_user) {
+			sys->rmnet_mem_user = false;
+			if (atomic_dec_and_test(&ipa3_rmnet_mem_users))
+				rmnet_mem_unregister_notifier(&ipa3_rmnet_mem_blk);
 		}
 #endif
 	}

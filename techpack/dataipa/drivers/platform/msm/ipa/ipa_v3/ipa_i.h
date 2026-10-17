@@ -1134,6 +1134,7 @@ struct ipa3_page_repl_ctx {
  * @buff_size: rx packet length
  * @page_order: page order of the rx pipe based on the ioctl version
  * @ext_ioctl_v2: specifies if it's new version of ingress/egress ioctl
+ * @rmnet_mem_user: the pipe follows the size of the RmNet memory pool
  *
  * IPA context specific to the GPI pipes a.k.a LAN IN/OUT and WAN
  */
@@ -1179,6 +1180,9 @@ struct ipa3_sys_context {
 	u32 page_order;
 	bool ext_ioctl_v2;
 	bool common_buff_pool;
+#ifdef CONFIG_IPA_RMNET_MEM
+	bool rmnet_mem_user;
+#endif
 	atomic_t page_avilable;
 	u32 napi_sort_page_thrshld_cnt;
 
