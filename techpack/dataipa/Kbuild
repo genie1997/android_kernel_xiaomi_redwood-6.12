@@ -9,6 +9,7 @@ ccflags-y += -I$(src)/$(ipadrv)/include \
 	     -I$(src)/$(ipadrv)/ipa/ipa_v3 \
 	     -I$(src)/$(ipadrv)/ipa/ipa_v3/ipahal \
 	     -I$(src)/$(ipadrv)/ipa/ipa_clients
+ccflags-$(CONFIG_IPA_RMNET_MEM) += -I$(srctree)/techpack/datarmnet-ext/mem
 
 obj-$(CONFIG_GSI) += gsim.o
 gsim-y := $(ipadrv)/gsi/gsi.o \
