@@ -317,6 +317,9 @@ static int msm_pcm_add_soft_volume_params_control(struct snd_soc_pcm_runtime *rt
 	struct snd_pcm_soft_volume *soft_vol = NULL;
 	struct snd_kcontrol *kctl = NULL;
 
+	if (!pcm->streams[stream].substream)
+		return 0;
+
 	dev_dbg(rtd->dev, "%s, volume control add\n", __func__);
 	ret = snd_pcm_add_soft_volume_ctls(pcm, stream,
 			NULL,/* 1,*/ rtd->dai_link->id,
@@ -1978,6 +1981,9 @@ static int msm_pcm_add_volume_control(struct snd_soc_pcm_runtime *rtd,
 	struct snd_pcm *pcm = rtd->pcm;
 	struct snd_pcm_volume *volume_info;
 	struct snd_kcontrol *kctl;
+
+	if (!pcm->streams[stream].substream)
+		return 0;
 
 	dev_dbg(rtd->dev, "%s, volume control add\n", __func__);
 	ret = snd_pcm_add_volume_ctls(pcm, stream,
