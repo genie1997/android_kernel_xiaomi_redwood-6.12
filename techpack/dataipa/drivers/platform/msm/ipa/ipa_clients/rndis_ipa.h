@@ -93,6 +93,15 @@ static inline void rndis_ipa_cleanup(void *private)
 {
 }
 
+static inline int rndis_ipa_init_module(void)
+{
+	return 0;
+}
+
+static inline void rndis_ipa_cleanup_module(void)
+{
+}
+
 #endif /* IS_ENABLED(CONFIG_RNDIS_IPA) */
 
 #endif /* _RNDIS_IPA_H_ */

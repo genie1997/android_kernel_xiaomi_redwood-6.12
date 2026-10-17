@@ -101,6 +101,15 @@ static inline void ncm_ipa_cleanup(void *private)
 {
 }
 
+static inline int ncm_ipa_init_module(void)
+{
+	return 0;
+}
+
+static inline void ncm_ipa_cleanup_module(void)
+{
+}
+
 #endif /* IS_ENABLED(CONFIG_NCM_IPA) */
 
 #endif /* _NCM_IPA_H_ */
