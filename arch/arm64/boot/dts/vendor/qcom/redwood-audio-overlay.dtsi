@@ -1,9 +1,7 @@
 #include "yupik-audio-overlay.dtsi"
 
 &yupik_snd {
-	qcom,wcn-bt = <1>;
 	qcom,mi2s-audio-intf = <1>;
-	qcom,auxpcm-audio-intf = <1>;
 	qcom,ext-disp-audio-rx = <0>;
 	qcom,afe-rxtx-lb = <0>;
 
@@ -49,10 +47,12 @@
 	qcom,msm-mbhc-usbc-audio-supported = <0>;
 	asoc-codec = <&stub_codec>, <&bolero>,
 		      <&wcd938x_codec>, <&swr_haptics>,
-		      <&wsa883x_0222>, <&ext_disp_audio_codec>;
+		      <&wsa883x_0222>;
 	asoc-codec-names = "msm-stub-codec.1", "bolero_codec",
 			   "wcd938x_codec", "swr-haptics",
-			   "wsa-codec2", "msm-ext-disp-audio-codec-rx";
+			   "wsa-codec2";
+	/* Two 32-bit slots per frame, the TDM frame the smart amplifiers run */
+	qcom,tdm-max-slots = <2>;
 };
 
 &q6core {
@@ -102,6 +102,11 @@
 
 &wcd938x_codec {
 	status = "okay";
+	/* <offset1 lane> per TX slave port at 9.6/4.8/1.2/0.6 MHz; ADC1/2 feed TX1, ADC3/4 TX3, MBHC TX2 */
+	qcom,swr-tx-port-params = <OFFSET1_VAL0 LANE1>, <OFFSET1_VAL2 LANE0>, <OFFSET1_VAL2 LANE0>, <OFFSET1_VAL2 LANE0>,
+				  <OFFSET1_VAL0 LANE1>, <OFFSET1_VAL2 LANE0>, <OFFSET1_VAL2 LANE0>, <OFFSET1_VAL2 LANE0>,
+				  <OFFSET1_VAL0 LANE1>, <OFFSET1_VAL2 LANE0>, <OFFSET1_VAL2 LANE0>, <OFFSET1_VAL2 LANE0>,
+				  <OFFSET1_VAL1 LANE0>, <OFFSET1_VAL1 LANE0>, <OFFSET1_VAL1 LANE0>, <OFFSET1_VAL1 LANE0>;
 	qcom,cdc-micbias1-mv = <2750>;
 	qcom,cdc-micbias2-mv = <2750>;
 	qcom,cdc-micbias3-mv = <2750>;

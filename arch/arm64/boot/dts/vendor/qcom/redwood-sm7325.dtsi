@@ -3,6 +3,7 @@
 #include "redwood-pinctrl.dtsi"
 #include "xiaomi-sm7325-common.dtsi"
 #include "display/redwood-sm7325-sde-display.dtsi"
+#include "redwood-audio-overlay.dtsi"
 
 &reserved_memory {
 	#address-cells = <2>;
