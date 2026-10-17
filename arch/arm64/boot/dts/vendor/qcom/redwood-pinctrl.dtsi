@@ -5,7 +5,7 @@
 	awinic_gpio_reset: awinic_gpio_reset {
 		mux {
 			pins = "gpio35";
-			unction = "gpio";
+			function = "gpio";
 		};
 
 		config {
