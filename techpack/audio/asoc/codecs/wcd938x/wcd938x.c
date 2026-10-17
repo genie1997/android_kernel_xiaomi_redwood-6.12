@@ -532,6 +532,10 @@ static int wcd938x_tx_connect_port(struct snd_soc_component *component,
 	dev_dbg(component->dev, "%s slv_ch_idx: %d, mstr_ch_type: %d\n",
 		__func__, slave_ch_idx, ch_type);
 
+	/* a TX channel mapped to no master channel carries nothing: keep it off the bus */
+	if (ch_type == ZERO)
+		return 0;
+
 	if (enable)
 		ret = swr_connect_port(wcd938x->tx_swr_dev, &port_id,
 					num_port, &ch_mask, &ch_rate,
