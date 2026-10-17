@@ -971,7 +971,6 @@ static struct wcd_mbhc_config wcd_mbhc_cfg = {
 static const unsigned int audio_core_list[] = {1, 2};
 //static cpumask_t audio_cpu_map = CPU_MASK_NONE;
 //static struct dev_pm_qos_request *msm_audio_req;
-static unsigned int qos_client_active_cnt;
 
 static void msm_audio_add_qos_request(void)
 {
@@ -5385,24 +5384,13 @@ err:
 
 static int msm_fe_qos_prepare(struct snd_pcm_substream *substream)
 {
+	/* the PCM core adds this request at hw_params and drops it at hw_free and release */
 	if (cpu_latency_qos_request_active(&substream->latency_pm_qos_req))
-		cpu_latency_qos_remove_request(&substream->latency_pm_qos_req);
-
-	qos_client_active_cnt++;
-	if (qos_client_active_cnt == 1)
 		cpu_latency_qos_update_request(&substream->latency_pm_qos_req, MSM_LL_QOS_VALUE);
+	else
+		cpu_latency_qos_add_request(&substream->latency_pm_qos_req, MSM_LL_QOS_VALUE);
 
 	return 0;
-}
-
-static void msm_fe_qos_shutdown(struct snd_pcm_substream *substream)
-{
-	(void)substream;
-
-	if (qos_client_active_cnt > 0)
-		qos_client_active_cnt--;
-	if (qos_client_active_cnt == 0)
-		cpu_latency_qos_update_request(&substream->latency_pm_qos_req, PM_QOS_DEFAULT_VALUE);
 }
 
 void mi2s_disable_audio_vote(struct snd_pcm_substream *substream)
@@ -5691,7 +5679,6 @@ static struct snd_soc_ops msm_mi2s_be_ops = {
 
 static struct snd_soc_ops msm_fe_qos_ops = {
 	.prepare = msm_fe_qos_prepare,
-	.shutdown = msm_fe_qos_shutdown,
 };
 
 static struct snd_soc_ops msm_cdc_dma_be_ops = {
