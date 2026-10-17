@@ -1,0 +1,25 @@
+config RMNET_CORE
+	tristate "RmNet MAP driver"
+	depends on IPA3 && RMNET_MEM
+	depends on RMNET_CTL || !RMNET_LA_PLATFORM
+	select GRO_CELLS
+	select QCOM_QMI_HELPERS
+	help
+	  If you select this, you will enable the RMNET module which is used
+	  for handling data in the multiplexing and aggregation protocol (MAP)
+	  format in the embedded data path. RMNET devices can be attached to
+	  any IP mode physical device.
+
+config RMNET_CTL
+	tristate "RmNet CTL support"
+	depends on IPA3
+	help
+	  Enable the RMNET CTL module which is used for handling QMAP commands
+	  for flow control purposes.
+
+config RMNET_LA_PLATFORM
+	bool "RMNET platform support"
+	depends on RMNET_CTL
+	help
+	  Enable the functionality gated by the RMNET_LA_PLATFORM configuration
+	  in rmnet driver.

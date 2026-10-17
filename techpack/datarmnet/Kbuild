@@ -1,0 +1,26 @@
+ccflags-y += -I$(srctree)/techpack/dataipa/drivers/platform/msm/include \
+	     -I$(srctree)/techpack/dataipa/drivers/platform/msm/include/uapi \
+	     -I$(srctree)/techpack/datarmnet-ext/mem \
+	     -DRMNET_TRACE_INCLUDE_PATH=../../techpack/datarmnet/core
+
+obj-$(CONFIG_RMNET_CORE) += rmnet_core.o
+rmnet_core-y := core/rmnet_config.o \
+		core/rmnet_handlers.o \
+		core/rmnet_descriptor.o \
+		core/rmnet_genl.o \
+		core/rmnet_map_command.o \
+		core/rmnet_map_data.o \
+		core/rmnet_module.o \
+		core/rmnet_vnd.o \
+		core/rmnet_ll.o \
+		core/rmnet_ll_ipa.o \
+		core/qmi_rmnet.o \
+		core/wda_qmi.o \
+		core/dfc_qmi.o \
+		core/dfc_qmap.o \
+		core/rmnet_qmap.o \
+		core/rmnet_ll_qmap.o
+
+obj-$(CONFIG_RMNET_CTL) += rmnet_ctl.o
+rmnet_ctl-y := core/rmnet_ctl_client.o \
+	       core/rmnet_ctl_ipa.o
