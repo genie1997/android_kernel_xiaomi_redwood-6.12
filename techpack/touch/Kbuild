@@ -1,0 +1,23 @@
+obj-$(CONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE) += xiaomi_touch.o
+xiaomi_touch-y := xiaomi/xiaomi_touch.o
+
+obj-$(CONFIG_TOUCHSCREEN_GOODIX_BRL) += goodix_ts.o
+goodix_ts-y := \
+	goodix_berlin_driver/goodix_ts_core.o \
+	goodix_berlin_driver/goodix_brl_hw.o \
+	goodix_berlin_driver/goodix_cfg_bin.o \
+	goodix_berlin_driver/goodix_ts_utils.o \
+	goodix_berlin_driver/goodix_brl_fwupdate.o \
+	goodix_berlin_driver/goodix_ts_gesture.o \
+	goodix_berlin_driver/goodix_brl_spi.o
+
+obj-$(CONFIG_TOUCHSCREEN_FOCALTECH_3680) += focaltech_touch.o
+focaltech_touch-y := \
+	focaltech_3680/focaltech_core.o \
+	focaltech_3680/focaltech_ex_fun.o \
+	focaltech_3680/focaltech_ex_mode.o \
+	focaltech_3680/focaltech_gesture.o \
+	focaltech_3680/focaltech_esdcheck.o \
+	focaltech_3680/focaltech_point_report_check.o \
+	focaltech_3680/focaltech_flash.o \
+	focaltech_3680/focaltech_spi.o

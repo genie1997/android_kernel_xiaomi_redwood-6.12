@@ -1,0 +1,23 @@
+config TOUCHSCREEN_XIAOMI_TOUCHFEATURE
+	tristate "Xiaomi touch interface"
+	depends on m && INPUT
+	help
+	  xiaomi_touch: /dev/xiaomi-touch and the touch class the power HAL
+	  uses for double tap to wake. The touch drivers register their modes
+	  with it.
+
+config TOUCHSCREEN_GOODIX_BRL
+	tristate "Goodix Berlin touchscreen"
+	depends on m && SPI && DRM && POWER_SUPPLY && QCOM_PANEL_EVENT_NOTIFIER
+	depends on TOUCHSCREEN_XIAOMI_TOUCHFEATURE
+	help
+	  goodix_ts: the Goodix Berlin-D touch controller on SPI, used by the
+	  panels whose ID pins name Goodix.
+
+config TOUCHSCREEN_FOCALTECH_3680
+	tristate "FocalTech 3680 touchscreen"
+	depends on m && SPI && DRM && POWER_SUPPLY && QCOM_PANEL_EVENT_NOTIFIER
+	depends on TOUCHSCREEN_XIAOMI_TOUCHFEATURE
+	help
+	  focaltech_touch: the FocalTech FT3680 touch controller on SPI, used
+	  by the panels whose ID pins name FocalTech.
