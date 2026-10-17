@@ -3191,32 +3191,33 @@ static const struct snd_kcontrol_new adc4_switch[] = {
 	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 0)
 };
 
+/* AMIC switches start connected: mixer paths that never set them keep the mic wired to its ADC */
 static const struct snd_kcontrol_new amic1_switch[] = {
-	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 0)
+	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 1)
 };
 
 static const struct snd_kcontrol_new amic2_switch[] = {
-	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 0)
+	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 1)
 };
 
 static const struct snd_kcontrol_new amic3_switch[] = {
-	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 0)
+	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 1)
 };
 
 static const struct snd_kcontrol_new amic4_switch[] = {
-	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 0)
+	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 1)
 };
 
 static const struct snd_kcontrol_new amic5_switch[] = {
-	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 0)
+	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 1)
 };
 
 static const struct snd_kcontrol_new amic6_switch[] = {
-	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 0)
+	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 1)
 };
 
 static const struct snd_kcontrol_new amic7_switch[] = {
-	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 0)
+	SOC_DAPM_SINGLE("Switch", SND_SOC_NOPM, 0, 1, 1)
 };
 
 static const struct snd_kcontrol_new va_amic1_switch[] = {
