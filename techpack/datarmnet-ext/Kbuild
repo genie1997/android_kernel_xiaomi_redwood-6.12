@@ -1,0 +1,6 @@
+ccflags-y += -I$(src)/mem/include/uapi/linux
+
+obj-$(CONFIG_RMNET_MEM) += rmnet_mem.o
+rmnet_mem-y := mem/rmnet_mem_main.o \
+	       mem/rmnet_mem_nl.o \
+	       mem/rmnet_mem_pool.o

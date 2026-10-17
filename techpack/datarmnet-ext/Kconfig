@@ -1,0 +1,5 @@
+config RMNET_MEM
+	tristate "RmNet MEM support"
+	depends on NET
+	help
+	  Memory module for RmNet driver
