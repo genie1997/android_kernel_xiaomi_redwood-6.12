@@ -30134,6 +30134,7 @@ static const struct snd_kcontrol_new tx_voice_mixer_controls[] = {
 	MSM_BACKEND_DAI_AFE_PCM_TX,
 	MSM_FRONTEND_DAI_CS_VOICE, 1, 0, msm_routing_get_voice_mixer,
 	msm_routing_put_voice_mixer),
+#ifndef CONFIG_AUXPCM_DISABLE
 	SOC_DOUBLE_EXT("AUX_PCM_TX_Voice", SND_SOC_NOPM,
 	MSM_BACKEND_DAI_AUXPCM_TX,
 	MSM_FRONTEND_DAI_CS_VOICE, 1, 0, msm_routing_get_voice_mixer,
@@ -30142,6 +30143,7 @@ static const struct snd_kcontrol_new tx_voice_mixer_controls[] = {
 	MSM_BACKEND_DAI_SEC_AUXPCM_TX,
 	MSM_FRONTEND_DAI_CS_VOICE, 1, 0, msm_routing_get_voice_mixer,
 	msm_routing_put_voice_mixer),
+#endif
 	SOC_DOUBLE_EXT("SEC_MI2S_TX_Voice", SND_SOC_NOPM,
 	MSM_BACKEND_DAI_SECONDARY_MI2S_TX,
 	MSM_FRONTEND_DAI_CS_VOICE, 1, 0, msm_routing_get_voice_mixer,
@@ -30177,6 +30179,7 @@ static const struct snd_kcontrol_new tx_volte_mixer_controls[] = {
 	MSM_BACKEND_DAI_AFE_PCM_TX,
 	MSM_FRONTEND_DAI_VOLTE, 1, 0, msm_routing_get_voice_mixer,
 	msm_routing_put_voice_mixer),
+#ifndef CONFIG_AUXPCM_DISABLE
 	SOC_DOUBLE_EXT("AUX_PCM_TX_VoLTE", SND_SOC_NOPM,
 	MSM_BACKEND_DAI_AUXPCM_TX,
 	MSM_FRONTEND_DAI_VOLTE,	1, 0, msm_routing_get_voice_mixer,
@@ -30185,6 +30188,7 @@ static const struct snd_kcontrol_new tx_volte_mixer_controls[] = {
 	MSM_BACKEND_DAI_SEC_AUXPCM_TX,
 	MSM_FRONTEND_DAI_VOLTE,	1, 0, msm_routing_get_voice_mixer,
 	msm_routing_put_voice_mixer),
+#endif
 	SOC_DOUBLE_EXT("MI2S_TX_VoLTE", SND_SOC_NOPM,
 	MSM_BACKEND_DAI_MI2S_TX,
 	MSM_FRONTEND_DAI_VOLTE,	1, 0, msm_routing_get_voice_mixer,
@@ -37057,8 +37061,10 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"Voice_Tx Mixer", "SLIM_0_TX_Voice", "SLIMBUS_0_TX"},
 	{"Voice_Tx Mixer", "INTERNAL_BT_SCO_TX_Voice", "INT_BT_SCO_TX"},
 	{"Voice_Tx Mixer", "AFE_PCM_TX_Voice", "PCM_TX"},
+#ifndef CONFIG_AUXPCM_DISABLE
 	{"Voice_Tx Mixer", "AUX_PCM_TX_Voice", "AUX_PCM_TX"},
 	{"Voice_Tx Mixer", "SEC_AUX_PCM_TX_Voice", "SEC_AUX_PCM_TX"},
+#endif
 	{"Voice_Tx Mixer", "SEC_MI2S_TX_Voice", "SEC_MI2S_TX"},
 	{"Voice_Tx Mixer", "PRI_TDM_TX_0_Voice", "PRI_TDM_TX_0"},
 	{"Voice_Tx Mixer", "SEC_TDM_TX_0_Voice", "PRI_TDM_TX_0"},
@@ -37068,8 +37074,10 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"VoLTE_Tx Mixer", "SLIM_0_TX_VoLTE", "SLIMBUS_0_TX"},
 	{"VoLTE_Tx Mixer", "INTERNAL_BT_SCO_TX_VoLTE", "INT_BT_SCO_TX"},
 	{"VoLTE_Tx Mixer", "AFE_PCM_TX_VoLTE", "PCM_TX"},
+#ifndef CONFIG_AUXPCM_DISABLE
 	{"VoLTE_Tx Mixer", "AUX_PCM_TX_VoLTE", "AUX_PCM_TX"},
 	{"VoLTE_Tx Mixer", "SEC_AUX_PCM_TX_VoLTE", "SEC_AUX_PCM_TX"},
+#endif
 	{"VoLTE_Tx Mixer", "MI2S_TX_VoLTE", "MI2S_TX"},
 	{"VoLTE_Tx Mixer", "PRI_MI2S_TX_VoLTE", "PRI_MI2S_TX"},
 	{"VoLTE_Tx Mixer", "TERT_MI2S_TX_VoLTE", "TERT_MI2S_TX"},
