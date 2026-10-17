@@ -8751,7 +8751,7 @@ static int ipa3_post_init(const struct ipa3_plat_drv_res *resource_p,
 	if (ipa3_ctx->gsi_msi_addr)
 		ipa_gsi_map_unmap_gsi_msi_addr(true);
 
-	if(!ipa_tlpd_stats_init())
+	if (ipa_tlpd_stats_init())
 		IPAERR_BOOTUP("Fail to init tlpd ipa lnx module");
 
 	ipa_ssr_driver_dump_init();
