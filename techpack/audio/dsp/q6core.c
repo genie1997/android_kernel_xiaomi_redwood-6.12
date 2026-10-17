@@ -655,7 +655,7 @@ int q6core_get_service_version(uint32_t service_id,
 	cached_ver_info = q6core_lcl.q6core_avcs_ver_info.ver_info;
 	num_services = cached_ver_info->avcs_fwk_version.num_services;
 
-	pr_err("%s num_services = %d ",__func__, num_services);
+	pr_debug("%s num_services = %d ",__func__, num_services);
 	if (service_id == AVCS_SERVICE_ID_ALL) {
 		memcpy(ver_info, cached_ver_info, ver_size);
 		return 0;
@@ -753,7 +753,7 @@ int q6core_get_avcs_api_version_per_service(uint32_t service_id)
 	uint32_t num_services;
 	int ret = 0;
 
-	pr_err("%s Entered for service_id = %u\n",__func__, service_id );
+	pr_debug("%s Entered for service_id = %u\n",__func__, service_id );
 	if (service_id == AVCS_SERVICE_ID_ALL)
 		return -EINVAL;
 
@@ -769,7 +769,7 @@ int q6core_get_avcs_api_version_per_service(uint32_t service_id)
 		return -EINVAL;
 	}
 	num_services = cached_ver_info->avcs_fwk_version.num_services;
-	pr_err("%s num_services = 0x%x  ",__func__, num_services);
+	pr_debug("%s num_services = 0x%x  ",__func__, num_services);
 	if (num_services > VSS_MAX_AVCS_NUM_SERVICES) {
                 pr_err("%s: num_services: %d greater than max services: %d\n",
                        __func__, num_services, VSS_MAX_AVCS_NUM_SERVICES);
@@ -777,7 +777,7 @@ int q6core_get_avcs_api_version_per_service(uint32_t service_id)
 
 	for (i = 0; i < num_services; i++) {
 		if (cached_ver_info->services[i].service_id == service_id) {
-			pr_err("%s cached_ver_info->services[i].api_version = 0x%x \n",__func__,
+			pr_debug("%s cached_ver_info->services[i].api_version = 0x%x \n",__func__,
 				cached_ver_info->services[i].api_version);
 			return cached_ver_info->services[i].api_version;
 		}
@@ -1035,11 +1035,11 @@ int32_t q6core_avcs_load_unload_modules(struct avcs_load_unload_modules_payload
 		&& (preload_type == AVCS_LOAD_MODULES)) {
 		timeout = jiffies +
 			msecs_to_jiffies(ADSP_STATE_READY_TIMEOUT_MS);
-		pr_err("%s Sleep for 100 ms bef q6core_is_adsp_ready() ..",__func__);
+		pr_debug("%s Sleep for 100 ms bef q6core_is_adsp_ready() ..",__func__);
 		msleep(100);
 		do {
 			adsp_ready = q6core_is_adsp_ready();
-                        pr_err("%s: ADSP Audio is %s\n", __func__,
+                        pr_debug("%s: ADSP Audio is %s\n", __func__,
                                 adsp_ready ? "ready" : "not ready");
 
 			if (q6core_lcl.param == ADSP_MODULES_READY_AVS_STATE) {
@@ -1215,7 +1215,7 @@ bool q6core_is_adsp_ready(void)
 	bool ret = false;
 	struct apr_hdr hdr;
 
-	pr_err("%s: enter\n", __func__);
+	pr_debug("%s: enter\n", __func__);
 	memset(&hdr, 0, sizeof(hdr));
 	hdr.hdr_field = APR_HDR_FIELD(APR_MSG_TYPE_SEQ_CMD,
 				      APR_HDR_LEN(APR_HDR_SIZE), APR_PKT_VER);
@@ -1243,7 +1243,7 @@ bool q6core_is_adsp_ready(void)
 		}
 	}
 bail:
-	pr_err("%s: leave, rc %d, adsp ready %d\n", __func__, rc, ret);
+	pr_debug("%s: leave, rc %d, adsp ready %d\n", __func__, rc, ret);
 	mutex_unlock(&(q6core_lcl.cmd_lock));
 	return ret;
 }
@@ -1838,11 +1838,11 @@ static int q6core_send_custom_topologies(void)
 		timeout = jiffies +
 			msecs_to_jiffies(ADSP_STATE_READY_TIMEOUT_MS);
 
-		pr_err("%s Sleep for 100 ms bef q6core_is_adsp_ready() ..",__func__);
+		pr_debug("%s Sleep for 100 ms bef q6core_is_adsp_ready() ..",__func__);
                 msleep(100);
 		do {
 			adsp_ready = q6core_is_adsp_ready();
-			pr_err("%s: ADSP Audio is %s\n", __func__,
+			pr_debug("%s: ADSP Audio is %s\n", __func__,
 				adsp_ready ? "ready" : "not ready");
 			if (adsp_ready)
 				break;
@@ -2088,11 +2088,11 @@ static int q6core_is_avs_up(int32_t *avs_state)
 		msecs_to_jiffies(ADSP_STATE_READY_TIMEOUT_MS);
 
 	/* sleep for 100ms before querying AVS up */
-	pr_err("%s Sleep for 100 ms bef q6core_is_adsp_ready() ..",__func__);
+	pr_debug("%s Sleep for 100 ms bef q6core_is_adsp_ready() ..",__func__);
 	msleep(100);
 	do {
 		adsp_ready = q6core_is_adsp_ready();
-		pr_err("%s: ADSP Audio is %s\n", __func__,
+		pr_debug("%s: ADSP Audio is %s\n", __func__,
 			 adsp_ready ? "ready" : "not ready");
 		if (adsp_ready)
 			break;
@@ -2106,7 +2106,7 @@ static int q6core_is_avs_up(int32_t *avs_state)
 	} while (time_after(timeout, jiffies));
 
 	*avs_state = q6core_lcl.param;
-	pr_err("%s: ADSP Audio is %s\n", __func__,
+	pr_debug("%s: ADSP Audio is %s\n", __func__,
 	       adsp_ready ? "ready" : "not ready");
 
 	if (!adsp_ready) {

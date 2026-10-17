@@ -7948,16 +7948,16 @@ static int msm_rx_tx_codec_init(struct snd_soc_pcm_runtime *rtd)
 	    strlen(WCD937X_DRV_NAME))) {
 		wcd937x_info_create_codec_entry(pdata->codec_root, component);
 		codec_variant = wcd937x_get_codec_variant(component);
-		dev_err(component->dev, "%s: variant %d\n",
+		dev_dbg(component->dev, "%s: variant %d\n",
 			 __func__, codec_variant);
 		if (codec_variant == WCD9370_VARIANT) {
-			dev_err(component->dev, "%s: WCD9370_VARIANT \n",  __func__);
+			dev_dbg(component->dev, "%s: WCD9370_VARIANT \n",  __func__);
 			ret = snd_soc_add_component_controls(component,
 				msm_int_wcd9370_snd_controls,
 				ARRAY_SIZE(msm_int_wcd9370_snd_controls));
 		}
 		else if (codec_variant == WCD9375_VARIANT) {
-			dev_err(component->dev, "%s: WCD9375_VARIANT \n",  __func__);
+			dev_dbg(component->dev, "%s: WCD9375_VARIANT \n",  __func__);
 			ret = snd_soc_add_component_controls(component,
 				msm_int_wcd9375_snd_controls,
 				ARRAY_SIZE(msm_int_wcd9375_snd_controls));
@@ -7969,16 +7969,16 @@ static int msm_rx_tx_codec_init(struct snd_soc_pcm_runtime *rtd)
 		wcd938x_info_create_codec_entry(pdata->codec_root, component);
 
 		codec_variant = wcd938x_get_codec_variant(component);
-		dev_err(component->dev, "%s: variant %d\n",
+		dev_dbg(component->dev, "%s: variant %d\n",
 			 __func__, codec_variant);
 		if (codec_variant == WCD9380) {
-			dev_err(component->dev, "%s: WCD9380_VARIANT \n",  __func__);
+			dev_dbg(component->dev, "%s: WCD9380_VARIANT \n",  __func__);
 			ret = snd_soc_add_component_controls(component,
 				msm_int_wcd9380_snd_controls,
 				ARRAY_SIZE(msm_int_wcd9380_snd_controls));
 		}
 		else if (codec_variant == WCD9385) {
-			dev_err(component->dev, "%s: WCD9385_VARIANT \n",  __func__);
+			dev_dbg(component->dev, "%s: WCD9385_VARIANT \n",  __func__);
 			ret = snd_soc_add_component_controls(component,
 				msm_int_wcd9385_snd_controls,
 				ARRAY_SIZE(msm_int_wcd9385_snd_controls));
@@ -8006,7 +8006,7 @@ static int msm_rx_tx_codec_init(struct snd_soc_pcm_runtime *rtd)
 done:
 	codec_reg_done = true;
 	msm_common_dai_link_init(rtd);
-	pr_err("%s : codec_reg_done = true \n",__func__);
+	pr_debug("%s : codec_reg_done = true \n",__func__);
 
 	mbhc_calibration = def_wcd_mbhc_cal();
 	if (!mbhc_calibration)
@@ -8092,7 +8092,7 @@ static int lahaina_ssr_enable(struct device *dev, void *data)
 	}
 
 	snd_card_notify_user(SND_CARD_STATUS_ONLINE);
-        dev_err(dev, "%s: setting snd_card to ONLINE\n", __func__);
+        dev_dbg(dev, "%s: setting snd_card to ONLINE\n", __func__);
 
 err:
 	return ret;
@@ -8335,7 +8335,7 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 				"qcom,wcd-disabled",
 				&pdata->wcd_disabled);
 
-	pr_err("%s &pdata->wcd_disabled = %d \n",__func__, pdata->wcd_disabled);
+	pr_debug("%s &pdata->wcd_disabled = %d \n",__func__, pdata->wcd_disabled);
 	/* Get maximum WSA device count for this platform */
 	ret = of_property_read_u32(pdev->dev.of_node,
 				   "qcom,wsa-max-devs", &pdata->wsa_max_devs);
@@ -8345,7 +8345,7 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 			 __func__, pdev->dev.of_node->full_name, ret);
 		pdata->wsa_max_devs = 0;
 	}
-	pr_err("%s: pdata->wsa_max_devs = %d \n",__func__, pdata->wsa_max_devs);
+	pr_debug("%s: pdata->wsa_max_devs = %d \n",__func__, pdata->wsa_max_devs);
 
 	card = populate_snd_card_dailinks(&pdev->dev, pdata->wsa_max_devs);
 	if (!card) {
@@ -8381,7 +8381,7 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
 	if (ret == -EPROBE_DEFER) {
-		pr_err("%s: devm_snd_soc_register_card -EPROBE_DEFER\n",__func__);
+		pr_debug("%s: devm_snd_soc_register_card -EPROBE_DEFER\n",__func__);
 		if (codec_reg_done)
 			ret = -EINVAL;
 		goto err;
@@ -8519,7 +8519,7 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 	pdata->core_audio_vote_count = 0;
 
 
-	pr_err("%s is_initial_boot is true ", __func__);
+	pr_debug("%s is_initial_boot is true ", __func__);
 	is_initial_boot = true;
 
 	ret = msm_audio_ssr_register(&pdev->dev);
@@ -8531,7 +8531,7 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 	msm_audio_add_qos_request();
 
 	/* change card status to ONLINE */
-	dev_err(&pdev->dev, "%s: setting snd_card to ONLINE\n", __func__);
+	dev_dbg(&pdev->dev, "%s: setting snd_card to ONLINE\n", __func__);
 	snd_card_set_card_status(SND_CARD_STATUS_ONLINE);
 
 	register_trace_android_vh_snd_pcm_check_no_buffer(qcom_check_hostless, NULL);

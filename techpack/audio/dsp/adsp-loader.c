@@ -156,7 +156,7 @@ static void adsp_load_fw(struct work_struct *adsp_ldr_work)
 			"qcom,proc-img-to-load",
 			&image);
 	if (rc) {
-		dev_err(&pdev->dev,
+		dev_dbg(&pdev->dev,
 			"%s: loading default image ADSP\n", __func__);
 		goto load_adsp;
 	}
@@ -185,7 +185,7 @@ load_adsp:
 	{
 		adsp_state = apr_get_q6_state();
 		if (adsp_state == APR_SUBSYS_DOWN) {
-			dev_err(&pdev->dev, "M - Start ADSP\n");
+			dev_dbg(&pdev->dev, "M - Start ADSP\n");
 			rc = rproc_boot(priv->pil_h);
 
 			if (rc) {

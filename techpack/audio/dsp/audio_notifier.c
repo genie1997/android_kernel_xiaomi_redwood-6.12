@@ -187,7 +187,7 @@ static int audio_notifier_reg_service(int service, int domain)
 			service_data[service][domain].hook.nb);
 		break;
 	case AUDIO_NOTIFIER_PDR_SERVICE:
-		pr_err("%s AUDIO_NOTIFIER_PDR_SERVICE: audio_pdr_service_register() \n",__func__);
+		pr_debug("%s AUDIO_NOTIFIER_PDR_SERVICE: audio_pdr_service_register() \n",__func__);
 		handle = audio_pdr_service_register(
 			service_data[service][domain].domain_id,
 			service_data[service][domain].hook.cb);
@@ -211,7 +211,7 @@ static int audio_notifier_reg_service(int service, int domain)
 
 	pr_info("%s: service %s is in use\n",
 		__func__, service_data[service][domain].name);
-	pr_err("%s: service %s has current state %d, handle 0x%pK\n",
+	pr_debug("%s: service %s has current state %d, handle 0x%pK\n",
 		__func__, service_data[service][domain].name,
 		service_data[service][domain].state,
 		service_data[service][domain].handle);
@@ -290,7 +290,7 @@ static int audio_notifier_reg_client_service(struct client_data *client_data,
 		client_data->nb);
 	service_data[service][domain].num_of_clients++;
 
-	pr_err("%s: registered client %s on service %s, current state 0x%x\n",
+	pr_debug("%s: registered client %s on service %s, current state 0x%x\n",
 		__func__, client_data->client_name,
 		service_data[service][domain].name,
 		service_data[service][domain].state);
@@ -345,7 +345,7 @@ static int audio_notifier_reg_client(struct client_data *client_data)
 		 * they initialize correctly or will disable their service and
 		 * register clients on the next best avaialable service.
 		 */
-		pr_err("%s: register client %s on service %s",
+		pr_debug("%s: register client %s on service %s",
 				__func__, client_data->client_name,
 				service_data[service][domain].name);
 
@@ -397,7 +397,7 @@ static int audio_notifier_dereg_client(struct client_data *client_data)
 		goto done;
 	}
 
-	pr_err("%s: deregistered client %s on service %s\n",
+	pr_debug("%s: deregistered client %s on service %s\n",
 		__func__, client_data->client_name,
 		service_data[service][domain].name);
 
@@ -453,7 +453,7 @@ static int audio_notifier_convert_opcode(unsigned long opcode,
 		}
 		break;
 	default:
-		pr_err("%s: Unused opcode 0x%lx\n", __func__, opcode);
+		pr_debug("%s: Unused opcode 0x%lx\n", __func__, opcode);
 		ret = -EINVAL;
 	}
 
@@ -473,7 +473,7 @@ static int audio_notifier_service_cb(unsigned long opcode,
 	data.service = service;
 	data.domain = domain;
 
-	pr_err("%s: service %s, opcode 0x%lx\n",
+	pr_debug("%s: service %s, opcode 0x%lx\n",
 		__func__, service_data[service][domain].name, notifier_opcode);
 
 	mutex_lock(&notifier_mutex);
@@ -493,7 +493,7 @@ static int audio_notifier_service_cb(unsigned long opcode,
 
 static void audio_notifier_pdr_adsp_cb(int status, char *service_name, void *priv)
 {
-	pr_err("%s Recvd AUDIO_NOTIFIER_PDR_SERVICE cb ,status : %d, service: %s \n",__func__, status, service_name); 
+	pr_debug("%s Recvd AUDIO_NOTIFIER_PDR_SERVICE cb ,status : %d, service: %s \n",__func__, status, service_name); 
 	audio_notifier_service_cb(status, AUDIO_NOTIFIER_PDR_SERVICE, AUDIO_NOTIFIER_ADSP_DOMAIN);
 }
 

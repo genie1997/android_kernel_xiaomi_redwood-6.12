@@ -321,7 +321,7 @@ static void apr_add_child_devices(struct work_struct *work)
 static void apr_adsp_up(void)
 {
 	if (apr_get_q6_state() != APR_SUBSYS_LOADED) {
-		pr_err("%s: Q6 is Up\n", __func__);
+		pr_info("%s: Q6 is Up\n", __func__);
 		dev_info(apr_priv->dev, "M - ADSP Ready\n");
 		apr_set_q6_state(APR_SUBSYS_LOADED);
 
@@ -1122,11 +1122,11 @@ static int apr_notifier_service_cb(struct notifier_block *this,
 			apr_adsp_down(opcode);
 		break;
 	case AUDIO_NOTIFIER_SERVICE_UP:
-		pr_err("%s Inside AUDIO_NOTIFIER_SERVICE_UP \n",__func__);
+		pr_debug("%s Inside AUDIO_NOTIFIER_SERVICE_UP \n",__func__);
 		if (cb_data->domain == AUDIO_NOTIFIER_MODEM_DOMAIN)
 			apr_modem_up();
 		else {
-			pr_err("%s AUDIO_NOTIFIER_SERVICE_UP:, caling apr_adsp_up()\n",__func__);
+			pr_debug("%s AUDIO_NOTIFIER_SERVICE_UP:, caling apr_adsp_up()\n",__func__);
 			apr_adsp_up();
 		}
 		spin_lock(&apr_priv->apr_lock);
@@ -1255,7 +1255,7 @@ static int apr_probe(struct platform_device *pdev)
 	}
 
 	if (!strcmp(subsys_name, "apr_adsp")) {
-		pr_err("%s subsys_notif_register: apr_adsp AUDIO_NOTIFIER_ADSP_DOMAIN\n",__func__);
+		pr_debug("%s subsys_notif_register: apr_adsp AUDIO_NOTIFIER_ADSP_DOMAIN\n",__func__);
 		subsys_notif_register("apr_adsp",
 				       AUDIO_NOTIFIER_ADSP_DOMAIN,
 				       &adsp_service_nb);
