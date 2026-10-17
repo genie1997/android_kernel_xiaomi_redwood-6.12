@@ -10393,8 +10393,6 @@ int __init voice_init(void)
 		hyp_assigned = false;
 	}
 
-	voc_get_cvd_version(common.cvd_version);
-
 	pr_debug("%s: rc=%d\n", __func__, rc);
 	return rc;
 }
