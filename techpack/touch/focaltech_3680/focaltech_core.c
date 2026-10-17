@@ -39,6 +39,7 @@
 #include <linux/of.h>
 #include <linux/of_device.h>
 #include <linux/of_gpio.h>
+#include <linux/gpio/consumer.h>
 #include <linux/of_irq.h>
 #ifdef CONFIG_DRM_PANEL
 #include <drm/drm_panel.h>
@@ -63,8 +64,6 @@
 #define FTS_I2C_VTG_MIN_UV 1800000
 #define FTS_I2C_VTG_MAX_UV 1800000
 #endif
-#define DISP_ID_DET (336 + 96)
-#define DISP_ID1_DET (336 + 68)
 
 /*****************************************************************************
  * Global variable or extern global variabls/functions
@@ -3220,10 +3219,33 @@ static const struct dev_pm_ops fts_dev_pm_ops = {
 /*****************************************************************************
  * TP Driver
  *****************************************************************************/
+/* The panel names its touch controller on two ID pins: high, low is FocalTech */
+static int fts_ts_check_panel(struct device *dev)
+{
+	struct gpio_descs *ids;
+	int ret;
+
+	ids = gpiod_get_array_optional(dev, "xiaomi,panel-id", GPIOD_IN);
+	if (IS_ERR_OR_NULL(ids))
+		return PTR_ERR_OR_ZERO(ids);
+
+	ret = (ids->ndescs == 2 && gpiod_get_value_cansleep(ids->desc[0]) &&
+	       !gpiod_get_value_cansleep(ids->desc[1])) ? 0 : -ENODEV;
+	gpiod_put_array(ids);
+	return ret;
+}
+
 static int fts_ts_probe(struct spi_device *spi)
 {
 	int ret = 0;
 	struct fts_ts_data *ts_data = NULL;
+
+	ret = fts_ts_check_panel(&spi->dev);
+	if (ret) {
+		if (ret == -ENODEV)
+			FTS_INFO("TP is Goodix, leaving it to the Goodix driver");
+		return ret;
+	}
 
 	FTS_INFO("Touch Screen(SPI BUS) driver probe...");
 #if (FTS_CHIP_TYPE == _FT8719) || (FTS_CHIP_TYPE == _FT8615) ||                \
@@ -3298,20 +3320,7 @@ static struct spi_driver fts_ts_driver = {
 
 static int __init fts_ts_init(void)
 {
-	int ret = 0, gpio_96, gpio_68;
-
-	gpio_direction_input(DISP_ID_DET);
-	gpio_direction_input(DISP_ID1_DET);
-
-	gpio_96 = gpio_get_value(DISP_ID_DET);
-	gpio_68 = gpio_get_value(DISP_ID1_DET);
-
-	if (gpio_96 && !gpio_68) {
-		FTS_INFO("TP is Focaltech, initializing..\n");
-	} else {
-		FTS_INFO("TP is Goodix, killing Focaltech TP init..\n");
-		return -ENODEV;
-	}
+	int ret = 0;
 
 	FTS_FUNC_ENTER();
 	ret = spi_register_driver(&fts_ts_driver);

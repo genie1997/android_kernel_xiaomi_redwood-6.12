@@ -17,6 +17,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/spi/spi.h>
+#include <linux/gpio/consumer.h>
 
 #include "goodix_ts_core.h"
 #define TS_DRIVER_NAME		"gtx8_spi"
@@ -247,9 +248,32 @@ static void goodix_pdev_release(struct device *dev)
 	kfree(goodix_pdev);
 }
 
+/* The panel names its touch controller on two ID pins: low, high is Goodix */
+static int goodix_spi_check_panel(struct device *dev)
+{
+	struct gpio_descs *ids;
+	int ret;
+
+	ids = gpiod_get_array_optional(dev, "xiaomi,panel-id", GPIOD_IN);
+	if (IS_ERR_OR_NULL(ids))
+		return PTR_ERR_OR_ZERO(ids);
+
+	ret = (ids->ndescs == 2 && !gpiod_get_value_cansleep(ids->desc[0]) &&
+	       gpiod_get_value_cansleep(ids->desc[1])) ? 0 : -ENODEV;
+	gpiod_put_array(ids);
+	return ret;
+}
+
 static int goodix_spi_probe(struct spi_device *spi)
 {
 	int ret = 0;
+
+	ret = goodix_spi_check_panel(&spi->dev);
+	if (ret) {
+		if (ret == -ENODEV)
+			ts_info("TP is Focaltech, leaving it to the Focaltech driver");
+		return ret;
+	}
 
 	ts_info("goodix spi probe in");
 
