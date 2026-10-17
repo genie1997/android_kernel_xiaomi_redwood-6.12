@@ -16,9 +16,7 @@
 #include <linux/of_device.h>
 #include <linux/version.h>
 #include <linux/pm_qos.h>
-#if IS_ENABLED(CONFIG_QCOM_FSA4480_I2C)
 #include <linux/soc/qcom/fsa4480-i2c.h>
-#endif
 #include <sound/core.h>
 #include <sound/soc.h>
 #include <sound/soc-dapm.h>
