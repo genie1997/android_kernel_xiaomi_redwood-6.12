@@ -15,7 +15,8 @@
 #include <linux/dma-map-ops.h>
 #include <linux/dma-buf.h>
 #include <linux/dma-mapping.h>
-#include <linux/dma-heap.h>
+#include <linux/ion.h>
+#include <linux/msm_ion.h>
 #include <linux/iosys-map.h>
 #include <linux/platform_device.h>
 #include <linux/of_platform.h>
@@ -481,7 +482,6 @@ int msm_audio_ion_alloc(void **handle, size_t bufsz,
 {
 	int rc = -EINVAL;
 	unsigned long err_ion_ptr = 0;
-	struct dma_heap *heap = NULL;
 	struct iosys_map *iosys_vmap = NULL;
 
 	if (!(msm_audio_ion_data.device_status & MSM_AUDIO_ION_PROBED)) {
@@ -501,13 +501,7 @@ int msm_audio_ion_alloc(void **handle, size_t bufsz,
 
 	if (msm_audio_ion_data.smmu_enabled == true) {
 		pr_debug("%s: system heap is used\n", __func__);
-		heap = dma_heap_find("qcom,system-uncached");
-		if (!heap) {
-			pr_err("Unable to find the system-uncached heap\n");
-			kfree(iosys_vmap);
-			goto err;
-		}
-		*handle = dma_heap_buffer_alloc(heap, bufsz, 0, 0);
+		*handle = ion_alloc(bufsz, ION_HEAP(ION_SYSTEM_HEAP_ID), 0);
 	} else {
 		pr_debug("%s: audio heap is used\n", __func__);
 		*vaddr = *handle = dma_alloc_coherent(
