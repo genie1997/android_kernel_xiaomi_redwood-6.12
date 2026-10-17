@@ -6,5 +6,6 @@ source "techpack/dsp/Kconfig"
 source "techpack/graphics/Kconfig"
 source "techpack/securemsm/Kconfig"
 source "techpack/touch/Kconfig"
+source "techpack/vibrator/Kconfig"
 
 endmenu

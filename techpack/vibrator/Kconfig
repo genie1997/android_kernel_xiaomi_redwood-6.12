@@ -1,0 +1,19 @@
+config AWINIC_VIBRATOR
+	tristate "Awinic haptic driver"
+	depends on m && I2C && INPUT
+	help
+	  awinic_haptic: the Awinic high voltage LRA haptic driver on I2C. The
+	  vibrator HAL plays timed vibrations, effects and streamed waveforms
+	  through the force feedback input device it registers.
+
+config AW869X_DRIVER_ENABLE
+	bool "Awinic AW8695/AW8697"
+	depends on AWINIC_VIBRATOR
+	help
+	  The AW869x haptic parts some units carry.
+
+config AW8692X_DRIVER_ENABLE
+	bool "Awinic AW86925-AW86928"
+	depends on AWINIC_VIBRATOR
+	help
+	  The AW8692x haptic parts, AW86927 on redwood.

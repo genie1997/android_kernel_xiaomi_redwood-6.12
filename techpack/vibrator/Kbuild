@@ -1,0 +1,4 @@
+obj-$(CONFIG_AWINIC_VIBRATOR) += awinic_haptic.o
+awinic_haptic-y := hv_haptics/haptic_hv.o
+awinic_haptic-$(CONFIG_AW869X_DRIVER_ENABLE) += hv_haptics/aw869x.o
+awinic_haptic-$(CONFIG_AW8692X_DRIVER_ENABLE) += hv_haptics/aw8692x.o
