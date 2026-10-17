@@ -3863,7 +3863,7 @@ static int get_substream_info(struct snd_kcontrol *kcontrol,
 
 	soc_prtd = (*substream)->private_data;
 	if (!(*substream)->runtime || !soc_prtd) {
-		pr_err("%s substream runtime or private_data not found\n",
+		pr_debug("%s substream runtime or private_data not found\n",
 				__func__);
 		return -ENODEV;
 	}

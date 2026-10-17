@@ -189,10 +189,10 @@ static int msm_pcm_soft_volume_ctl_get(struct snd_kcontrol *kcontrol,
 		return -ENODEV;
 	}
 	soc_prtd = substream->private_data;
-	if (!soc_prtd) {
-		pr_err("%s substream runtime or private_data not found\n",
+	if (!substream->runtime || !soc_prtd) {
+		pr_debug("%s substream runtime or private_data not found\n",
 				 __func__);
-		return -ENODEV;
+		return 0;
 	}
 
 	component = snd_soc_rtdcom_lookup(soc_prtd, DRV_NAME);
