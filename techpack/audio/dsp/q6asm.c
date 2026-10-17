@@ -10894,6 +10894,10 @@ static int __q6asm_cmd_nowait(struct audio_client *ac, int cmd,
 		pr_debug("%s: CMD_EOS\n", __func__);
 		hdr.opcode = ASM_DATA_CMD_EOS_V2;
 		break;
+	case CMD_FLUSH:
+		pr_debug("%s: CMD_FLUSH\n", __func__);
+		hdr.opcode = ASM_STREAM_CMD_FLUSH;
+		break;
 	case CMD_CLOSE:
 		pr_debug("%s: CMD_CLOSE\n", __func__);
 		hdr.opcode = ASM_STREAM_CMD_CLOSE;
