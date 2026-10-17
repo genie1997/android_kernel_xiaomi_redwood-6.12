@@ -46,6 +46,7 @@
 		qcom,disable-afe-wakeup-event-listener = <1>;
 		swr2: tx_swr_master {
 			compatible = "qcom,swr-mstr";
+			qcom,swr-master-version = <0x01060000>;
 			#address-cells = <2>;
 			#size-cells = <0>;
 			clock-names = "lpass_core_hw_vote",
@@ -97,6 +98,7 @@
 		qcom,default-clk-id = <TX_CORE_CLK>;
 		swr1: rx_swr_master {
 			compatible = "qcom,swr-mstr";
+			qcom,swr-master-version = <0x01060000>;
 			#address-cells = <2>;
 			#size-cells = <0>;
 			clock-names = "lpass_core_hw_vote",
@@ -107,7 +109,7 @@
 			qcom,swrm-hctl-reg = <0x032a90a0>;
 			qcom,mipi-sdw-block-packing-mode = <1>;
 			swrm-io-base = <0x3210000 0x0>;
-			interrupts = <GIC_SPI 155 IRQ_TYPE_LEVEL_HIGH>;
+			interrupts-extended = <&intc GIC_SPI 155 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "swr_master_irq";
 			qcom,swr-num-ports = <6>;
 			qcom,swr-port-mapping = <1 HPH_L 0x1>,
@@ -148,6 +150,7 @@
 		qcom,default-clk-id = <TX_CORE_CLK>;
 		swr0: wsa_swr_master {
 			compatible = "qcom,swr-mstr";
+			qcom,swr-master-version = <0x01060000>;
 			#address-cells = <2>;
 			#size-cells = <0>;
 			clock-names = "lpass_core_hw_vote",
@@ -158,7 +161,7 @@
 			qcom,swrm-hctl-reg = <0x032a90b0>;
 			qcom,mipi-sdw-block-packing-mode = <0>;
 			swrm-io-base = <0x3250000 0x0>;
-			interrupts = <GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>;
+			interrupts-extended = <&intc GIC_SPI 170 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "swr_master_irq";
 			qcom,swr-num-ports = <8>;
 			qcom,swr-clock-stop-mode0 = <1>;
@@ -169,7 +172,7 @@
 				<8 SPKR_R_VI 0x3>;
 			qcom,swr-num-dev = <2>;
 			qcom,dynamic-port-map-supported = <0>;
-			wsa883x_0221: wsa883x@02170221 {
+			wsa883x_0221: wsa883x@2170221 {
 				compatible = "qcom,wsa883x";
 				reg = <0x2 0x2170221>;
 				qcom,spkr-sd-n-node = <&wsa_spkr_en1>;
@@ -182,7 +185,7 @@
 				qcom,wsa-prefix = "SpkrLeft";
 			};
 
-			wsa883x_0222: wsa883x@02170222 {
+			wsa883x_0222: wsa883x@2170222 {
 				compatible = "qcom,wsa883x";
 				reg = <0x2 0x2170222>;
 				qcom,spkr-sd-n-node = <&wsa_spkr_en2>;
@@ -368,12 +371,10 @@
 	qcom,sec-mi2s-gpios = <&cdc_sec_mi2s_gpios>;
 	asoc-codec  = <&stub_codec>, <&bolero>,
 		      <&wcd937x_codec>,
-		      <&wsa883x_0221>, <&wsa883x_0222>,
-		      <&ext_disp_audio_codec>;
+		      <&wsa883x_0221>, <&wsa883x_0222>;
 	asoc-codec-names = "msm-stub-codec.1", "bolero_codec",
 			   "wcd937x_codec",
-			   "wsa-codec1", "wsa-codec2",
-			   "msm-ext-disp-audio-codec-rx";
+			   "wsa-codec1", "wsa-codec2";
 	qcom,wsa-max-devs = <2>;
 	qcom,cps_reg_phy_addr = <0x3250300 0x3250304 0x3250318>;
 	qcom,cps_wsa_vbatt_temp_reg_addr = <0x0003429 0x0003422>;
@@ -494,11 +495,4 @@
 
 &dai_mi2s1_tx {
 	qcom,msm-mi2s-lines = <1>;
-};
-
-&adsp_loader {
-	nvmem-cells = <&adsp_variant>;
-	nvmem-cell-names = "adsp_variant";
-	adsp-fw-names = "adsp2";
-	adsp-fw-bit-values = <0x4>;
 };
