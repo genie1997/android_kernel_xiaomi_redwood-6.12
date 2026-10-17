@@ -1,3 +1,3 @@
-obj-y += audio/ display/ dsp/ securemsm/ touch/ vibrator/
+obj-y += audio/ dataipa/ display/ dsp/ securemsm/ touch/ vibrator/
 # Qualcomm's KGSL Kbuild builds msm_kgsl.ko whatever is asked, so the directory is gated here
 obj-$(CONFIG_QCOM_KGSL) += graphics/

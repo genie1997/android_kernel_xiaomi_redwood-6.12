@@ -1,0 +1,75 @@
+ipadrv := drivers/platform/msm
+
+ccflags-y += -I$(src)/$(ipadrv)/include \
+	     -I$(src)/$(ipadrv)/include/linux \
+	     -I$(src)/$(ipadrv)/include/uapi \
+	     -I$(src)/$(ipadrv)/gsi \
+	     -I$(src)/$(ipadrv)/gsi/gsihal \
+	     -I$(src)/$(ipadrv)/ipa \
+	     -I$(src)/$(ipadrv)/ipa/ipa_v3 \
+	     -I$(src)/$(ipadrv)/ipa/ipa_v3/ipahal \
+	     -I$(src)/$(ipadrv)/ipa/ipa_clients
+
+obj-$(CONFIG_GSI) += gsim.o
+gsim-y := $(ipadrv)/gsi/gsi.o \
+	  $(ipadrv)/gsi/gsihal/gsihal.o \
+	  $(ipadrv)/gsi/gsihal/gsihal_reg.o
+gsim-$(CONFIG_DEBUG_FS) += $(ipadrv)/gsi/gsi_dbg.o
+
+# The IPA core calls into its client drivers during its own setup, so they are always built in
+obj-$(CONFIG_IPA3) += ipam.o
+ipam-y := $(ipadrv)/ipa/ipa_rm.o \
+	  $(ipadrv)/ipa/ipa_rm_dependency_graph.o \
+	  $(ipadrv)/ipa/ipa_rm_peers_list.o \
+	  $(ipadrv)/ipa/ipa_rm_resource.o \
+	  $(ipadrv)/ipa/ipa_rm_inactivity_timer.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_debugfs.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_hdr.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_flt.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_rt.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_dp.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_client.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_utils.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_nat.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_intf.o \
+	  $(ipadrv)/ipa/ipa_v3/teth_bridge.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_interrupts.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_uc.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_uc_wdi.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_dma.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_uc_mhi.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_mhi.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_uc_ntn.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_hw_stats.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_pm.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_wdi3_i.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_odl.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_opt_log.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_wigig_i.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_qdss.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_uc_holb_monitor.o \
+	  $(ipadrv)/ipa/ipa_v3/ipahal/ipahal.o \
+	  $(ipadrv)/ipa/ipa_v3/ipahal/ipahal_reg.o \
+	  $(ipadrv)/ipa/ipa_v3/ipahal/ipahal_fltrt.o \
+	  $(ipadrv)/ipa/ipa_v3/ipahal/ipahal_hw_stats.o \
+	  $(ipadrv)/ipa/ipa_v3/ipahal/ipahal_nat.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_eth_i.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_elf_dump.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_stats.o \
+	  $(ipadrv)/ipa/ipa_clients/ipa_usb.o \
+	  $(ipadrv)/ipa/ipa_clients/ipa_wdi3.o \
+	  $(ipadrv)/ipa/ipa_clients/ipa_gsb.o \
+	  $(ipadrv)/ipa/ipa_clients/ipa_uc_offload.o \
+	  $(ipadrv)/ipa/ipa_clients/ipa_wigig.o \
+	  $(ipadrv)/ipa/ipa_clients/ipa_mhi_client.o \
+	  $(ipadrv)/ipa/ipa_clients/ipa_eth.o
+ipam-$(CONFIG_RMNET_IPA3) += $(ipadrv)/ipa/ipa_v3/rmnet_ipa.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_qmi_service_v01.o \
+	  $(ipadrv)/ipa/ipa_v3/ipa_qmi_service.o \
+	  $(ipadrv)/ipa/ipa_v3/rmnet_ctl_ipa.o \
+	  $(ipadrv)/ipa/ipa_v3/rmnet_ipa_fd_ioctl.o \
+	  $(ipadrv)/ipa/ipa_v3/rmnet_ll_ipa.o
+
+obj-$(CONFIG_IPA3) += ipanetm.o
+ipanetm-y := $(ipadrv)/ipa/ipa_v3/ipa_net.o
