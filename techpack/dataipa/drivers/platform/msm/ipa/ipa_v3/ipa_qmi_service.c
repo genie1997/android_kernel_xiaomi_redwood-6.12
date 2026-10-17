@@ -590,6 +590,23 @@ static int ipa3_qmi_send_req_wait(struct qmi_handle *client_handle,
 	return ret;
 }
 
+/* The modem's filter stats counters must lie inside the SRAM partition the AP sets up for them */
+static bool ipa3_q6_fnr_stats_fit(void)
+{
+	struct ipahal_stats_get_offset_flt_rt_v4_5 get_offset = { 0 };
+	struct ipahal_stats_offset offset = { 0 };
+
+	if (ipa3_ctx->ipa_hw_type < IPA_HW_v4_5)
+		return false;
+
+	get_offset.start_id = IPA_Q6_FNR_START_IDX;
+	get_offset.end_id = IPA_Q6_FNR_END_IDX;
+	if (ipahal_stats_get_offset(IPAHAL_HW_STATS_FNR, &get_offset, &offset))
+		return false;
+
+	return offset.offset + offset.size <= IPA_MEM_PART(stats_fnr_size);
+}
+
 static int ipa3_qmi_init_modem_send_sync_msg(void)
 {
 	struct ipa_init_modem_driver_req_msg_v01 req;
@@ -714,12 +731,14 @@ static int ipa3_qmi_init_modem_send_sync_msg(void)
 		req.is_ssr_bootup = 1;
 	}
 
-	req.hw_fiter_stats_info_valid = true;
-	req.hw_filter_stats_info.hw_filter_stats_start_addr =
-		IPA_MEM_PART(stats_fnr_ofst);
-	req.hw_filter_stats_info.hw_filter_stats_size = IPA_Q6_FNR_STATS_SIZE;
-	req.hw_filter_stats_info.hw_filter_stats_start_index = IPA_Q6_FNR_START_IDX;
-	req.hw_filter_stats_info.hw_filter_stats_end_index = IPA_Q6_FNR_END_IDX;
+	if (ipa3_q6_fnr_stats_fit()) {
+		req.hw_fiter_stats_info_valid = true;
+		req.hw_filter_stats_info.hw_filter_stats_start_addr =
+			IPA_MEM_PART(stats_fnr_ofst);
+		req.hw_filter_stats_info.hw_filter_stats_size = IPA_Q6_FNR_STATS_SIZE;
+		req.hw_filter_stats_info.hw_filter_stats_start_index = IPA_Q6_FNR_START_IDX;
+		req.hw_filter_stats_info.hw_filter_stats_end_index = IPA_Q6_FNR_END_IDX;
+	}
 
 	req.smem_info_valid = true;
 	req.smem_info.size = ipa3_ctx->ipa_smem_size;
