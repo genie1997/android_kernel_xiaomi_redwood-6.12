@@ -306,7 +306,7 @@
 		status = "disabled";
 	};
 
-	haptic_hv@5A {
+	haptic_hv@5a {
 		status = "ok";
 		compatible = "awinic,haptic_hv";
 		reg = <0x5A>;
