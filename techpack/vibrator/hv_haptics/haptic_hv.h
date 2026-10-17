@@ -111,6 +111,10 @@
 #define KERNEL_OVER_6_1
 #endif
 
+#if KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE
+#define KERNEL_OVER_6_3
+#endif
+
 #ifdef KERNEL_OVER_4_19
 typedef struct snd_soc_component aw_snd_soc_codec_t;
 typedef const struct snd_soc_component_driver aw_snd_soc_codec_driver_t;

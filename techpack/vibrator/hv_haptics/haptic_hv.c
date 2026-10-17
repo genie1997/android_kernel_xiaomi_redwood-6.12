@@ -9,6 +9,7 @@
 
 #include <linux/module.h>
 #include <linux/of_gpio.h>
+#include <linux/pinctrl/consumer.h>
 #include <linux/firmware.h>
 #include <linux/proc_fs.h>
 #include <linux/mman.h>
@@ -3017,7 +3018,11 @@ static void haptic_init(struct aw_haptic *aw_haptic)
 	mutex_unlock(&aw_haptic->lock);
 }
 
+#ifdef KERNEL_OVER_6_3
+static int aw_i2c_probe(struct i2c_client *i2c)
+#else
 static int aw_i2c_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
+#endif
 {
 	int ret = 0;
 	int i = 0;
