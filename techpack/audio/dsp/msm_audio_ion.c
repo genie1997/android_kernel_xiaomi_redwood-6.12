@@ -201,7 +201,7 @@ free_alloc_data:
 	return rc;
 }
 
-static int msm_audio_ion_unmap_kernel(void *vaddr, void *handle, bool cma_mem)
+static int msm_audio_ion_unmap_kernel(struct iosys_map *vmap, void *handle, bool cma_mem)
 {
 	int rc = 0;
 	struct device *cb_dev;
@@ -211,15 +211,7 @@ static int msm_audio_ion_unmap_kernel(void *vaddr, void *handle, bool cma_mem)
 	else
 		cb_dev = msm_audio_ion_data.cb_dev;
 
-	if (!vaddr) {
-		dev_err(cb_dev,
-			"%s: cannot find allocation for handle %pK\n",
-			__func__, handle);
-		rc = -EINVAL;
-		goto err;
-	}
-
-	dma_buf_vunmap((struct dma_buf *)handle, vaddr);
+	dma_buf_vunmap((struct dma_buf *)handle, vmap);
 
 	rc = dma_buf_end_cpu_access((struct dma_buf *)handle, DMA_BIDIRECTIONAL);
 	if (rc) {
@@ -255,15 +247,19 @@ static int msm_audio_dma_buf_unmap(void *handle, bool cma_mem)
 		alloc_data = list_entry(ptr, struct msm_audio_alloc_data, list);
 		if (alloc_data->type == MSM_AUDIO_MEM_TYPE_ION) {
 			if (alloc_data->handle == handle) {
-				rc = msm_audio_ion_unmap_kernel(
-							alloc_data->vaddr,
+				if (alloc_data->vmap) {
+					rc = msm_audio_ion_unmap_kernel(
+							alloc_data->vmap,
 							handle, cma_mem);
-			if (rc) {
-				pr_err("%s: Unable to unmap ion mem rc: %d\n",
-				       __func__, rc);
-				mutex_unlock(&(msm_audio_ion_data.list_mutex));
-				return rc;
-			}
+					kfree(alloc_data->vmap);
+					alloc_data->vmap = NULL;
+					if (rc) {
+						pr_err("%s: Unable to unmap ion mem rc: %d\n",
+						       __func__, rc);
+						mutex_unlock(&(msm_audio_ion_data.list_mutex));
+						return rc;
+					}
+				}
 
 				found = true;
 				dma_buf_unmap_attachment(alloc_data->attach,
@@ -451,10 +447,7 @@ static int msm_audio_ion_map_buf(void *handle, dma_addr_t *paddr,
 		pr_err("%s: ION memory mapping for AUDIO failed, err:%d\n",
 				__func__, rc);
 		rc = -ENOMEM;
-		mutex_lock(&(msm_audio_ion_data.list_mutex));
-		//msm_audio_dma_buf_unmap(dma_buf, ion_data);
 		msm_audio_dma_buf_unmap((struct dma_buf *)handle, false);
-		mutex_unlock(&(msm_audio_ion_data.list_mutex));
 		goto err;
 	}
 
