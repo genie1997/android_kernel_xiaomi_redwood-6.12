@@ -2201,6 +2201,7 @@
 
 	qcom,smp2p-adsp {
 		compatible = "qcom,smp2p";
+		wakeup-source;
 		qcom,smem = <443>, <429>;
 		interrupt-parent = <&ipcc_mproc>;
 		interrupts = <IPCC_CLIENT_LPASS IPCC_MPROC_SIGNAL_SMP2P
@@ -2254,6 +2255,7 @@
 
 	qcom,smp2p-nsp {
 		compatible = "qcom,smp2p";
+		wakeup-source;
 		qcom,smem = <94>, <432>;
 		interrupt-parent = <&ipcc_mproc>;
 		interrupts = <IPCC_CLIENT_CDSP IPCC_MPROC_SIGNAL_SMP2P
@@ -2287,6 +2289,7 @@
 
 	qcom,smp2p-modem {
 		compatible = "qcom,smp2p";
+		wakeup-source;
 		qcom,smem = <435>, <428>;
 		interrupt-parent = <&ipcc_mproc>;
 		interrupts = <IPCC_CLIENT_MPSS IPCC_MPROC_SIGNAL_SMP2P
@@ -2321,6 +2324,7 @@
 
 	qcom,smp2p-wpss {
 		compatible = "qcom,smp2p";
+		wakeup-source;
 		qcom,smem = <617>, <616>;
 		interrupt-parent = <&ipcc_mproc>;
 		interrupts = <IPCC_CLIENT_WPSS IPCC_MPROC_SIGNAL_SMP2P
