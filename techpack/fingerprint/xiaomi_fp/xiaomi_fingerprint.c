@@ -46,7 +46,7 @@ static ssize_t set_fingerdown_event(struct device *dev,
 
 }
 
-static DEVICE_ATTR(fingerdown, S_IRUSR | S_IWUSR, get_fingerdown_event, set_fingerdown_event);
+static DEVICE_ATTR(fingerdown, 0644, get_fingerdown_event, set_fingerdown_event);
 
 static ssize_t get_actpower_event(struct device *dev,
                                   struct device_attribute *attr,
@@ -85,7 +85,7 @@ static ssize_t set_actpower_event(struct device *dev,
        return count;
 }
 
-static DEVICE_ATTR(actpower, S_IRUSR | S_IWUSR, get_actpower_event, set_actpower_event);
+static DEVICE_ATTR(actpower, 0644, get_actpower_event, set_actpower_event);
 
 static struct attribute *attributes[] = {
 	&dev_attr_fingerdown.attr,
