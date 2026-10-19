@@ -59,6 +59,8 @@
 static DEFINE_MUTEX(regulator_ocp_lock);
 
 static struct regulator *p_3v3_vreg = NULL;
+/* set while this driver holds the supply enabled */
+static bool p_3v3_vreg_on;
 static int disable_regulator_3V3(void);
 static int enable_regulator_3V3(struct device *dev);
 
@@ -72,7 +74,7 @@ static int disable_regulator_3V3(void)
 		return 0;
 	}
 
-	if (regulator_is_enabled(p_3v3_vreg)) {
+	if (p_3v3_vreg_on) {
 		pr_err( "regulator_is_enabled and do powered-off\n");
 
 		rc = regulator_disable(p_3v3_vreg);
@@ -81,6 +83,7 @@ static int disable_regulator_3V3(void)
 			mutex_unlock(&regulator_ocp_lock);
 			return rc;
 		}
+		p_3v3_vreg_on = false;
 	}
 
 	devm_regulator_put(p_3v3_vreg);
@@ -99,18 +102,14 @@ static int enable_regulator_3V3(struct device *dev)
 	p_3v3_vreg = devm_regulator_get(dev, "l3c_vdd");
 	if (IS_ERR(p_3v3_vreg)) {
 		pr_err("fp %s: no of vreg found\n", __func__);
+		rc = PTR_ERR(p_3v3_vreg);
+		p_3v3_vreg = NULL;
 		mutex_unlock(&regulator_ocp_lock);
-		return PTR_ERR(p_3v3_vreg);
+		return rc;
 	} else {
 		pr_err("fp %s: of vreg successful found\n", __func__);
 	}
 
-
-	if (regulator_is_enabled(p_3v3_vreg)) {
-		dev_err(dev, "%s: regulator_is_enabled!\n", __func__);
-		mutex_unlock(&regulator_ocp_lock);
-		return 0;
-	}
 
 	rc = regulator_set_load(p_3v3_vreg, 200000);
 	if (rc) {
@@ -125,6 +124,7 @@ static int enable_regulator_3V3(struct device *dev)
 		mutex_unlock(&regulator_ocp_lock);
 		return rc;
 	}
+	p_3v3_vreg_on = true;
 	//p_3v3_vreg = vreg;
 	mutex_unlock(&regulator_ocp_lock);
 	pr_err("enable_regulator_3V3 finish\n");
