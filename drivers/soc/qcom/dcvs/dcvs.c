@@ -835,9 +835,9 @@ static int qcom_dcvs_path_probe(struct platform_device *pdev)
 	INIT_LIST_HEAD(&path->voter_list);
 	mutex_init(&path->voter_lock);
 
-	/* start slow paths with boost_freq = max_freq for better boot perf */
+	/* Start unboosted: only userspace lowers boost_freq after boot, and none here does */
 	if (path->type == DCVS_SLOW_PATH) {
-		hw->boost_freq = hw->hw_max_freq;
+		hw->boost_freq = hw->hw_min_freq;
 		new_freqs[hw->type].ib = hw->hw_max_freq;
 		new_freqs[hw->type].ab = 0;
 		new_freqs[hw->type].hw_type = hw->type;
