@@ -672,7 +672,7 @@ error_hw:
 	return status;
 }
 
-static int gf_remove(struct platform_device *pdev)
+static void gf_remove(struct platform_device *pdev)
 {
 	struct gf_dev *gf_dev = &gf;
 	pr_debug("%s\n", __func__);
@@ -700,7 +700,6 @@ static int gf_remove(struct platform_device *pdev)
 	}
 
 	mutex_unlock(&device_list_lock);
-	return 0;
 }
 
 static struct of_device_id gx_match_table[] = {
@@ -734,7 +733,7 @@ static int __init gf_init(void)
 	}
 
 	SPIDEV_MAJOR = status;
-	gf_class = class_create(THIS_MODULE, CLASS_NAME);
+	gf_class = class_create(CLASS_NAME);
 
 	if (IS_ERR(gf_class)) {
 		unregister_chrdev(SPIDEV_MAJOR, gf_driver.driver.name);

@@ -138,7 +138,7 @@ exit:
 	return rc;
 }
 
-static int xiaomi_fp_remove(struct platform_device *pdev)
+static void xiaomi_fp_remove(struct platform_device *pdev)
 {
 	struct xiaomi_fp_data  *xiaomi_fp = platform_get_drvdata(pdev);
 
@@ -146,8 +146,6 @@ static int xiaomi_fp_remove(struct platform_device *pdev)
 	mutex_destroy(&xiaomi_fp->lock);
 
 	dev_info(&pdev->dev, "%s\n", __func__);
-
-	return 0;
 }
 
 static struct of_device_id xiaomi_fp_of_match[] = {
