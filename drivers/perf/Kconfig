@@ -284,4 +284,13 @@ config CXL_PMU
 
 	  If unsure say 'm'.
 
+config QCOM_LLCC_PMU
+	tristate "Qualcomm Technologies LLCC PMU"
+	depends on ARCH_QCOM && ARM64
+	help
+	   Provides support for the LLCC performance monitor unit (PMU) in
+	   Qualcomm Technologies processors.
+	   Adds the LLCC PMU into the perf events subsystem for monitoring
+	   LLCC miss events.
+
 endmenu

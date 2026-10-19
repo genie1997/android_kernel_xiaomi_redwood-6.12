@@ -52,3 +52,5 @@ obj-$(CONFIG_QCOM_QFPROM_SYS) += qfprom-sys.o
 obj-$(CONFIG_QCOM_RUN_QUEUE_STATS) += rq_stats.o
 obj-$(CONFIG_QCOM_WDT_CORE) += qcom_wdt_core.o
 CFLAGS_qcom_wdt_core.o := -I$(srctree)/include/linux
+obj-y += dcvs/
+obj-y += sps/
