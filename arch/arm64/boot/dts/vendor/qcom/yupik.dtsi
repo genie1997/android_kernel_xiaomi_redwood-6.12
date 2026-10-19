@@ -777,6 +777,8 @@
 		qcom,no-clock-support;
 		interconnect-names = "data_path";
 		interconnects = <&aggre2_noc MASTER_CRYPTO &mc_virt SLAVE_EBI1>;
+		qcom,icc_avg_bw = <384>;
+		qcom,icc_peak_bw = <384>;
 		iommus = <&apps_smmu 0x04E6 0x0011>;
 		qcom,iommu-dma = "atomic";
 
