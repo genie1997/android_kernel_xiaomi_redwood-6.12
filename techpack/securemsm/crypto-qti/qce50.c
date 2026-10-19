@@ -6068,7 +6068,7 @@ static int __qce_get_device_tree_data(struct platform_device *pdev,
 		goto err_getting_bam_info;
 	}
 
-	pce_dev->ce_bam_info.bam_irq = platform_get_irq_byname(pdev, "bam-irq");
+	pce_dev->ce_bam_info.bam_irq = platform_get_irq_byname_optional(pdev, "bam-irq");
 	if (pce_dev->ce_bam_info.bam_irq < 0) {
 		pce_dev->ce_bam_info.bam_irq = platform_get_irq(pdev, 0);
 		if (pce_dev->ce_bam_info.bam_irq < 0) {
@@ -6077,10 +6077,10 @@ static int __qce_get_device_tree_data(struct platform_device *pdev,
 			goto err_dev;
 		}
 	}
-	pce_dev->core_irq = platform_get_irq_byname(pdev, "core-irq");
+	pce_dev->core_irq = platform_get_irq_byname_optional(pdev, "core-irq");
 	pce_dev->support_core_irq = true;
 	if (pce_dev->core_irq < 0) {
-		pr_err("CRYPTO CORE IRQ unavailable.\n");
+		pr_info("CRYPTO CORE IRQ unavailable.\n");
 		pce_dev->support_core_irq = false;
 	}
 	return rc;
