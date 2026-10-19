@@ -1,0 +1,14 @@
+config FINGERPRINT_GOODIX_TEE
+	tristate "Goodix fingerprint sensor"
+	depends on m && INPUT && NET
+	help
+	  goodix_tee: /dev/goodix_fp and the netlink channel the Goodix
+	  fingerprint HAL uses to power, reset and arm the sensor, whose
+	  captures run in TrustZone.
+
+config FINGERPRINT_XIAOMI_FP
+	tristate "Xiaomi fingerprint interface"
+	depends on m
+	help
+	  xiaomifp: the fingerdown and actpower nodes of the
+	  xiaomi_fingerprint device, which the fingerprint HAL reads.
