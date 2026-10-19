@@ -470,7 +470,8 @@ static int gdsc_disable(struct regulator_dev *rdev)
 	}
 
 	regmap_read(sc->regmap, REG_OFFSET, &regval);
-	if (regval & HW_CONTROL_MASK) {
+	/* A HW trigger that already collapsed the GDSC lets the last vote go, as the display RSC does */
+	if ((regval & HW_CONTROL_MASK) && (regval & PWR_ON_MASK)) {
 		dev_warn(&rdev->dev, "Invalid Disable while %s is under HW control\n",
 				sc->rdesc.name);
 		ret = -EBUSY;
