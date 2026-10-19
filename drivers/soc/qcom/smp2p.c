@@ -789,6 +789,9 @@ static int qcom_smp2p_probe(struct platform_device *pdev)
 	 * other wakeup events (e.g. Power button) instead waking up immediately.
 	 */
 	device_set_wakeup_capable(&pdev->dev, true);
+	/* DT wakeup-source: armed from boot so remote crash and wake signals wake the system */
+	if (of_property_read_bool(pdev->dev.of_node, "wakeup-source"))
+		device_wakeup_enable(&pdev->dev);
 
 	ret = dev_pm_set_wake_irq(&pdev->dev, irq);
 	if (ret)
