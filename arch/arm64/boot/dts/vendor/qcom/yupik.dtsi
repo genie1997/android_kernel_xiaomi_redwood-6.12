@@ -702,7 +702,7 @@
 
 		CPU_PD2: power-domain-cpu2 {
 			#power-domain-cells = <0>;
-			Power-domains = <&CLUSTER_PD>;
+			power-domains = <&CLUSTER_PD>;
 		};
 
 		CPU_PD3: power-domain-cpu3 {
