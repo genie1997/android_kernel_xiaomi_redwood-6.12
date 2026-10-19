@@ -75,7 +75,7 @@ static int disable_regulator_3V3(void)
 	}
 
 	if (p_3v3_vreg_on) {
-		pr_err( "regulator_is_enabled and do powered-off\n");
+		pr_debug( "regulator_is_enabled and do powered-off\n");
 
 		rc = regulator_disable(p_3v3_vreg);
 		if (rc) {
@@ -89,7 +89,7 @@ static int disable_regulator_3V3(void)
 	devm_regulator_put(p_3v3_vreg);
 	p_3v3_vreg = NULL;
 	mutex_unlock(&regulator_ocp_lock);
-	pr_err("disable_regulator_3V3 finish\n");
+	pr_debug("disable_regulator_3V3 finish\n");
 	return 0;
 }
 
@@ -107,7 +107,7 @@ static int enable_regulator_3V3(struct device *dev)
 		mutex_unlock(&regulator_ocp_lock);
 		return rc;
 	} else {
-		pr_err("fp %s: of vreg successful found\n", __func__);
+		pr_debug("fp %s: of vreg successful found\n", __func__);
 	}
 
 
@@ -127,7 +127,7 @@ static int enable_regulator_3V3(struct device *dev)
 	p_3v3_vreg_on = true;
 	//p_3v3_vreg = vreg;
 	mutex_unlock(&regulator_ocp_lock);
-	pr_err("enable_regulator_3V3 finish\n");
+	pr_debug("enable_regulator_3V3 finish\n");
 	return rc;
 }
 
@@ -378,7 +378,7 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			pr_debug("Sensor has already powered-on.\n");
 		} else {
 			status = enable_regulator_3V3(&gf_dev->spi->dev);
-			pr_err("p_3v3_vreg 001 = %p\n", p_3v3_vreg);
+			pr_debug("p_3v3_vreg 001 = %p\n", p_3v3_vreg);
 			if(status) {
 				pr_err("enable regulator failed and disable it.\n");
 				disable_regulator_3V3();
@@ -395,7 +395,7 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		if (gf_dev->device_available == 0) {
 			pr_debug("Sensor has already powered-off.\n");
 		} else {
-			pr_err("Sensor try do powered-off.\n");
+			pr_debug("Sensor try do powered-off.\n");
 			disable_regulator_3V3();
 
 			gf_power_off(gf_dev);
