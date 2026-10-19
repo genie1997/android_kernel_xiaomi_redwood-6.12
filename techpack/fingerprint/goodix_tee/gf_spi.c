@@ -9,10 +9,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-#define DEBUG
 #define pr_fmt(fmt)     KBUILD_MODNAME ": " fmt
-
-#define GOODIX_DRM_INTERFACE_WA
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -36,31 +33,19 @@
 #include <linux/regulator/consumer.h>
 #include <linux/of_gpio.h>
 #include <linux/timer.h>
-#include <linux/notifier.h>
-#include <linux/fb.h>
 #include <linux/pm_qos.h>
 #include <linux/cpufreq.h>
 #include <linux/pm_wakeup.h>
-#include <drm/drm_bridge.h>
-#ifndef GOODIX_DRM_INTERFACE_WA
-#include <drm/drm_notifier_mi.h>
-#endif
 
 #include "gf_spi.h"
 
-#if defined(USE_SPI_BUS)
-#include <linux/spi/spi.h>
-#include <linux/spi/spidev.h>
-#elif defined(USE_PLATFORM_BUS)
 #include <linux/platform_device.h>
-#endif
 
 #define VER_MAJOR   1
 #define VER_MINOR   2
 #define PATCH_LEVEL 1
 
 #define WAKELOCK_HOLD_TIME 2000 /* in ms */
-#define FP_UNLOCK_REJECTION_TIMEOUT (WAKELOCK_HOLD_TIME - 500)
 
 #define GF_SPIDEV_NAME			"goodix,fingerprint"
 /*device name after register in charater*/
@@ -120,14 +105,6 @@ static int enable_regulator_3V3(struct device *dev)
 		pr_err("fp %s: of vreg successful found\n", __func__);
 	}
 
-#if 0
-	rc = regulator_set_voltage(vreg, 3300000, 3300000);
-
-	if (rc) {
-		dev_err(dev, "xiaomi %s: set voltage failed\n",__func__);
-		return rc;
-	}
-#endif
 
 	if (regulator_is_enabled(p_3v3_vreg)) {
 		dev_err(dev, "%s: regulator_is_enabled!\n", __func__);
@@ -169,7 +146,6 @@ struct gf_key_map maps[] = {
 	{ EV_KEY, GF_KEY_INPUT_BACK },
 	{ EV_KEY, GF_KEY_INPUT_POWER },
 	{ EV_KEY, GF_KEY_DOUBLE_CLICK},
-#if defined(SUPPORT_NAV_EVENT)
 	{ EV_KEY, GF_NAV_INPUT_UP },
 	{ EV_KEY, GF_NAV_INPUT_DOWN },
 	{ EV_KEY, GF_NAV_INPUT_RIGHT },
@@ -179,7 +155,6 @@ struct gf_key_map maps[] = {
 	{ EV_KEY, GF_NAV_INPUT_DOUBLE_CLICK },
 	{ EV_KEY, GF_NAV_INPUT_LONG_PRESS },
 	{ EV_KEY, GF_NAV_INPUT_HEAVY },
-#endif
 };
 
 static void gf_enable_irq(struct gf_dev *gf_dev)
@@ -202,152 +177,6 @@ static void gf_disable_irq(struct gf_dev *gf_dev)
 	}
 }
 
-#ifdef AP_CONTROL_CLK
-static long spi_clk_max_rate(struct clk *clk, unsigned long rate)
-{
-	long lowest_available, nearest_low, step_size, cur;
-	long step_direction = -1;
-	long guess = rate;
-	int max_steps = 10;
-	cur = clk_round_rate(clk, rate);
-
-	if (cur == rate) {
-		return rate;
-	}
-
-	/* if we got here then: cur > rate */
-	lowest_available = clk_round_rate(clk, 0);
-
-	if (lowest_available > rate) {
-		return -EINVAL;
-	}
-
-	step_size = (rate - lowest_available) >> 1;
-	nearest_low = lowest_available;
-
-	while (max_steps-- && step_size) {
-		guess += step_size * step_direction;
-		cur = clk_round_rate(clk, guess);
-
-		if ((cur < rate) && (cur > nearest_low)) {
-			nearest_low = cur;
-		}
-
-		/*
-		 * if we stepped too far, then start stepping in the other
-		 * direction with half the step size
-		 */
-		if (((cur > rate) && (step_direction > 0))
-			|| ((cur < rate) && (step_direction < 0))) {
-			step_direction = -step_direction;
-			step_size >>= 1;
-		}
-	}
-
-	return nearest_low;
-}
-
-static void spi_clock_set(struct gf_dev *gf_dev, int speed)
-{
-	long rate;
-	int rc;
-	rate = spi_clk_max_rate(gf_dev->core_clk, speed);
-
-	if (rate < 0) {
-		pr_debug("%s: no match found for requested clock frequency:%d",
-			 __func__, speed);
-		return;
-	}
-
-	rc = clk_set_rate(gf_dev->core_clk, rate);
-}
-
-static int gfspi_ioctl_clk_init(struct gf_dev *data)
-{
-	pr_debug("%s: enter\n", __func__);
-	data->clk_enabled = 0;
-	data->core_clk = clk_get(&data->spi->dev, "core_clk");
-
-	if (IS_ERR_OR_NULL(data->core_clk)) {
-		pr_err("%s: fail to get core_clk\n", __func__);
-		return -EPERM;
-	}
-
-	data->iface_clk = clk_get(&data->spi->dev, "iface_clk");
-
-	if (IS_ERR_OR_NULL(data->iface_clk)) {
-		pr_err("%s: fail to get iface_clk\n", __func__);
-		clk_put(data->core_clk);
-		data->core_clk = NULL;
-		return -ENOENT;
-	}
-
-	return 0;
-}
-
-static int gfspi_ioctl_clk_enable(struct gf_dev *data)
-{
-	int err;
-	pr_debug("%s: enter\n", __func__);
-
-	if (data->clk_enabled) {
-		return 0;
-	}
-
-	err = clk_prepare_enable(data->core_clk);
-
-	if (err) {
-		pr_err("%s: fail to enable core_clk\n", __func__);
-		return -EPERM;
-	}
-
-	err = clk_prepare_enable(data->iface_clk);
-
-	if (err) {
-		pr_err("%s: fail to enable iface_clk\n", __func__);
-		clk_disable_unprepare(data->core_clk);
-		return -ENOENT;
-	}
-
-	data->clk_enabled = 1;
-	return 0;
-}
-
-static int gfspi_ioctl_clk_disable(struct gf_dev *data)
-{
-	pr_debug("%s: enter\n", __func__);
-
-	if (!data->clk_enabled) {
-		return 0;
-	}
-
-	clk_disable_unprepare(data->core_clk);
-	clk_disable_unprepare(data->iface_clk);
-	data->clk_enabled = 0;
-	return 0;
-}
-
-static int gfspi_ioctl_clk_uninit(struct gf_dev *data)
-{
-	pr_debug("%s: enter\n", __func__);
-
-	if (data->clk_enabled) {
-		gfspi_ioctl_clk_disable(data);
-	}
-
-	if (!IS_ERR_OR_NULL(data->core_clk)) {
-		clk_put(data->core_clk);
-		data->core_clk = NULL;
-	}
-
-	if (!IS_ERR_OR_NULL(data->iface_clk)) {
-		clk_put(data->iface_clk);
-		data->iface_clk = NULL;
-	}
-
-	return 0;
-}
-#endif
 
 static void nav_event_input(struct gf_dev *gf_dev, gf_nav_event_t nav_event)
 {
@@ -455,9 +284,7 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	struct gf_dev *gf_dev = &gf;
 	struct gf_key gf_key;
-#if defined(SUPPORT_NAV_EVENT)
 	gf_nav_event_t nav_event = GF_NAV_NONE;
-#endif
 	int retval = 0;
 	int status = 0;
 	u8 netlink_route = NETLINK_TEST;
@@ -525,7 +352,6 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 		gf_kernel_key_input(gf_dev, &gf_key);
 		break;
-#if defined(SUPPORT_NAV_EVENT)
 
 	case GF_IOC_NAV_EVENT:
 		pr_debug("%s GF_IOC_NAV_EVENT\n", __func__);
@@ -538,18 +364,11 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 		nav_event_input(gf_dev, nav_event);
 		break;
-#endif
 
 	case GF_IOC_ENABLE_SPI_CLK:
-#ifdef AP_CONTROL_CLK
-		gfspi_ioctl_clk_enable(gf_dev);
-#endif
 		break;
 
 	case GF_IOC_DISABLE_SPI_CLK:
-#ifdef AP_CONTROL_CLK
-		gfspi_ioctl_clk_disable(gf_dev);
-#endif
 		break;
 
 	case GF_IOC_ENABLE_POWER:
@@ -627,45 +446,16 @@ static long gf_compat_ioctl(struct file *filp, unsigned int cmd,
 }
 #endif /*CONFIG_COMPAT*/
 
-#ifndef GOODIX_DRM_INTERFACE_WA
-static void notification_work(struct work_struct *work)
-{
-	pr_debug("%s unblank\n", __func__);
-	dsi_bridge_interface_enable(FP_UNLOCK_REJECTION_TIMEOUT);
-}
-#endif
 
 static irqreturn_t gf_irq(int irq, void *handle)
 {
-	struct gf_dev *gf_dev = &gf;
-#if defined(GF_NETLINK_ENABLE)
 	char temp[4] = { 0x0 };
-	uint32_t key_input = 0;
 	temp[0] = GF_NET_EVENT_IRQ;
 	pr_debug("%s enter\n", __func__);
 	if(fp_wakelock != NULL)
 		__pm_wakeup_event(fp_wakelock, WAKELOCK_HOLD_TIME);
 	sendnlmsg(temp);
 
-	if ((gf_dev->wait_finger_down == true) && (gf_dev->device_available == 1) &&
-		(gf_dev->fb_black == 1)) {
-		key_input = KEY_RIGHT;
-		input_report_key(gf_dev->input, key_input, 1);
-		input_sync(gf_dev->input);
-		input_report_key(gf_dev->input, key_input, 0);
-		input_sync(gf_dev->input);
-		gf_dev->wait_finger_down = false;
-		schedule_work(&gf_dev->work);
-	}
-
-#elif defined (GF_FASYNC)
-	struct gf_dev *gf_dev = &gf;
-
-	if (gf_dev->async) {
-		kill_fasync(&gf_dev->async, SIGIO, POLL_IN);
-	}
-
-#endif
 	return IRQ_HANDLED;
 }
 
@@ -684,48 +474,8 @@ static int gf_open(struct inode *inode, struct file *filp)
 		}
 	}
 
-#if 0
-#ifdef CONFIG_FINGERPRINT_FP_VREG_CONTROL
-	pr_info("Try to enable fp_vdd_vreg\n");
-	gf_dev->vreg = regulator_get(&gf_dev->spi->dev, "fp_vdd_vreg");
-
-	if (gf_dev->vreg == NULL) {
-		dev_err(&gf_dev->spi->dev, "fp_vdd_vreg regulator get failed!\n");
-		mutex_unlock(&device_list_lock);
-		return -EPERM;
-	}
-
-	if (regulator_is_enabled(gf_dev->vreg)) {
-		pr_info("fp_vdd_vreg is already enabled!\n");
-	} else {
-		ret = regulator_set_load(gf_dev->vreg, 200000);
-		rc = regulator_enable(gf_dev->vreg);
-
-		if (rc || ret) {
-			dev_err(&gf_dev->spi->dev, "error enabling fp_vdd_vreg! rc = %d\n",rc);
-			dev_err(&gf_dev->spi->dev, "error set_load failed! ret = %d\n",ret);
-			regulator_put(gf_dev->vreg);
-			gf_dev->vreg = NULL;
-			mutex_unlock(&device_list_lock);
-			return -EPERM;
-		}
-	}
-
-	pr_info("fp_vdd_vreg is enabled %d!\n",regulator_get_voltage(gf_dev->vreg));
-#endif
-#endif
 
 	if (status == 0) {
-#ifdef GF_PW_CTL
-		rc = gpio_request(gf_dev->pwr_gpio, "goodix_pwr");
-
-		if (rc) {
-			dev_err(&gf_dev->spi->dev, "Failed to request PWR GPIO. rc = %d\n", rc);
-			mutex_unlock(&device_list_lock);
-			err = -EPERM;
-			goto open_error1;
-		}
-#endif
 
 		rc = gpio_request(gf_dev->reset_gpio, "gpio-reset");
 
@@ -778,16 +528,6 @@ open_error1:
 	return err;
 }
 
-#ifdef GF_FASYNC
-static int gf_fasync(int fd, struct file *filp, int mode)
-{
-	struct gf_dev *gf_dev = filp->private_data;
-	int ret;
-	ret = fasync_helper(fd, filp, mode, &gf_dev->async);
-	pr_debug("ret = %d\n", ret);
-	return ret;
-}
-#endif
 
 static int gf_release(struct inode *inode, struct file *filp)
 {
@@ -798,21 +538,6 @@ static int gf_release(struct inode *inode, struct file *filp)
 	gf_dev = filp->private_data;
 	filp->private_data = NULL;
 
-#if 0
-	/*
-	 *Disable fp_vdd_vreg regulator
-	 */
-#ifdef CONFIG_FINGERPRINT_FP_VREG_CONTROL
-	pr_info("disable fp_vdd_vreg!\n");
-
-	if (regulator_is_enabled(gf_dev->vreg)) {
-		//regulator_disable(gf_dev->vreg);
-		//regulator_put(gf_dev->vreg);
-		//gf_dev->vreg = NULL;
-	}
-
-#endif
-#endif
 
 	gf_dev->users--;
 
@@ -826,9 +551,6 @@ static int gf_release(struct inode *inode, struct file *filp)
 		gpio_free(gf_dev->reset_gpio);
 		disable_regulator_3V3();
 		gf_power_off(gf_dev);
-#ifdef GF_PW_CTL
-		gpio_free(gf_dev->pwr_gpio);
-#endif
 	}
 
 	mutex_unlock(&device_list_lock);
@@ -847,87 +569,12 @@ static const struct file_operations gf_fops = {
 #endif /*CONFIG_COMPAT*/
 	.open = gf_open,
 	.release = gf_release,
-#ifdef GF_FASYNC
-	.fasync = gf_fasync,
-#endif
 };
 
 
-#ifndef GOODIX_DRM_INTERFACE_WA
-static int goodix_fb_state_chg_callback(struct notifier_block *nb,
-					unsigned long val, void *data)
-{
-	struct gf_dev *gf_dev;
-	struct fb_event *evdata = data;
-	unsigned int blank;
-	char temp[4] = { 0x0 };
-
-	if (val != MI_DRM_EVENT_BLANK) {
-		return 0;
-	}
-
-	pr_debug("[info] %s go to the goodix_fb_state_chg_callback value = %d\n",
-		 __func__, (int)val);
-	gf_dev = container_of(nb, struct gf_dev, notifier);
-
-	if (evdata && evdata->data && val == MI_DRM_EVENT_BLANK && gf_dev) {
-		blank = *(int *)(evdata->data);
-
-		switch (blank) {
-		case MI_DRM_BLANK_POWERDOWN:
-			if (gf_dev->device_available == 1) {
-				gf_dev->fb_black = 1;
-				gf_dev->wait_finger_down = true;
-#if defined(GF_NETLINK_ENABLE)
-				temp[0] = GF_NET_EVENT_FB_BLACK;
-				sendnlmsg(temp);
-#elif defined (GF_FASYNC)
-
-			if (gf_dev->async) {
-				kill_fasync(&gf_dev->async, SIGIO, POLL_IN);
-			}
-
-#endif
-		 	}
-			break;
-
-		case MI_DRM_BLANK_UNBLANK:
-			if (gf_dev->device_available == 1) {
-				gf_dev->fb_black = 0;
-#if defined(GF_NETLINK_ENABLE)
-				temp[0] = GF_NET_EVENT_FB_UNBLACK;
-				sendnlmsg(temp);
-#elif defined (GF_FASYNC)
-
-			if (gf_dev->async) {
-				kill_fasync(&gf_dev->async, SIGIO, POLL_IN);
-			}
-
-#endif
-			}
-
-			break;
-
-		default:
-			pr_debug("%s defalut\n", __func__);
-			break;
-	}
-	}
-
-	return NOTIFY_OK;
-}
-
-static struct notifier_block goodix_noti_block = {
-	.notifier_call = goodix_fb_state_chg_callback,
-};
-#endif
 
 static struct class *gf_class;
-#if defined(USE_SPI_BUS)
-static int gf_probe(struct spi_device *spi)
-#elif defined(USE_PLATFORM_BUS)
 static int gf_probe(struct platform_device *pdev)
-#endif
 {
 	struct gf_dev *gf_dev = &gf;
 	int status = -EINVAL;
@@ -935,20 +582,10 @@ static int gf_probe(struct platform_device *pdev)
 	int i;
 	/* Initialize the driver data */
 	INIT_LIST_HEAD(&gf_dev->device_entry);
-#if defined(USE_SPI_BUS)
-	gf_dev->spi = spi;
-#elif defined(USE_PLATFORM_BUS)
 	gf_dev->spi = pdev;
-#endif
 	gf_dev->irq_gpio = -EINVAL;
 	gf_dev->reset_gpio = -EINVAL;
-	gf_dev->pwr_gpio = -EINVAL;
 	gf_dev->device_available = 0;
-	gf_dev->fb_black = 0;
-	gf_dev->wait_finger_down = false;
-#ifndef GOODIX_DRM_INTERFACE_WA
-	INIT_WORK(&gf_dev->work, notification_work);
-#endif
 
 	if (gf_parse_dts(gf_dev)) {
 		goto error_hw;
@@ -1007,33 +644,10 @@ static int gf_probe(struct platform_device *pdev)
 		}
 	}
 
-#ifdef AP_CONTROL_CLK
-	pr_debug("Get the clk resource.\n");
-
-	/* Enable spi clock */
-	if (gfspi_ioctl_clk_init(gf_dev)) {
-		goto gfspi_probe_clk_init_failed;
-	}
-
-	if (gfspi_ioctl_clk_enable(gf_dev)) {
-		goto gfspi_probe_clk_enable_failed;
-	}
-
-	spi_clock_set(gf_dev, 1000000);
-#endif
-#ifndef GOODIX_DRM_INTERFACE_WA
-	gf_dev->notifier = goodix_noti_block;
-	mi_drm_register_client(&gf_dev->notifier);
-#endif
 	gf_dev->irq = gf_irq_num(gf_dev);
 	fp_wakelock = wakeup_source_register(&gf_dev->spi->dev, "fp_wakelock");
 	pr_debug("version V%d.%d.%02d\n", VER_MAJOR, VER_MINOR, PATCH_LEVEL);
 	return status;
-#ifdef AP_CONTROL_CLK
-gfspi_probe_clk_enable_failed:
-	gfspi_ioctl_clk_uninit(gf_dev);
-gfspi_probe_clk_init_failed:
-#endif
 	input_unregister_device(gf_dev->input);
 error_input:
 
@@ -1058,11 +672,7 @@ error_hw:
 	return status;
 }
 
-#if defined(USE_SPI_BUS)
-static int gf_remove(struct spi_device *spi)
-#elif defined(USE_PLATFORM_BUS)
 static int gf_remove(struct platform_device *pdev)
-#endif
 {
 	struct gf_dev *gf_dev = &gf;
 	pr_debug("%s\n", __func__);
@@ -1089,9 +699,6 @@ static int gf_remove(struct platform_device *pdev)
 		gf_cleanup(gf_dev);
 	}
 
-#ifndef GOODIX_DRM_INTERFACE_WA
-	mi_drm_unregister_client(&gf_dev->notifier);
-#endif
 	mutex_unlock(&device_list_lock);
 	return 0;
 }
@@ -1101,11 +708,7 @@ static struct of_device_id gx_match_table[] = {
 	{},
 };
 
-#if defined(USE_SPI_BUS)
-static struct spi_driver gf_driver = {
-#elif defined(USE_PLATFORM_BUS)
 static struct platform_driver gf_driver = {
-#endif
 	.driver = {
 		.name = GF_DEV_NAME,
 		.owner = THIS_MODULE,
@@ -1139,11 +742,7 @@ static int __init gf_init(void)
 		return PTR_ERR(gf_class);
 	}
 
-#if defined(USE_PLATFORM_BUS)
 	status = platform_driver_register(&gf_driver);
-#elif defined(USE_SPI_BUS)
-	status = spi_register_driver(&gf_driver);
-#endif
 
 	if (status < 0) {
 		class_destroy(gf_class);
@@ -1151,9 +750,7 @@ static int __init gf_init(void)
 		pr_warn("Failed to register SPI driver.\n");
 	}
 
-#ifdef GF_NETLINK_ENABLE
 	netlink_init();
-#endif
 	pr_debug("status = 0x%x\n", status);
 	return 0;
 }
@@ -1161,14 +758,8 @@ module_init(gf_init);
 
 static void __exit gf_exit(void)
 {
-#ifdef GF_NETLINK_ENABLE
 	netlink_exit();
-#endif
-#if defined(USE_PLATFORM_BUS)
 	platform_driver_unregister(&gf_driver);
-#elif defined(USE_SPI_BUS)
-	spi_unregister_driver(&gf_driver);
-#endif
 	class_destroy(gf_class);
 	unregister_chrdev(SPIDEV_MAJOR, gf_driver.driver.name);
 }
