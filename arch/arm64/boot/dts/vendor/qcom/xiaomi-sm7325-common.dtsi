@@ -47,7 +47,7 @@
 	status = "disabled";
 };
 
-&apps_rsc {
+&apps_rsc_drv2 {
 	rpmh-regulator-ldoe2 {
 		status = "disabled";
 	};
