@@ -4,3 +4,10 @@ config QSEECOM
 	help
 	  /dev/qseecom, through which the vendor libraries load trusted apps
 	  and talk to them (keymaster, gatekeeper and the qseecomd listeners).
+
+config CRYPTO_DEV_QCEDEV
+	tristate "Qualcomm crypto engine driver"
+	depends on SPS && QCOM_SECURE_BUFFER && ION_MSM_HEAPS
+	help
+	  /dev/qce, the crypto engine the vendor content protection library
+	  (libcpion) drives through the BAM DMA of SPS.
