@@ -607,6 +607,7 @@ void ipa3_setup_wlan_ctrl_ready_req(void)
 	int ipa_ep_idx_rx;
 	int ipa_ep_idx_tx;
 	uint32_t q6_rtng_table_index;
+	unsigned long flags;
 
 	ipa_ep_idx_rx = ipa_get_ep_mapping(IPA_CLIENT_WLAN2_PROD);
 	ipa_ep_idx_tx = ipa_get_ep_mapping(IPA_CLIENT_WLAN2_CONS);
@@ -614,7 +615,7 @@ void ipa3_setup_wlan_ctrl_ready_req(void)
 	memset(&wlan_ctrl_ready_req, 0,
 			sizeof(struct ipa_wlan_opt_dp_set_wlan_ctrl_ready_req_msg_v01));
 
-	spin_lock(&ipa3_ctx->disconnect_lock);
+	spin_lock_irqsave(&ipa3_ctx->disconnect_lock, flags);
 	if (ipa3_ctx->ep[ipa_ep_idx_rx].valid && ipa3_ctx->ep[ipa_ep_idx_tx].valid
 		&& !atomic_read(&ipa3_ctx->ep[ipa_ep_idx_rx].disconnect_in_progress)
 		&& !atomic_read(&ipa3_ctx->ep[ipa_ep_idx_tx].disconnect_in_progress)) {
@@ -625,7 +626,7 @@ void ipa3_setup_wlan_ctrl_ready_req(void)
 		wlan_ctrl_ready_req.dest_apps_endp_id =
 			ipa_get_ep_mapping(IPA_CLIENT_APPS_LAN_CONS);
 	}
-	spin_unlock(&ipa3_ctx->disconnect_lock);
+	spin_unlock_irqrestore(&ipa3_ctx->disconnect_lock, flags);
 	if (ipa3_ctx->ep[ipa_ep_idx_rx].valid && ipa3_ctx->ep[ipa_ep_idx_tx].valid
 		&& !atomic_read(&ipa3_ctx->ep[ipa_ep_idx_rx].disconnect_in_progress)
 		&& !atomic_read(&ipa3_ctx->ep[ipa_ep_idx_tx].disconnect_in_progress)
