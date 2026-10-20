@@ -5,9 +5,12 @@
 
 #include <linux/dma-buf.h>
 #include <linux/ion.h>
+#include <linux/qcom-dma-mapping.h>
 #include "msm_vidc.h"
 #include "msm_vidc_debug.h"
 #include "msm_vidc_resources.h"
+
+MODULE_IMPORT_NS(DMA_BUF);
 
 static int msm_dma_get_device_address(struct dma_buf *dbuf, unsigned long align,
 	dma_addr_t *iova, unsigned long *buffer_size,
@@ -70,7 +73,7 @@ static int msm_dma_get_device_address(struct dma_buf *dbuf, unsigned long align,
 		attach->dma_map_attrs |= DMA_ATTR_SKIP_CPU_SYNC;
 		if (res->sys_cache_present)
 			attach->dma_map_attrs |=
-				DMA_ATTR_IOMMU_USE_UPSTREAM_HINT;
+				DMA_ATTR_SYS_CACHE;
 
 		table = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
 		if (IS_ERR_OR_NULL(table)) {
@@ -431,12 +434,13 @@ static int alloc_dma_mem(size_t size, u32 align, u32 flags,
 
 	if (map_kernel) {
 		dma_buf_begin_cpu_access(dbuf, DMA_BIDIRECTIONAL);
-		mem->kvaddr = dma_buf_vmap(dbuf);
-		if (!mem->kvaddr) {
+		rc = dma_buf_vmap_unlocked(dbuf, &mem->dmabuf_map);
+		if (rc) {
 			s_vpr_e(sid, "Failed to map shared mem in kernel\n");
 			rc = -EIO;
 			goto fail_map;
 		}
+		mem->kvaddr = mem->dmabuf_map.vaddr;
 	}
 
 	s_vpr_h(sid,
@@ -473,7 +477,7 @@ static int free_dma_mem(struct msm_smem *mem, u32 sid)
 	}
 
 	if (mem->kvaddr) {
-		dma_buf_vunmap(dbuf, mem->kvaddr);
+		dma_buf_vunmap_unlocked(dbuf, &mem->dmabuf_map);
 		mem->kvaddr = NULL;
 		dma_buf_end_cpu_access(dbuf, DMA_BIDIRECTIONAL);
 	}

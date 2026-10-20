@@ -7,6 +7,7 @@
 #define _MSM_VIDC_H_
 
 #include <linux/videodev2.h>
+#include <linux/iosys-map.h>
 #include <linux/msm_ion.h>
 #include "vidc/media/msm_vidc_utils.h"
 #include <media/media-device.h>
@@ -74,6 +75,7 @@ struct msm_smem {
 	unsigned long flags;
 	enum hal_buffer buffer_type;
 	struct dma_mapping_info mapping_info;
+	struct iosys_map dmabuf_map;
 };
 
 enum smem_cache_ops {

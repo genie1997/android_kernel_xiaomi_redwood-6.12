@@ -14,7 +14,6 @@
 #include <linux/time.h>
 #include <linux/ktime.h>
 #include <linux/interrupt.h>
-#include <soc/qcom/subsystem_restart.h>
 #include "msm_vidc_internal.h"
 
 // void disable_irq_nosync(unsigned int irq);

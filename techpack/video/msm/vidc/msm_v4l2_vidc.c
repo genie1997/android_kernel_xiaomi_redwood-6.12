@@ -446,7 +446,7 @@ static int msm_vidc_register_video_device(enum session_type sess_type,
 		V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE |
 		V4L2_CAP_STREAMING;
 	rc = video_register_device(&core->vdev[sess_type].vdev,
-					VFL_TYPE_GRABBER, nr);
+					VFL_TYPE_VIDEO, nr);
 	if (rc) {
 		d_vpr_e("Failed to register the video device\n");
 		return rc;
@@ -635,20 +635,19 @@ static int msm_vidc_probe(struct platform_device *pdev)
 	return -EINVAL;
 }
 
-static int msm_vidc_remove(struct platform_device *pdev)
+static void msm_vidc_remove(struct platform_device *pdev)
 {
-	int rc = 0;
 	struct msm_vidc_core *core;
 
 	if (!pdev) {
 		d_vpr_e("%s: invalid input %pK", __func__, pdev);
-		return -EINVAL;
+		return;
 	}
 
 	core = dev_get_drvdata(&pdev->dev);
 	if (!core) {
 		d_vpr_e("%s: invalid core", __func__);
-		return -EINVAL;
+		return;
 	}
 
 	if (core->vidc_core_workq)
@@ -669,7 +668,6 @@ static int msm_vidc_remove(struct platform_device *pdev)
 	mutex_destroy(&core->lock);
 	kfree(core);
 	kfree(vidc_driver->ctxt);
-	return rc;
 }
 
 static int msm_vidc_pm_suspend(struct device *dev)

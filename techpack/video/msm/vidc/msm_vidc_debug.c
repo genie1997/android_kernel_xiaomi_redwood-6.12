@@ -8,6 +8,7 @@
 #define MAX_DEBUG_LEVEL_STRING_LEN 15
 #include "msm_vidc_debug.h"
 #include "vidc_hfi_api.h"
+#include <soc/qcom/of_common.h>
 
 int msm_vidc_debug = VIDC_ERR | VIDC_PRINTK |
 	FW_ERROR | FW_FATAL | FW_FTRACE;
@@ -207,56 +208,30 @@ static const struct file_operations debug_level_fops = {
 
 struct dentry *msm_vidc_debugfs_init_drv(void)
 {
-	bool ok = false;
 	struct dentry *dir = NULL;
 
 	msm_vidc_vpp_delay = 0;
 
 	dir = debugfs_create_dir("msm_vidc", NULL);
-	if (IS_ERR_OR_NULL(dir)) {
-		dir = NULL;
-		goto failed_create_dir;
-	}
+	if (IS_ERR_OR_NULL(dir))
+		return NULL;
 
-#define __debugfs_create(__type, __name, __value) ({                          \
-	struct dentry *f = debugfs_create_##__type(__name, 0644,	\
-		dir, __value);                                                \
-	if (IS_ERR_OR_NULL(f)) {                                              \
-		d_vpr_e("Failed creating debugfs file '%pd/%s'\n",  \
-			dir, __name);                                         \
-		f = NULL;                                                     \
-	}                                                                     \
-	f;                                                                    \
-})
-
-	ok =
-	__debugfs_create(u32, "fw_debug_mode", &msm_vidc_fw_debug_mode) &&
-	__debugfs_create(bool, "fw_coverage", &msm_vidc_fw_coverage) &&
-	__debugfs_create(bool, "disable_thermal_mitigation",
-			&msm_vidc_thermal_mitigation_disabled) &&
-	__debugfs_create(u32, "core_clock_voting",
-			&msm_vidc_clock_voting) &&
-	__debugfs_create(bool, "disable_video_syscache",
-			&msm_vidc_syscache_disable) &&
-	__debugfs_create(bool, "cvp_usage", &msm_vidc_cvp_usage) &&
-	__debugfs_create(bool, "lossless_encoding",
-			&msm_vidc_lossless_encode) &&
-	__debugfs_create(u32, "disable_err_recovery",
-			&msm_vidc_err_recovery_disable) &&
-	__debugfs_create(u32, "vpp_delay", &msm_vidc_vpp_delay);
-
-#undef __debugfs_create
-
-	if (!ok)
-		goto failed_create_dir;
+	debugfs_create_u32("fw_debug_mode", 0644, dir, &msm_vidc_fw_debug_mode);
+	debugfs_create_bool("fw_coverage", 0644, dir, &msm_vidc_fw_coverage);
+	debugfs_create_bool("disable_thermal_mitigation", 0644, dir,
+			&msm_vidc_thermal_mitigation_disabled);
+	debugfs_create_u32("core_clock_voting", 0644, dir,
+			&msm_vidc_clock_voting);
+	debugfs_create_bool("disable_video_syscache", 0644, dir,
+			&msm_vidc_syscache_disable);
+	debugfs_create_bool("cvp_usage", 0644, dir, &msm_vidc_cvp_usage);
+	debugfs_create_bool("lossless_encoding", 0644, dir,
+			&msm_vidc_lossless_encode);
+	debugfs_create_u32("disable_err_recovery", 0644, dir,
+			&msm_vidc_err_recovery_disable);
+	debugfs_create_u32("vpp_delay", 0644, dir, &msm_vidc_vpp_delay);
 
 	return dir;
-
-failed_create_dir:
-	if (dir)
-		debugfs_remove_recursive(vidc_driver->debugfs_root);
-
-	return NULL;
 }
 
 struct dentry *msm_vidc_debugfs_init_core(struct msm_vidc_core *core,
@@ -426,7 +401,7 @@ static ssize_t inst_info_read(struct file *file, char __user *buf,
 		}
 
 		cur += write_str(cur, end - cur, "count: %u\n",
-				inst->bufq[i].vb2_bufq.num_buffers);
+				vb2_get_num_buffers(&inst->bufq[i].vb2_bufq));
 
 		for (j = 0; j < f->fmt.pix_mp.num_planes; j++)
 			cur += write_str(cur, end - cur,

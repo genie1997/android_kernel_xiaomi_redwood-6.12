@@ -81,7 +81,7 @@ int msm_vidc_querycap(void *instance, struct v4l2_capability *cap)
 	if (!inst || !cap)
 		return -EINVAL;
 
-	strlcpy(cap->driver, MSM_VIDC_DRV_NAME, sizeof(cap->driver));
+	strscpy(cap->driver, MSM_VIDC_DRV_NAME, sizeof(cap->driver));
 	cap->bus_info[0] = 0;
 	cap->version = MSM_VIDC_VERSION;
 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE_MPLANE |
@@ -92,9 +92,9 @@ int msm_vidc_querycap(void *instance, struct v4l2_capability *cap)
 	memset(cap->reserved, 0, sizeof(cap->reserved));
 
 	if (inst->session_type == MSM_VIDC_DECODER)
-		strlcpy(cap->card, MSM_VDEC_DVC_NAME, sizeof(cap->card));
+		strscpy(cap->card, MSM_VDEC_DVC_NAME, sizeof(cap->card));
 	else if (inst->session_type == MSM_VIDC_ENCODER)
-		strlcpy(cap->card, MSM_VENC_DVC_NAME, sizeof(cap->card));
+		strscpy(cap->card, MSM_VENC_DVC_NAME, sizeof(cap->card));
 	else
 		return -EINVAL;
 
@@ -627,8 +627,8 @@ int msm_vidc_enum_framesizes(void *instance, struct v4l2_frmsizeenum *fsize)
 }
 EXPORT_SYMBOL(msm_vidc_enum_framesizes);
 
-static void *vidc_get_userptr(struct device *dev, unsigned long vaddr,
-			unsigned long size, enum dma_data_direction dma_dir)
+static void *vidc_get_userptr(struct vb2_buffer *vb, struct device *dev,
+			unsigned long vaddr, unsigned long size)
 {
 	return (void *)0xdeadbeef;
 }

@@ -1181,9 +1181,9 @@ int msm_venc_inst_init(struct msm_vidc_inst *inst)
 			f->fmt.pix_mp.pixelformat);
 		return -EINVAL;
 	}
-	strlcpy(inst->fmts[OUTPUT_PORT].name, fmt_desc->name,
+	strscpy(inst->fmts[OUTPUT_PORT].name, fmt_desc->name,
 		sizeof(inst->fmts[OUTPUT_PORT].name));
-	strlcpy(inst->fmts[OUTPUT_PORT].description, fmt_desc->description,
+	strscpy(inst->fmts[OUTPUT_PORT].description, fmt_desc->description,
 		sizeof(inst->fmts[OUTPUT_PORT].description));
 	f = &inst->fmts[INPUT_PORT].v4l2_fmt;
 	f->type = INPUT_MPLANE;
@@ -1205,9 +1205,9 @@ int msm_venc_inst_init(struct msm_vidc_inst *inst)
 			f->fmt.pix_mp.pixelformat);
 		return -EINVAL;
 	}
-	strlcpy(inst->fmts[INPUT_PORT].name, fmt_desc->name,
+	strscpy(inst->fmts[INPUT_PORT].name, fmt_desc->name,
 		sizeof(inst->fmts[INPUT_PORT].name));
-	strlcpy(inst->fmts[INPUT_PORT].description, fmt_desc->description,
+	strscpy(inst->fmts[INPUT_PORT].description, fmt_desc->description,
 		sizeof(inst->fmts[INPUT_PORT].description));
 	inst->prop.extradata_ctrls = EXTRADATA_NONE;
 	inst->buffer_mode_set[INPUT_PORT] = HAL_BUFFER_MODE_DYNAMIC;
@@ -1266,7 +1266,7 @@ int msm_venc_enum_fmt(struct msm_vidc_inst *inst, struct v4l2_fmtdesc *f)
 
 	memset(f->reserved, 0, sizeof(f->reserved));
 	if (fmt_desc) {
-		strlcpy(f->description, fmt_desc->description,
+		strscpy(f->description, fmt_desc->description,
 				sizeof(f->description));
 		f->pixelformat = fmt_desc->fourcc;
 	} else {
@@ -1353,8 +1353,8 @@ int msm_venc_s_fmt(struct msm_vidc_inst *inst, struct v4l2_format *f)
 				f->fmt.pix_mp.pixelformat);
 			return -EINVAL;
 		}
-		strlcpy(fmt->name, fmt_desc->name, sizeof(fmt->name));
-		strlcpy(fmt->description, fmt_desc->description,
+		strscpy(fmt->name, fmt_desc->name, sizeof(fmt->name));
+		strscpy(fmt->description, fmt_desc->description,
 			sizeof(fmt->description));
 
 		fmt->v4l2_fmt.type = f->type;
@@ -1404,8 +1404,8 @@ int msm_venc_s_fmt(struct msm_vidc_inst *inst, struct v4l2_format *f)
 				f->fmt.pix_mp.pixelformat);
 			return -EINVAL;
 		}
-		strlcpy(fmt->name, fmt_desc->name, sizeof(fmt->name));
-		strlcpy(fmt->description, fmt_desc->description,
+		strscpy(fmt->name, fmt_desc->name, sizeof(fmt->name));
+		strscpy(fmt->description, fmt_desc->description,
 			sizeof(fmt->description));
 
 		inst->clk_data.opb_fourcc = f->fmt.pix_mp.pixelformat;

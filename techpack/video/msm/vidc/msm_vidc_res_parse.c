@@ -5,7 +5,6 @@
  */
 
 #include <linux/iommu.h>
-#include <linux/dma-iommu.h>
 #include <linux/of.h>
 #include <linux/sort.h>
 #include "msm_vidc_debug.h"
@@ -578,7 +577,7 @@ static int msm_vidc_load_regulator_table(
 			d_vpr_e("Failed to alloc memory for regulator name\n");
 			goto err_reg_name_alloc;
 		}
-		strlcpy(rinfo->name, domains_property->name,
+		strscpy(rinfo->name, domains_property->name,
 			(supply - domains_property->name) + 1);
 
 		rinfo->has_hw_power_collapse = of_property_read_bool(
@@ -996,7 +995,7 @@ static int msm_vidc_setup_context_bank(struct msm_vidc_platform_resources *res,
 		struct context_bank_info *cb, struct device *dev)
 {
 	int rc = 0;
-	struct bus_type *bus;
+	const struct bus_type *bus;
 
 	if (!dev || !cb || !res) {
 		d_vpr_e("%s: Invalid Input params\n", __func__);
@@ -1012,12 +1011,6 @@ static int msm_vidc_setup_context_bank(struct msm_vidc_platform_resources *res,
 	}
 
 	 cb->domain = iommu_get_domain_for_dev(cb->dev);
-
-	 /*
-	  * When memory is fragmented, below configuration increases the
-	  * possibility to get a mapping for buffer in the configured CB.
-	  */
-	iommu_dma_enable_best_fit_algo(cb->dev);
 
 	 /*
 	 * configure device segment size and segment boundary to ensure
