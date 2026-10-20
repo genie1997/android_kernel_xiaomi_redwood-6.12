@@ -105,7 +105,7 @@ static int cam_isp_update_dual_config(
 	uint32_t                                    ports_plane_idx;
 	size_t                                      len = 0, remain_len = 0;
 	uint32_t                                   *cpu_addr;
-	uint32_t                                    i, j;
+	uint32_t                                    i, j, num_ports;
 
 	CAM_DBG(CAM_ISP, "cmd des size %d, length: %d",
 		cmd_desc->size, cmd_desc->length);
@@ -126,13 +126,6 @@ static int cam_isp_update_dual_config(
 	cpu_addr += (cmd_desc->offset / 4);
 	dual_config = (struct cam_isp_dual_config *)cpu_addr;
 
-	if (dual_config->num_ports > size_isp_out) {
-		CAM_ERR(CAM_ISP, "num_ports %d more than max_vfe_out_res %d",
-			dual_config->num_ports, size_isp_out);
-		cam_mem_put_cpu_buf(cmd_desc->mem_handle);
-		return -EINVAL;
-	}
-
 	if ((dual_config->num_ports *
 		sizeof(struct cam_isp_dual_stripe_config)) >
 		(remain_len - offsetof(struct cam_isp_dual_config, stripes))) {
@@ -140,7 +133,9 @@ static int cam_isp_update_dual_config(
 		cam_mem_put_cpu_buf(cmd_desc->mem_handle);
 		return -EINVAL;
 	}
-	for (i = 0; i < dual_config->num_ports; i++) {
+	/* The HAL may list more ports than this IFE has, those have no resource to update */
+	num_ports = min_t(uint32_t, dual_config->num_ports, size_isp_out);
+	for (i = 0; i < num_ports; i++) {
 
 		hw_mgr_res = &res_list_isp_out[i];
 		if (!hw_mgr_res) {
