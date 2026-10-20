@@ -896,11 +896,14 @@ int read_platform_resources_from_dt(
 	res->register_base = kres ? kres->start : -1;
 	res->register_size = kres ? (kres->end + 1 - kres->start) : -1;
 
-       res->irq = platform_get_irq(pdev, 0);
-       if(res->irq < 0)
-               d_vpr_e("%s: get irq failed, %d\n", __func__, res->irq);
+	rc = platform_get_irq(pdev, 0);
+	if (rc < 0) {
+		d_vpr_e("%s: get irq failed, %d\n", __func__, rc);
+		return rc;
+	}
+	res->irq = rc;
 
-        d_vpr_h("%s: irq %d\n", __func__, res->irq);
+	d_vpr_h("%s: irq %d\n", __func__, res->irq);
 	rc = msm_vidc_load_fw_name(res);
 	if (rc)
 		d_vpr_e("%s: failed to load fw name, rc %d, using default fw\n",
