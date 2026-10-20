@@ -107,7 +107,7 @@ static inline bool is_image_session(struct msm_vidc_inst *inst)
 	/* Grid may or may not be enabled for an image encode session */
 	return inst->session_type == MSM_VIDC_ENCODER &&
 		get_v4l2_codec(inst) == V4L2_PIX_FMT_HEVC &&
-		inst->rc_type == V4L2_MPEG_VIDEO_BITRATE_MODE_CQ;
+		inst->rc_type == V4L2_MPEG_MSM_VIDC_BITRATE_MODE_CQ;
 }
 
 static inline bool is_grid_session(struct msm_vidc_inst *inst)
@@ -317,7 +317,7 @@ int msm_comm_reset_bufreqs(struct msm_vidc_inst *inst,
 struct hal_buffer_requirements *get_buff_req_buffer(
 			struct msm_vidc_inst *inst, u32 buffer_type);
 #define IS_PRIV_CTRL(idx) (\
-		(V4L2_CTRL_ID2WHICH(idx) == V4L2_CTRL_CLASS_MPEG) && \
+		(V4L2_CTRL_ID2WHICH(idx) == V4L2_CTRL_CLASS_CODEC) && \
 		V4L2_CTRL_DRIVER_PRIV(idx))
 void msm_comm_session_clean(struct msm_vidc_inst *inst);
 int msm_comm_kill_session(struct msm_vidc_inst *inst);
