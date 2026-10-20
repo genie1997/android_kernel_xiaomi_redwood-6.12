@@ -1369,7 +1369,7 @@ static int msm_vidc_comm_update_ctrl(struct msm_vidc_inst *inst,
 			cap->default_value);
 	if (rc) {
 		s_vpr_e(inst->sid,
-			"%s: failed: control name %s, min %d, max %d, %s %x, default_value %d\n",
+			"%s: failed: control name %s, min %d, max %d, %s %llx, default_value %d\n",
 			__func__, ctrl->name, cap->min, cap->max,
 			is_menu ? "menu_skip_mask" : "step",
 			is_menu ? ctrl->menu_skip_mask : cap->step_size,
@@ -1378,7 +1378,7 @@ static int msm_vidc_comm_update_ctrl(struct msm_vidc_inst *inst,
 	}
 
 	s_vpr_h(inst->sid,
-		"Updated control: %s: min %lld, max %lld, %s %x, default value = %lld\n",
+		"Updated control: %s: min %lld, max %lld, %s %llx, default value = %lld\n",
 		ctrl->name, ctrl->minimum, ctrl->maximum,
 		is_menu ? "menu_skip_mask" : "step",
 		is_menu ? ctrl->menu_skip_mask : ctrl->step,
@@ -5947,7 +5947,7 @@ int msm_comm_check_memory_supported(struct msm_vidc_inst *vidc_inst)
 
 	if ((total_mem_size >> 20) > memory_limit_mbytes) {
 		s_vpr_e(vidc_inst->sid,
-			"%s: video mem overshoot - reached %llu MB, max_limit %llu MB\n",
+			"%s: video mem overshoot - reached %llu MB, max_limit %u MB\n",
 			__func__, total_mem_size >> 20, memory_limit_mbytes);
 		msm_comm_print_mem_usage(core);
 		return -EBUSY;
@@ -5962,7 +5962,7 @@ int msm_comm_check_memory_supported(struct msm_vidc_inst *vidc_inst)
 
 		if (non_sec_mem_size > non_sec_cb_size) {
 			s_vpr_e(vidc_inst->sid,
-				"%s: insufficient device addr space, required %llu, available %llu\n",
+				"%s: insufficient device addr space, required %llu, available %u\n",
 				__func__, non_sec_mem_size, non_sec_cb_size);
 			msm_comm_print_mem_usage(core);
 			return -EINVAL;
@@ -7869,7 +7869,7 @@ u32 msm_comm_get_max_framerate(struct msm_vidc_inst *inst)
 	}
 	avg_framerate = count ? (div_u64(avg_framerate, count)) : (1 << 16);
 
-	s_vpr_l(inst->sid, "%s: fps %u, list size %u\n", __func__, avg_framerate, count);
+	s_vpr_l(inst->sid, "%s: fps %llu, list size %u\n", __func__, avg_framerate, count);
 	mutex_unlock(&inst->timestamps.lock);
 	return (u32)avg_framerate;
 }
@@ -7948,7 +7948,7 @@ static int msm_comm_memory_regions_prepare(struct msm_vidc_inst *inst)
 	}
 
 	s_vpr_h(inst->sid,
-		"%s: preparing %d nonpixel memory regions of %ld bytes each and %d pixel memory regions of %ld bytes each\n",
+		"%s: preparing %d nonpixel memory regions of %u bytes each and %d pixel memory regions of %u bytes each\n",
 		__func__, res->prefetch_non_pix_buf_count,
 		res->prefetch_non_pix_buf_size, res->prefetch_pix_buf_count,
 		res->prefetch_pix_buf_size);
