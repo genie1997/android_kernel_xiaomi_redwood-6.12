@@ -1,0 +1,9 @@
+config SPECTRA_CAMERA
+	tristate "Camera driver"
+	depends on m && MEDIA_CONTROLLER && VIDEO_V4L2_SUBDEV_API && INTERCONNECT_QCOM
+	depends on QCOM_SCM && QCOM_SOCINFO && QCOM_IOMMU_UTIL && ION_MSM_HEAPS && LEDS_QTI_FLASH
+	help
+	  camera.ko: the camera request manager, sync, memory manager, CPAS,
+	  CDM, ISP, ICP, JPEG, LRME and the sensor modules (CCI, CSIPHY,
+	  sensor, actuator, EEPROM, OIS, flash), built with Qualcomm's
+	  config/yupikcameraconf.h.
