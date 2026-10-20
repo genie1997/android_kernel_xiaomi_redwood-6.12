@@ -2,6 +2,7 @@
 
 #include "redwood-pinctrl.dtsi"
 #include "xiaomi-sm7325-common.dtsi"
+#include "camera/redwood-sm7325-camera-sensor.dtsi"
 #include "display/redwood-sm7325-sde-display.dtsi"
 #include "redwood-audio-overlay.dtsi"
 
@@ -549,15 +550,6 @@
 			};
 		};
 	};
-};
-
-/* Camera PMICs: redwood does not use pm8008j, pm8008i waits for the camera port */
-&pm8008i {
-	status = "disabled";
-};
-
-&pm8008j {
-	status = "disabled";
 };
 
 /* No FM receiver driver: a driverless node would hold L11C and L19B at their boot state */
