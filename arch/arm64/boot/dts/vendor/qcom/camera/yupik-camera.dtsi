@@ -371,7 +371,7 @@
 		compatible = "qcom,msm-cam-smmu", "simple-bus";
 		status = "ok";
 
-		msm_cam_smmu_ife {
+		msm_cam_smmu_ife: msm_cam_smmu_ife {
 			compatible = "qcom,msm-cam-smmu-cb";
 			iommus = <&apps_smmu 0x800 0x4E0>,
 				<&apps_smmu 0x820 0x4E0>,
@@ -389,12 +389,15 @@
 				<&apps_smmu 0xCA0 0x4E0>,
 				<&apps_smmu 0xCC0 0x4E0>,
 				<&apps_smmu 0xCE0 0x4E0>;
-			qcom,iommu-faults = "non-fatal";
-			qcom,iommu-dma-addr-pool = <0x100000 0xffe00000>;
+			qcom,iommu-faults = "stall-disable", "non-fatal";
+			memory-region = <&cam_smmu_ife_resv_region>;
 			dma-coherent-hint-cached;
 			cam-smmu-label = "ife";
-			stall-disable;
 			multiple-client-devices;
+			cam_smmu_ife_resv_region: cam_smmu_ife_resv_region {
+				iommu-addresses = <&msm_cam_smmu_ife 0x0 0x100000>,
+					<&msm_cam_smmu_ife 0xfff00000 0x100000>;
+			};
 			ife_iova_mem_map: iova-mem-map {
 				/* IO region is approximately 4 GB */
 				iova-mem-region-io {
@@ -407,15 +410,18 @@
 			};
 		};
 
-		msm_cam_smmu_jpeg {
+		msm_cam_smmu_jpeg: msm_cam_smmu_jpeg {
 			compatible = "qcom,msm-cam-smmu-cb";
 			iommus = <&apps_smmu 0x20C0 0x20>,
 				<&apps_smmu 0x20E0 0x20>;
 			cam-smmu-label = "jpeg";
-			qcom,iommu-faults = "non-fatal";
-			stall-disable;
-			qcom,iommu-dma-addr-pool = <0x100000 0xffe00000>;
+			qcom,iommu-faults = "stall-disable", "non-fatal";
+			memory-region = <&cam_smmu_jpeg_resv_region>;
 			dma-coherent-hint-cached;
+			cam_smmu_jpeg_resv_region: cam_smmu_jpeg_resv_region {
+				iommu-addresses = <&msm_cam_smmu_jpeg 0x0 0x100000>,
+					<&msm_cam_smmu_jpeg 0xfff00000 0x100000>;
+			};
 			jpeg_iova_mem_map: iova-mem-map {
 				/* IO region is approximately 3.4 GB */
 				iova-mem-region-io {
@@ -434,7 +440,7 @@
 			memory-region = <&pil_camera_mem>;
 		};
 
-		msm_cam_smmu_icp {
+		msm_cam_smmu_icp: msm_cam_smmu_icp {
 			compatible = "qcom,msm-cam-smmu-cb";
 			iommus = <&apps_smmu 0x2000 0x20>,
 				<&apps_smmu 0x2020 0x20>,
@@ -443,11 +449,14 @@
 				<&apps_smmu 0x20A0 0x20>,
 				<&apps_smmu 0x2140 0x0>;
 			cam-smmu-label = "icp";
-			qcom,iommu-faults = "non-fatal";
-			stall-disable;
-			qcom,iommu-dma-addr-pool = <0x10c00000 0xee300000>;
+			qcom,iommu-faults = "stall-disable", "non-fatal";
+			memory-region = <&cam_smmu_icp_resv_region>;
 			dma-coherent-hint-cached;
 			iova-region-discard = <0xdff00000 0x300000>;
+			cam_smmu_icp_resv_region: cam_smmu_icp_resv_region {
+				iommu-addresses = <&msm_cam_smmu_icp 0x0 0x10c00000>,
+					<&msm_cam_smmu_icp 0xfef00000 0x1100000>;
+			};
 			icp_iova_mem_map: iova-mem-map {
 				iova-mem-region-firmware {
 					/* Firmware region is 5MB */
@@ -498,14 +507,17 @@
 			};
 		};
 
-		msm_cam_smmu_cpas_cdm {
+		msm_cam_smmu_cpas_cdm: msm_cam_smmu_cpas_cdm {
 			compatible = "qcom,msm-cam-smmu-cb";
 			iommus = <&apps_smmu 0x2040 0x0>;
 			cam-smmu-label = "cpas-cdm";
-			qcom,iommu-faults = "non-fatal";
-			stall-disable;
-			qcom,iommu-dma-addr-pool = <0x100000 0xffe00000>;
+			qcom,iommu-faults = "stall-disable", "non-fatal";
+			memory-region = <&cam_smmu_cpas_cdm_resv_region>;
 			dma-coherent-hint-cached;
+			cam_smmu_cpas_cdm_resv_region: cam_smmu_cpas_cdm_resv_region {
+				iommu-addresses = <&msm_cam_smmu_cpas_cdm 0x0 0x100000>,
+					<&msm_cam_smmu_cpas_cdm 0xfff00000 0x100000>;
+			};
 			cpas_cdm_iova_mem_map: iova-mem-map {
 				iova-mem-region-io {
 					/* IO region is approximately 3.4 GB */
@@ -524,15 +536,18 @@
 			qcom,secure-cb;
 		};
 
-		msm_cam_smmu_lrme {
+		msm_cam_smmu_lrme: msm_cam_smmu_lrme {
 			compatible = "qcom,msm-cam-smmu-cb";
 			iommus = <&apps_smmu 0x2100 0x20>,
 				<&apps_smmu 0x2120 0x20>;
 			cam-smmu-label = "lrme";
-			qcom,iommu-faults = "non-fatal";
-			stall-disable;
-			qcom,iommu-dma-addr-pool = <0x100000 0xffe00000>;
+			qcom,iommu-faults = "stall-disable", "non-fatal";
+			memory-region = <&cam_smmu_lrme_resv_region>;
 			dma-coherent-hint-cached;
+			cam_smmu_lrme_resv_region: cam_smmu_lrme_resv_region {
+				iommu-addresses = <&msm_cam_smmu_lrme 0x0 0x100000>,
+					<&msm_cam_smmu_lrme 0xfff00000 0x100000>;
+			};
 			lrme_iova_mem_map: iova-mem-map {
 				iova-mem-region-shared {
 					/* Shared region is 100MB long */
@@ -1192,9 +1207,13 @@
 		control-camnoc-axi-clk;
 		camnoc-bus-width = <32>;
 		camnoc-axi-clk-bw-margin-perc = <20>;
-		interconnect-names = "cam_ahb";
-		interconnects =<&gem_noc MASTER_APPSS_PROC
-			&cnoc2 SLAVE_CAMERA_CFG>;
+		interconnect-names = "cam_ahb", "cam_hf_0", "cam_sf_0",
+			"cam_sf_icp";
+		interconnects = <&gem_noc MASTER_APPSS_PROC
+				&cnoc2 SLAVE_CAMERA_CFG>,
+			<&mmss_noc MASTER_CAMNOC_HF &mc_virt SLAVE_EBI1>,
+			<&mmss_noc MASTER_CAMNOC_SF &mc_virt SLAVE_EBI1>,
+			<&mmss_noc MASTER_CAMNOC_ICP &mc_virt SLAVE_EBI1>;
 		cam-ahb-num-cases = <7>;
 		cam-ahb-bw-KBps =
 			<0 0>, <0 76800>, <0 150000>, <0 150000>,

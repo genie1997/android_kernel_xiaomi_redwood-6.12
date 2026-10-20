@@ -3391,6 +3391,7 @@
 #include "display/yupik-sde.dtsi"
 #include "gpu/yupik-gpu.dtsi"
 #include "gpu/yupik-gpu-pwrlevels.dtsi"
+#include "camera/yupik-camera.dtsi"
 #include "yupik-pcie.dtsi"
 
 &gcc_ufs_phy_gdsc {
