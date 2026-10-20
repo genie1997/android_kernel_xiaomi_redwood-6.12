@@ -9,7 +9,7 @@
 
 #include <linux/mutex.h>
 #include <linux/dma-buf.h>
-#if IS_REACHABLE(CONFIG_DMABUF_HEAPS)
+#if IS_REACHABLE(CONFIG_DMABUF_HEAPS) && !IS_REACHABLE(CONFIG_ION)
 #include <linux/dma-heap.h>
 #endif
 #include <media/cam_req_mgr.h>
@@ -101,7 +101,7 @@ struct cam_mem_table {
 	bool alloc_profile_enable;
 	size_t dbg_buf_idx;
 	bool force_cache_allocs;
-#if IS_REACHABLE(CONFIG_DMABUF_HEAPS)
+#if IS_REACHABLE(CONFIG_DMABUF_HEAPS) && !IS_REACHABLE(CONFIG_ION)
 	struct dma_heap *system_heap;
 	struct dma_heap *system_uncached_heap;
 	struct dma_heap *camera_heap;

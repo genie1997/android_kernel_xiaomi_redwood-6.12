@@ -11,9 +11,11 @@
 #include <linux/dma-buf.h>
 #include <linux/version.h>
 #include <linux/debugfs.h>
-#if IS_REACHABLE(CONFIG_DMABUF_HEAPS)
+#if IS_REACHABLE(CONFIG_DMABUF_HEAPS) && !IS_REACHABLE(CONFIG_ION)
 #include <linux/mem-buf.h>
 #include <soc/qcom/secure_buffer.h>
+#else
+#include <linux/ion.h>
 #endif
 
 #include "cam_compat.h"
@@ -47,7 +49,7 @@ static void cam_mem_mgr_print_tbl(void)
 
 }
 
-#if IS_REACHABLE(CONFIG_DMABUF_HEAPS)
+#if IS_REACHABLE(CONFIG_DMABUF_HEAPS) && !IS_REACHABLE(CONFIG_ION)
 static void cam_mem_mgr_put_dma_heaps(void);
 static int cam_mem_mgr_get_dma_heaps(void);
 #endif
@@ -157,7 +159,7 @@ int cam_mem_mgr_init(void)
 		return -EINVAL;
 	}
 
-#if IS_REACHABLE(CONFIG_DMABUF_HEAPS)
+#if IS_REACHABLE(CONFIG_DMABUF_HEAPS) && !IS_REACHABLE(CONFIG_ION)
 	rc = cam_mem_mgr_get_dma_heaps();
 	if (rc) {
 		CAM_ERR(CAM_MEM, "Failed in getting dma heaps rc=%d", rc);
@@ -190,7 +192,7 @@ int cam_mem_mgr_init(void)
 
 	return 0;
 put_heaps:
-#if IS_REACHABLE(CONFIG_DMABUF_HEAPS)
+#if IS_REACHABLE(CONFIG_DMABUF_HEAPS) && !IS_REACHABLE(CONFIG_ION)
 	cam_mem_mgr_put_dma_heaps();
 #endif
 	return rc;
@@ -426,7 +428,7 @@ end:
 }
 EXPORT_SYMBOL(cam_mem_mgr_cache_ops);
 
-#if IS_REACHABLE(CONFIG_DMABUF_HEAPS)
+#if IS_REACHABLE(CONFIG_DMABUF_HEAPS) && !IS_REACHABLE(CONFIG_ION)
 
 #define CAM_MAX_VMIDS 4
 
