@@ -1973,7 +1973,8 @@ int cam_mem_mgr_free_memory_region(struct cam_mem_mgr_memory_desc *inp)
 	if (!tbl.bufq[idx].active) {
 		if (tbl.bufq[idx].vaddr == 0) {
 			CAM_ERR(CAM_MEM, "buffer is released already");
-			return 0;
+			rc = 0;
+			goto end;
 		}
 		CAM_ERR(CAM_MEM, "Released buffer state should be active");
 		rc = -EINVAL;
