@@ -260,11 +260,11 @@
 		interrupts-extended = <&tlmm 25 IRQ_TYPE_EDGE_RISING>;
 		reset-gpios = <&pm8350c_gpios 3 GPIO_ACTIVE_LOW>;
 
-		vdd_l1_l2-supply = <&S8B>;
-		vdd_l3_l4-supply = <&BOB>;
-		vdd_l5-supply = <&S1B>;
-		vdd_l6-supply = <&BOB>;
-		vdd_l7-supply = <&BOB>;
+		vdd-l1-l2-supply = <&S8B>;
+		vdd-l3-l4-supply = <&BOB>;
+		vdd-l5-supply = <&S1B>;
+		vdd-l6-supply = <&BOB>;
+		vdd-l7-supply = <&BOB>;
 
 		pinctrl-names = "default";
 		pinctrl-0 = <&pm8008i_int_default>, <&pm8008i_reset_n_default>;
@@ -338,11 +338,11 @@
 		interrupts-extended = <&tlmm 24 IRQ_TYPE_EDGE_RISING>;
 		reset-gpios = <&pm8350c_gpios 4 GPIO_ACTIVE_LOW>;
 
-		vdd_l1_l2-supply = <&S8B>;
-		vdd_l3_l4-supply = <&S1B>;
-		vdd_l5-supply = <&BOB>;
-		vdd_l6-supply = <&BOB>;
-		vdd_l7-supply = <&BOB>;
+		vdd-l1-l2-supply = <&S8B>;
+		vdd-l3-l4-supply = <&S1B>;
+		vdd-l5-supply = <&BOB>;
+		vdd-l6-supply = <&BOB>;
+		vdd-l7-supply = <&BOB>;
 
 		pinctrl-names = "default";
 		pinctrl-0 = <&pm8008j_int_default>, <&pm8008j_reset_n_default>;
