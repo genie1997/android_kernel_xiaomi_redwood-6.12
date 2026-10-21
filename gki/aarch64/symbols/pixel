@@ -14,6 +14,7 @@
   alarm_cancel
   alarm_init
   alarm_start_relative
+  arch_touch_nmi_watchdog
   alarmtimer_get_rtcdev
   alarm_try_to_cancel
   alloc_chrdev_region
@@ -2262,6 +2263,7 @@
   _raw_spin_lock_irq
   _raw_spin_lock_irqsave
   raw_spin_rq_lock_nested
+  raw_spin_rq_trylock
   raw_spin_rq_unlock
   _raw_spin_trylock
   _raw_spin_trylock_bh
@@ -2273,6 +2275,7 @@
   _raw_write_lock_bh
   _raw_write_lock_irq
   _raw_write_lock_irqsave
+  _raw_write_trylock
   _raw_write_unlock
   _raw_write_unlock_bh
   _raw_write_unlock_irq

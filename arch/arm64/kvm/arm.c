@@ -491,8 +491,10 @@ int kvm_arch_vcpu_create(struct kvm_vcpu *vcpu)
 	kvm_destroy_mpidr_data(vcpu->kvm);
 
 	err = kvm_vgic_vcpu_init(vcpu);
-	if (err)
+	if (err) {
+		kvm_vgic_vcpu_destroy(vcpu);
 		return err;
+	}
 
 	err = kvm_share_hyp(vcpu, vcpu + 1);
 	if (err)
@@ -759,6 +761,11 @@ int kvm_arch_vcpu_ioctl_set_mpstate(struct kvm_vcpu *vcpu,
 int kvm_arch_vcpu_runnable(struct kvm_vcpu *v)
 {
 	bool irq_lines = *vcpu_hcr(v) & (HCR_VI | HCR_VF);
+
+	irq_lines |= (!irqchip_in_kernel(v->kvm) &&
+		      (kvm_timer_should_notify_user(v) ||
+		       kvm_pmu_should_notify_user(v)));
+
 	return ((irq_lines || kvm_vgic_vcpu_pending_irq(v))
 		&& !kvm_arm_vcpu_stopped(v) && !v->arch.pause);
 }
@@ -3054,6 +3061,26 @@ static int __init early_kvm_wfe_trap_policy_cfg(char *arg)
 	return early_kvm_wfx_trap_policy_cfg(arg, &kvm_wfe_trap_policy);
 }
 early_param("kvm-arm.wfe_trap_policy", early_kvm_wfe_trap_policy_cfg);
+
+static int early_psci_mem_protect_cfg(char *arg)
+{
+	if (!arg)
+		return -EINVAL;
+
+	if (strcmp(arg, "force") == 0) {
+		kvm_psci_mem_protect_mode = KVM_PSCI_MEM_PROTECT_FORCE;
+		return 0;
+	}
+
+	if (strcmp(arg, "off") == 0) {
+		kvm_psci_mem_protect_mode = KVM_PSCI_MEM_PROTECT_OFF;
+		return 0;
+	}
+
+	return -EINVAL;
+}
+
+early_param("kvm-arm.psci_mem_protect", early_psci_mem_protect_cfg);
 
 enum kvm_mode kvm_get_mode(void)
 {

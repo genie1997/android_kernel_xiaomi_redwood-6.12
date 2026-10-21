@@ -1839,7 +1839,20 @@ static void binder_txn_latency_free(struct binder_transaction *t)
 
 static void binder_free_transaction(struct binder_transaction *t)
 {
-	struct binder_proc *target_proc = t->to_proc;
+	struct binder_thread *target_thread;
+	struct binder_proc *target_proc;
+
+	spin_lock(&t->lock);
+	target_proc = t->to_proc;
+	target_thread = t->to_thread;
+	/*
+	 * Pin target_thread to keep target_proc alive. Undelivered
+	 * transactions with !target_thread are safe, as target_proc
+	 * can only be the current context there.
+	 */
+	if (target_thread)
+		atomic_inc(&target_thread->tmp_ref);
+	spin_unlock(&t->lock);
 
 	trace_android_vh_free_oem_binder_struct(t);
 	if (target_proc) {
@@ -1854,6 +1867,10 @@ static void binder_free_transaction(struct binder_transaction *t)
 			t->buffer->transaction = NULL;
 		binder_inner_proc_unlock(target_proc);
 	}
+
+	if (target_thread)
+		binder_thread_dec_tmpref(target_thread);
+
 	if (trace_binder_txn_latency_free_enabled())
 		binder_txn_latency_free(t);
 	/*
@@ -7597,6 +7614,24 @@ static const struct kernel_param_ops binder_impl_param_ops = {
 };
 
 module_param_cb(impl, &binder_impl_param_ops, NULL, 0644);
+
+static int binder_active_impl_param_get(char *buffer, const struct kernel_param *kp)
+{
+	bool use_rust;
+
+	mutex_lock(&binder_use_rust_lock);
+	use_rust = binder_loaded && binder_use_rust;
+	mutex_unlock(&binder_use_rust_lock);
+
+	/* The buffer is 4k bytes, so this will not overflow. */
+	return sprintf(buffer, "%s\n", use_rust ? "rust" : "c");
+}
+
+static const struct kernel_param_ops binder_active_impl_param_ops = {
+	.get = binder_active_impl_param_get,
+};
+
+module_param_cb(active_impl, &binder_active_impl_param_ops, NULL, 0444);
 
 #define CREATE_TRACE_POINTS
 #include "binder_trace.h"

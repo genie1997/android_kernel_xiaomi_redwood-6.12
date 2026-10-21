@@ -15,6 +15,7 @@
 #include <asm/stage2_pgtable.h>
 
 #include <hyp/fault.h>
+#include <hyp/adjust_pc.h>
 
 #include <nvhe/gfp.h>
 #include <nvhe/iommu.h>
@@ -345,6 +346,29 @@ static void invalidate_icache_guest_page(void *va, size_t size)
 	}
 }
 
+static void hyp_flush_page(phys_addr_t phys, size_t size)
+{
+	WARN_ON(!PAGE_ALIGNED(size));
+
+	while (size) {
+		size_t __size = size == PMD_SIZE ? size : PAGE_SIZE;
+		void *addr = __fixmap_guest_page(__hyp_va(phys), &__size);
+
+		/*
+		 * Prefer kvm_flush_dcache_to_poc() over __clean_dcache_guest_page()
+		 * here as the latter may elide the CMO under the assumption that FWB
+		 * will be enabled on CPUs that support it. This is incorrect for the
+		 * host stage-2 and would otherwise lead to a malicious host potentially
+		 * being able to read the contents of newly reclaimed guest pages.
+		 */
+		kvm_flush_dcache_to_poc(addr, __size);
+		__fixunmap_guest_page(__size);
+
+		size -= __size;
+		phys += __size;
+	}
+}
+
 int kvm_guest_prepare_stage2(struct pkvm_hyp_vm *vm, void *pgd,
 			     enum kvm_pgtable_stage2_flags flags)
 {
@@ -406,7 +430,7 @@ static enum pkvm_page_state guest_get_page_state(kvm_pte_t pte, u64 addr)
 }
 
 int __pkvm_guest_relinquish_to_host(struct pkvm_hyp_vcpu *vcpu,
-				    u64 ipa, u64 *ppa)
+				    u64 ipa, u64 flags, u64 *ppa)
 {
 	struct pkvm_hyp_vm *vm = pkvm_hyp_vcpu_to_hyp_vm(vcpu);
 	enum pkvm_page_state state;
@@ -454,13 +478,16 @@ int __pkvm_guest_relinquish_to_host(struct pkvm_hyp_vcpu *vcpu,
 	if (ret)
 		goto end;
 
-	hyp_poison_page(phys, PAGE_SIZE);
+	if (!(flags & KVM_FUNC_MEM_RELINQUISH_NO_POISON))
+		hyp_poison_page(phys, PAGE_SIZE);
+	else
+		hyp_flush_page(phys, PAGE_SIZE);
 	psci_mem_protect_dec(1);
 
 	WARN_ON(host_stage2_set_owner_locked(phys, PAGE_SIZE, PKVM_ID_HOST));
 
 	if (pkvm_ipa_range_has_pvmfw(vm, ipa, ipa + PAGE_SIZE))
-		vm->kvm.arch.pkvm.pvmfw_load_addr = PVMFW_INVALID_LOAD_ADDR;
+		vm->pvmfw_relinquished = true;
 
 end:
 	guest_unlock_component(vm);
@@ -873,6 +900,45 @@ unlock:
 	return ret;
 }
 
+static bool handle_host_mmio_trap(struct kvm_cpu_context *host_ctxt, u64 esr, u64 addr)
+{
+	u64 offset, reg_value = 0, start, end;
+	u8 reg_size, reg_index;
+	bool write;
+	int i;
+
+	for (i = 0; i < pkvm_moveable_regs_nr; i++) {
+		if (pkvm_moveable_regs[i].type != PKVM_MREG_EMULATE_MMIO ||
+		    !pkvm_moveable_regs[i].cb)
+			continue;
+
+		start = pkvm_moveable_regs[i].start;
+		end = start + pkvm_moveable_regs[i].size;
+		reg_size = BIT((esr & ESR_ELx_SAS) >> ESR_ELx_SAS_SHIFT);
+
+		if (start > addr || addr + reg_size > end)
+			continue;
+
+		reg_index = (esr & ESR_ELx_SRT_MASK) >> ESR_ELx_SRT_SHIFT;
+		write = (esr & ESR_ELx_WNR) == ESR_ELx_WNR;
+		offset = addr - start;
+
+		if (write && reg_index != 31)
+			reg_value = host_ctxt->regs.regs[reg_index];
+
+		pkvm_moveable_regs[i].cb(&pkvm_moveable_regs[i], offset, write,
+					 &reg_value, reg_size);
+
+		if (!write && reg_index != 31)
+			host_ctxt->regs.regs[reg_index] = reg_value;
+
+		kvm_skip_host_instr();
+		return true;
+	}
+
+	return false;
+}
+
 static void (*illegal_abt_notifier)(struct user_pt_regs *regs);
 
 int __pkvm_register_illegal_abt_notifier(void (*cb)(struct user_pt_regs *))
@@ -954,6 +1020,10 @@ void handle_host_mem_abort(struct kvm_cpu_context *host_ctxt)
 
 	if (is_dabt(esr) && !addr_is_memory(addr) &&
 	    kvm_iommu_host_dabt_handler(host_ctxt, esr, addr))
+		goto return_to_host;
+
+	if (is_dabt(esr) && !addr_is_memory(addr) &&
+	    handle_host_mmio_trap(host_ctxt, esr, addr))
 		goto return_to_host;
 
 	switch (esr & ESR_ELx_FSC_TYPE) {
@@ -1703,16 +1773,29 @@ unlock:
 }
 
 /*
- * Rejects MMIO regions and is unsafe. Use with care!
+ * Rejects MMIO regions and is unsafe (unless "full" mode). Use with care!
  */
 int __pkvm_host_donate_ffa(u64 pfn, u64 nr_pages)
 {
 	u64 size, phys = hyp_pfn_to_phys(pfn), end;
+	enum host_set_page_state_flags flags;
 	int ret;
 
 	if (check_shl_overflow(nr_pages, PAGE_SHIFT, &size) ||
 	    check_add_overflow(phys, size, &end))
 		return -EINVAL;
+
+	switch (__pkvm_ffa_unmap_on_lend) {
+	case PKVM_FFA_UNMAP_ON_LEND_FULL:
+		flags = 0;
+		break;
+	case PKVM_FFA_UNMAP_ON_LEND_ON:
+		/* HOST_SET_NO_COMPLETE to skip pkvm_sme_dvmsync_fw_call() */
+		flags = HOST_SET_NO_IOMMU_UPDATE | HOST_SET_NO_COMPLETE;
+		break;
+	case PKVM_FFA_UNMAP_ON_LEND_OFF:
+		return -EPERM;
+	}
 
 	host_lock_component();
 
@@ -1724,8 +1807,7 @@ int __pkvm_host_donate_ffa(u64 pfn, u64 nr_pages)
 		goto unlock;
 
 	/* HOST_SET_NO_COMPLETE to skip pkvm_sme_dvmsync_fw_call() */
-	WARN_ON(__host_stage2_set_owner_locked(phys, size, PKVM_ID_FFA, 0,
-					       HOST_SET_NO_IOMMU_UPDATE | HOST_SET_NO_COMPLETE));
+	WARN_ON(__host_stage2_set_owner_locked(phys, size, PKVM_ID_FFA, 0, flags));
 
 unlock:
 	host_unlock_component();
@@ -1733,16 +1815,28 @@ unlock:
 }
 
 /*
- * Just like __pkvm_donate_ffa, rejects MMIO regions and does not update the IOMMU.
+ * Just like __pkvm_donate_ffa, rejects MMIO regions.
  */
 int __pkvm_host_reclaim_ffa(u64 pfn, u64 nr_pages)
 {
 	u64 size, phys = hyp_pfn_to_phys(pfn), end;
+	enum host_set_page_state_flags flags;
 	int ret;
 
 	if (check_shl_overflow(nr_pages, PAGE_SHIFT, &size) ||
 	    check_add_overflow(phys, size, &end))
 		return -EINVAL;
+
+	switch (__pkvm_ffa_unmap_on_lend) {
+	case PKVM_FFA_UNMAP_ON_LEND_FULL:
+		flags = 0;
+		break;
+	case PKVM_FFA_UNMAP_ON_LEND_ON:
+		flags = HOST_SET_NO_IOMMU_UPDATE;
+		break;
+	case PKVM_FFA_UNMAP_ON_LEND_OFF:
+		return -EPERM;
+	}
 
 	host_lock_component();
 
@@ -1752,8 +1846,7 @@ int __pkvm_host_reclaim_ffa(u64 pfn, u64 nr_pages)
 	if (ret)
 		goto unlock;
 
-	WARN_ON(__host_stage2_set_owner_locked(phys, size, PKVM_ID_HOST, 0,
-					       HOST_SET_NO_IOMMU_UPDATE));
+	WARN_ON(__host_stage2_set_owner_locked(phys, size, PKVM_ID_HOST, 0, flags));
 
 unlock:
 	host_unlock_component();
@@ -3250,7 +3343,7 @@ void pkvm_ownership_selftest(void *base)
 
 	selftest_state.host = PKVM_PAGE_OWNED;
 	selftest_state.guest[0] = PKVM_NOPAGE;
-	assert_transition_res(0,	__pkvm_guest_relinquish_to_host, vcpu, gfn * PAGE_SIZE, &pa);
+	assert_transition_res(0,	__pkvm_guest_relinquish_to_host, vcpu, gfn * PAGE_SIZE, 0, &pa);
 	WARN_ON(pa != phys);
 
 	selftest_state.host = PKVM_NOPAGE;

@@ -1137,6 +1137,7 @@ retry:
 		bool activate = false;
 		bool keep = false;
 		bool bypass = false;
+		bool try_release = false;
 
 		cond_resched();
 
@@ -1366,6 +1367,17 @@ retry:
 						goto activate_locked_split;
 				}
 			}
+		}
+
+		trace_android_vh_shrink_try_release_folio(folio, &try_release);
+		if (try_release) {
+			trace_android_vh_shrink_folio_lock_owner_clear(folio);
+			folio_unlock(folio);
+			if (folio_put_testzero(folio))
+				goto free_it;
+
+			nr_reclaimed += nr_pages;
+			continue;
 		}
 
 		/*
@@ -5007,6 +5019,9 @@ static bool should_abort_scan(struct lruvec *lruvec, struct scan_control *sc)
 	/* don't abort memcg reclaim to ensure fairness */
 	if (!root_reclaim(sc) && !bypass)
 		return false;
+
+	if (unlikely(sc->proactive && signal_pending(current)))
+		return true;
 
 	if (sc->nr_reclaimed >= max(sc->nr_to_reclaim, compact_gap(sc->order)))
 		return true;

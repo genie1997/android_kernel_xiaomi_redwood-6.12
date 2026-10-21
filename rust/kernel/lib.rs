@@ -43,6 +43,8 @@ pub mod error;
 pub mod firmware;
 pub mod fs;
 pub mod id_pool;
+#[doc(hidden)]
+pub mod impl_flags;
 pub mod init;
 pub mod ioctl;
 pub mod jump_label;
@@ -58,6 +60,7 @@ pub mod page_size_compat;
 pub mod pid_namespace;
 pub mod prelude;
 pub mod print;
+pub mod ratelimit;
 pub mod rbtree;
 pub mod security;
 pub mod seq_file;
