@@ -19,7 +19,7 @@
 		reg = <0x0 0x80600000 0x0 0x260000>;
 	};
 
-	pil_video_mem: cvp@8b200000 {
+	video_mem: cvp@8b200000 {
 		no-map;
 		reg = <0x0 0x8b200000 0x0 0x500000>;
 	};
