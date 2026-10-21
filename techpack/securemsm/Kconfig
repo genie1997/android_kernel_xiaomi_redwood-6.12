@@ -11,3 +11,12 @@ config CRYPTO_DEV_QCEDEV
 	help
 	  /dev/qce, the crypto engine the vendor content protection library
 	  (libcpion) drives through the BAM DMA of SPS.
+
+config QCOM_SMCINVOKE
+	tristate "SMCInvoke driver"
+	depends on QCOM_SCM && QTEE_SHM_BRIDGE && QSEECOM && ION_MSM_HEAPS
+	help
+	  /dev/smcinvoke, the object call channel to QTEE through which the
+	  vendor Mink library reaches trusted services: the Widevine license
+	  check and trusted app loader, and the TEE services other daemons
+	  open (ssgtzd, qteeconnector).
