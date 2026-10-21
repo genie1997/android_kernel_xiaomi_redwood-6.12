@@ -12,5 +12,6 @@ source "techpack/graphics/Kconfig"
 source "techpack/securemsm/Kconfig"
 source "techpack/touch/Kconfig"
 source "techpack/vibrator/Kconfig"
+source "techpack/video/Kconfig"
 
 endmenu

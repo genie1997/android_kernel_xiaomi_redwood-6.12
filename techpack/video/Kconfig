@@ -1,0 +1,8 @@
+config MSM_VIDC_V4L2
+	tristate "Video driver"
+	depends on m && VIDEO_DEV && VIDEOBUF2_V4L2 && INTERCONNECT
+	depends on QCOM_SCM && QCOM_MDT_LOADER && QCOM_SMEM && QCOM_LLCC && ION_MSM_HEAPS
+	help
+	  msm-vidc.ko: the V4L2 decoder and encoder of the iris2 video core,
+	  with its HFI layer, clock and bus scaling, buffer sizing and the
+	  lahaina platform data, as Qualcomm's msm/Makefile builds it.
