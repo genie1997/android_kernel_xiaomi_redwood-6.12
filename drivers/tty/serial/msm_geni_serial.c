@@ -34,6 +34,11 @@
 #include <linux/tty_flip.h>
 #include <uapi/linux/msm_geni_serial.h>
 
+/* TIOCPMGET, TIOCPMPUT and TIOCPMACT as the vendor Bluetooth HAL issues them, before their MSM_GENI_SERIAL_ numbers */
+#define TIOCPMGET_LEGACY	0x544D
+#define TIOCPMPUT_LEGACY	0x544E
+#define TIOCPMACT_LEGACY	0x544F
+
 static bool con_enabled = IS_ENABLED(CONFIG_SERIAL_MSM_GENI_CONSOLE_DEFAULT_ENABLED);
 
 /* UART specific GENI registers */
@@ -1606,14 +1611,17 @@ static int msm_geni_serial_ioctl(struct uart_port *uport, unsigned int cmd,
 		return ret;
 
 	switch (cmd) {
+	case TIOCPMGET_LEGACY:
 	case MSM_GENI_SERIAL_TIOCPMGET: {
 		ret = vote_clock_on(uport);
 		break;
 	}
+	case TIOCPMPUT_LEGACY:
 	case MSM_GENI_SERIAL_TIOCPMPUT: {
 		ret = vote_clock_off(uport);
 		break;
 	}
+	case TIOCPMACT_LEGACY:
 	case MSM_GENI_SERIAL_TIOCPMACT: {
 		ret = !pm_runtime_status_suspended(uport->dev);
 		break;
