@@ -933,7 +933,7 @@ static int bt_dt_parse_clk_info(struct device *dev,
 	pr_debug("%s\n", __func__);
 
 	*clk_data = NULL;
-	if (of_parse_phandle(np, "clocks", 0)) {
+	if (of_property_present(np, "clocks")) {
 		clk = devm_kzalloc(dev, sizeof(*clk), GFP_KERNEL);
 		if (!clk) {
 			ret = -ENOMEM;
@@ -963,7 +963,8 @@ static int bt_dt_parse_clk_info(struct device *dev,
 
 		*clk_data = clk;
 	} else {
-		pr_err("%s: clocks is not provided in device tree\n", __func__);
+		pr_debug("%s: no chip clock in device tree\n", __func__);
+		ret = 0;
 	}
 
 err:
@@ -1109,13 +1110,13 @@ static int bt_power_populate_dt_pinfo(struct platform_device *pdev)
 			of_get_named_gpio(pdev->dev.of_node,
 						"qcom,bt-debug-gpio",  0);
 		if (bt_power_pdata->bt_gpio_debug < 0)
-			pr_warn("bt-debug-gpio not provided in devicetree\n");
+			pr_debug("bt-debug-gpio not provided in devicetree\n");
 
 		bt_power_pdata->xo_gpio_clk =
 			of_get_named_gpio(pdev->dev.of_node,
 						"qcom,xo-clk-gpio", 0);
 		if (bt_power_pdata->xo_gpio_clk < 0)
-			pr_warn("xo-clk-gpio not provided in devicetree\n");
+			pr_debug("xo-clk-gpio not provided in devicetree\n");
 
 		rc = bt_dt_parse_clk_info(&pdev->dev,
 					&bt_power_pdata->bt_chip_clk);
@@ -1806,6 +1807,10 @@ int btpower_aop_mbox_init(struct btpower_platform_data *pdata)
 	mbox->knows_txdone = false;
 
 	pdata->mbox_chan = NULL;
+	if (!of_property_present(pdata->pdev->dev.of_node, "mboxes")) {
+		pr_debug("%s: no AOP mailbox in device tree\n", __func__);
+		return 0;
+	}
 	chan = mbox_request_channel(mbox, 0);
 	if (IS_ERR(chan)) {
 		pr_err("%s: failed to get mbox channel\n", __func__);
