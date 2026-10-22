@@ -1,0 +1,15 @@
+config MSM_BT_POWER
+	tristate "Qualcomm WCN6750 Bluetooth power control"
+	depends on m && ARCH_QCOM && RFKILL
+	help
+	  btpower.ko: switches the WCN6750 Bluetooth core on and off (its
+	  regulators and BT_EN), registers the bt_power rfkill switch and
+	  gives the Bluetooth HAL /dev/btpower.
+
+config BTFM_SLIM
+	tristate "Qualcomm WCN6750 Bluetooth slimbus audio"
+	depends on m && MSM_BT_POWER && SLIMBUS && SND_SOC
+	help
+	  bt_fm_slim.ko: the btfmslim_slave ASoC codec on the WCN6750
+	  slimbus interface, which carries Bluetooth call audio and offloaded
+	  A2DP audio between the audio DSP and the Bluetooth core.

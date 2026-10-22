@@ -1,0 +1,5 @@
+# Qualcomm's bt-kernel Makefiles take their include root from here
+export BT_ROOT := $(srctree)/techpack/bt
+
+obj-$(CONFIG_MSM_BT_POWER) += pwr/
+obj-$(CONFIG_BTFM_SLIM) += slimbus/

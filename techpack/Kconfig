@@ -1,6 +1,7 @@
 menu "Qualcomm techpack drivers"
 
 source "techpack/audio/Kconfig"
+source "techpack/bt/Kconfig"
 source "techpack/camera/Kconfig"
 source "techpack/dataipa/Kconfig"
 source "techpack/datarmnet/Kconfig"
