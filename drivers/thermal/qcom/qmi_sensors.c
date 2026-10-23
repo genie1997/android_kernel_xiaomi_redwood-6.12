@@ -408,6 +408,8 @@ static int verify_sensor_and_register(struct qmi_ts_instance *ts)
 			qmi_ts_request(qmi_sens, true);
 			if (!qmi_sens->tz_dev)
 				ret = qmi_register_sensor_device(qmi_sens);
+			else
+				qmi_ts_request(qmi_sens, false);
 			break;
 		}
 	}
@@ -431,6 +433,8 @@ static int verify_sensor_and_register(struct qmi_ts_instance *ts)
 			qmi_ts_request(qmi_sens, true);
 			if (!qmi_sens->tz_dev)
 				ret = qmi_register_sensor_device(qmi_sens);
+			else
+				qmi_ts_request(qmi_sens, false);
 			break;
 		}
 	}
@@ -636,6 +640,7 @@ static int qmi_sens_device_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	int ret = 0, idx = 0;
 	struct qmi_ts_instance *ts;
+	struct qmi_sensor *qmi_sens;
 
 	ret = of_get_qmi_ts_platform_data(dev);
 	if (ret)
@@ -652,6 +657,9 @@ static int qmi_sens_device_probe(struct platform_device *pdev)
 			ret = -ENODEV;
 			goto probe_err;
 		}
+		/* Zones exist from boot, thermal daemons look them up once at start */
+		list_for_each_entry(qmi_sens, &ts->ts_sensor_list, ts_node)
+			qmi_register_sensor_device(qmi_sens);
 		ret = qmi_handle_init(&ts->handle,
 			TS_GET_SENSOR_LIST_RESP_MSG_V01_MAX_MSG_LEN,
 			&thermal_qmi_event_ops, handlers);
