@@ -552,6 +552,11 @@
 	};
 };
 
+/* Memlat runs in the kernel here and nothing serves the CPUCP channel, so arm-scmi would defer on this node forever */
+&scmi {
+	status = "disabled";
+};
+
 /* No FM receiver driver: a driverless node would hold L11C and L19B at their boot state */
 &qupv3_se1_i2c {
 	nq@64 {
