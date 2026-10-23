@@ -2983,48 +2983,83 @@
 		qcom,vm-nav-path;
 	};
 
-	qfprom: qfprom@780000 {
+	/* one node per fuse word a driver reads: a read of a protected fuse row resets the phone, so no nvmem file may span one */
+	efuse@784180 {
 		compatible = "qcom,qfprom";
-		reg = <0x780000 0x7000>;
+		reg = <0x784180 0x4>;
 		#address-cells = <1>;
 		#size-cells = <1>;
 		read-only;
-		ranges;
 
-		gpu_speed_bin: gpu_speed_bin@1e9 {
-			reg = <0x1e9 0x2>;
+		tsens_chipinfo: tsens_chipinfo@0 {
+			reg = <0x0 0x4>;
+		};
+	};
+
+	efuse@7841e8 {
+		compatible = "qcom,qfprom";
+		reg = <0x7841e8 0x4>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		read-only;
+
+		gpu_speed_bin: gpu_speed_bin@1 {
+			reg = <0x1 0x2>;
 			bits = <5 8>;
 		};
 
-		gpu_gaming_bin: gpu_gaming_bin@1f5 {
-			reg = <0x1f5 0x1>;
+		gpu_model_bin: gpu_model_bin@1 {
+			reg = <0x1 0x2>;
+			bits = <5 8>;
+		};
+	};
+
+	efuse@7841f4 {
+		compatible = "qcom,qfprom";
+		reg = <0x7841f4 0x4>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		read-only;
+
+		gpu_gaming_bin: gpu_gaming_bin@1 {
+			reg = <0x1 0x1>;
 			bits = <5 1>;
 		};
+	};
 
-		gpu_model_bin: gpu_model_bin@1e9 {
-			reg = <0x1e9 0x2>;
-			bits = <5 8>;
+	efuse@786020 {
+		compatible = "qcom,qfprom";
+		reg = <0x786020 0x4>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		read-only;
+
+		feat_conf_m7: feat_conf_m7@0 {
+			reg = <0x0 0x4>;
 		};
+	};
 
-		tsens_chipinfo: tsens_chipinfo@4180 {
-			reg = <0x4180 0x4>;
+	efuse@786028 {
+		compatible = "qcom,qfprom";
+		reg = <0x786028 0x4>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		read-only;
+
+		feat_conf_m9: feat_conf_m9@0 {
+			reg = <0x0 0x4>;
 		};
+	};
 
-		feat_conf_m7: feat_conf_m7@6020 {
-			reg = <0x6020 0x4>;
-		};
+	efuse@786070 {
+		compatible = "qcom,qfprom";
+		reg = <0x786070 0x4>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		read-only;
 
-		feat_conf_m9: feat_conf_m9@6028 {
-			reg = <0x6028 0x4>;
-		};
-
-		adsp_variant: adsp_variant@6020 {
-			reg = <0x6022 0x1>;
-			bits = <2 4>;
-		};
-
-		boot_config: boot_config@6070 {
-			reg = <0x6070 0x4>;
+		boot_config: boot_config@0 {
+			reg = <0x0 0x4>;
 		};
 	};
 
