@@ -7662,6 +7662,7 @@ static int sde_hw_check_ssip_fuse(struct drm_device *dev, struct sde_mdss_cfg *s
 	struct platform_device *pdev;
 	int rc = -EINVAL;
 	uint32_t fuse = 0;
+	uint32_t disable_bit, polarity_bit;
 	bool disable = false, polarity = false;
 
 	if (!dev || !dev->dev || !sde_cfg) {
@@ -7674,6 +7675,20 @@ static int sde_hw_check_ssip_fuse(struct drm_device *dev, struct sde_mdss_cfg *s
 		return 0;
 	}
 
+	/* Only these targets have the SSIP fuse */
+	if (IS_SUN_TARGET(sde_cfg->hw_rev)) {
+		disable_bit = 1;
+		polarity_bit = 0;
+	} else if (IS_CANOE_TARGET(sde_cfg->hw_rev) ||
+			IS_ART_TARGET(sde_cfg->hw_rev) ||
+			IS_PEBBLE_TARGET(sde_cfg->hw_rev)) {
+		disable_bit = 5;
+		polarity_bit = 3;
+	} else {
+		sde_cfg->ssip_allowed = false;
+		return 0;
+	}
+
 	pdev = to_platform_device(dev->dev);
 	rc = sde_hw_parse_fuse_configuration(pdev, "ssip_config", &fuse);
 	if (rc) {
@@ -7682,18 +7697,8 @@ static int sde_hw_check_ssip_fuse(struct drm_device *dev, struct sde_mdss_cfg *s
 		return 0;
 	}
 
-	if (IS_SUN_TARGET(sde_cfg->hw_rev)) {
-		disable = (fuse & BIT(1)) >> 1;
-		polarity = fuse & BIT(0);
-	} else if (IS_CANOE_TARGET(sde_cfg->hw_rev) ||
-			IS_ART_TARGET(sde_cfg->hw_rev) ||
-			IS_PEBBLE_TARGET(sde_cfg->hw_rev)) {
-		disable = (fuse & BIT(5)) >> 5;
-		polarity = (fuse & BIT(3)) >> 3;
-	} else {
-		sde_cfg->ssip_allowed = false;
-		return 0;
-	}
+	disable = (fuse >> disable_bit) & 1;
+	polarity = (fuse >> polarity_bit) & 1;
 
 	SDE_INFO("ssip: disable = %d polarity = %d\n", disable, polarity);
 	if ((disable && polarity) || (!disable && !polarity))
