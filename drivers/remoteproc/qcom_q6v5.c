@@ -34,6 +34,8 @@
 #define Q6V5_LOAD_STATE_MSG_LEN	64
 #define Q6V5_PANIC_DELAY_MS	200
 #define Q6V5_UEVENT_KEY_LEN	96
+/* SMEM item of the modem's crash reason, the same on every Qualcomm SoC */
+#define MPSS_CRASH_REASON_SMEM	421
 
 static void qcom_q6v5_send_modem_crash_uevent(struct qcom_q6v5 *q6v5,
 					      const char *crash_type,
@@ -60,7 +62,7 @@ static void qcom_q6v5_send_modem_crash_uevent(struct qcom_q6v5 *q6v5,
 	};
 
 	if (!q6v5 || !q6v5->dev || !q6v5->rproc || !q6v5->rproc->name ||
-	    !strstr(q6v5->rproc->name, "remoteproc-mss"))
+	    q6v5->crash_reason != MPSS_CRASH_REASON_SMEM)
 		return;
 
 	scnprintf(envbuf[Q6V5_UEVENT_RPROC], sizeof(envbuf[Q6V5_UEVENT_RPROC]),
