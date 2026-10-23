@@ -3809,6 +3809,14 @@ static int dsi_panel_parse_dsc_params(struct dsi_display_mode *mode,
 	priv_info->dsc.rc_override_v1 = utils->read_bool(utils->data,
 		"qcom,mdss-dsc-rc-override_v1");
 
+	priv_info->dsc.rgb888_link = utils->read_bool(utils->data,
+		"qcom,mdss-dsc-rgb888-link");
+	/* the mode carries the link's format, or a switch to it reads as a bpp change */
+	if (priv_info->dsc.rgb888_link) {
+		mode->pixel_format_caps = DSI_PIXEL_FORMAT_RGB888;
+		mode->bpp = dsi_pixel_format_to_bpp(mode->pixel_format_caps);
+	}
+
 	rc = sde_dsc_populate_dsc_private_params(&priv_info->dsc, intf_width,
 			priv_info->widebus_support);
 	if (rc) {
@@ -3819,9 +3827,12 @@ static int dsi_panel_parse_dsc_params(struct dsi_display_mode *mode,
 
 	priv_info->pclk_scale.numer =
 			priv_info->dsc.config.bits_per_pixel >> 4;
-	priv_info->pclk_scale.denom = msm_get_src_bpc(
-			priv_info->dsc.chroma_format,
-			priv_info->dsc.config.bits_per_component);
+	if (priv_info->dsc.rgb888_link)
+		priv_info->pclk_scale.denom = 24;
+	else
+		priv_info->pclk_scale.denom = msm_get_src_bpc(
+				priv_info->dsc.chroma_format,
+				priv_info->dsc.config.bits_per_component);
 
 	mode->timing.dsc_enabled = true;
 	mode->timing.dsc = &priv_info->dsc;

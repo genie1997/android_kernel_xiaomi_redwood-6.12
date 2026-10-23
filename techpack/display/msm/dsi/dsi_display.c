@@ -8328,11 +8328,12 @@ static int dsi_display_get_modes_helper(struct dsi_display *display,
 
 		/*
 		 * Update the host_config.dst_format for compressed RGB101010 pixel format
-		 * when there is no widebus support.
+		 * when there is no widebus support or the link is sized for RGB888.
 		 */
 		if (host->dst_format == DSI_PIXEL_FORMAT_RGB101010 &&
 				display_mode.timing.dsc_enabled &&
-				!display_mode.priv_info->widebus_support) {
+				(!display_mode.priv_info->widebus_support ||
+				display_mode.priv_info->dsc.rgb888_link)) {
 			host->dst_format = DSI_PIXEL_FORMAT_RGB888;
 			DSI_DEBUG("updated dst_format from %d to %d\n",
 					DSI_PIXEL_FORMAT_RGB101010, host->dst_format);
