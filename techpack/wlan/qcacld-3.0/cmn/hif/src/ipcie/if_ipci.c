@@ -34,6 +34,8 @@
 #include <linux/seq_file.h>
 #include "qdf_status.h"
 #include "qdf_atomic.h"
+#include "qdf_dev.h"
+#include "qdf_irq.h"
 #include "pld_common.h"
 #include "mp_dev.h"
 #include "hif_debug.h"
@@ -495,6 +497,9 @@ static int hif_ce_msi_configure_irq(struct hif_softc *scn)
 				       &ce_sc->tasklets[ce_id]);
 		if (ret)
 			goto free_irq;
+		/* Mask at once on disable: a lazily disabled line is replayed through the GIC,
+		 * which stops the SoC when it meets the WPSS power-save exit */
+		qdf_dev_modify_irq_status(irq, 0, QDF_IRQ_DISABLE_UNLAZY);
 	}
 
 	return ret;
@@ -750,6 +755,8 @@ int hif_ipci_configure_grp_irq(struct hif_softc *scn,
 			hif_err("request_irq failed ret = %d", ret);
 			return -EFAULT;
 		}
+		/* Same as the CE lines: no lazy-disable replay through the GIC */
+		qdf_dev_modify_irq_status(irq, 0, QDF_IRQ_DISABLE_UNLAZY);
 		hif_ext_group->os_irq[j] = irq;
 	}
 	hif_ext_group->irq_requested = true;
