@@ -3222,16 +3222,27 @@ static const struct dev_pm_ops fts_dev_pm_ops = {
 /* The panel names its touch controller on two ID pins: high, low is FocalTech */
 static int fts_ts_check_panel(struct device *dev)
 {
-	struct gpio_descs *ids;
-	int ret;
+	struct gpio_desc *id0, *id1;
+	int count, ret;
 
-	ids = gpiod_get_array_optional(dev, "xiaomi,panel-id", GPIOD_IN);
-	if (IS_ERR_OR_NULL(ids))
-		return PTR_ERR_OR_ZERO(ids);
+	count = gpiod_count(dev, "xiaomi,panel-id");
+	if (count == -ENOENT)
+		return 0;
+	if (count != 2)
+		return count < 0 ? count : -ENODEV;
 
-	ret = (ids->ndescs == 2 && gpiod_get_value_cansleep(ids->desc[0]) &&
-	       !gpiod_get_value_cansleep(ids->desc[1])) ? 0 : -ENODEV;
-	gpiod_put_array(ids);
+	id0 = gpiod_get_index_optional(dev, "xiaomi,panel-id", 0, GPIOD_IN);
+	if (IS_ERR(id0))
+		return PTR_ERR(id0);
+	id1 = gpiod_get_index_optional(dev, "xiaomi,panel-id", 1, GPIOD_IN);
+	if (IS_ERR(id1)) {
+		gpiod_put(id0);
+		return PTR_ERR(id1);
+	}
+
+	ret = (gpiod_get_value_cansleep(id0) && !gpiod_get_value_cansleep(id1)) ? 0 : -ENODEV;
+	gpiod_put(id1);
+	gpiod_put(id0);
 	return ret;
 }
 
