@@ -37,7 +37,6 @@
 #include <linux/sysfs.h>
 #include <linux/thermal.h>
 #include <linux/reboot.h>
-#include <soc/qcom/memory_dump.h>
 #include <soc/qcom/secure_buffer.h>
 #include <soc/qcom/socinfo.h>
 #include <soc/qcom/qcom_ramdump.h>
