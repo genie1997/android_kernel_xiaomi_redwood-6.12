@@ -6925,6 +6925,7 @@ static int icnss_probe(struct platform_device *pdev)
 		init_completion(&priv->smp2p_soc_wake_wait);
 		icnss_runtime_pm_init(priv);
 		icnss_aop_interface_init(priv);
+		icnss_get_cpr_info(priv);
 		set_bit(ICNSS_COLD_BOOT_CAL, &priv->state);
 		priv->bdf_download_support = true;
 		register_rproc_restart_level_notifier();
