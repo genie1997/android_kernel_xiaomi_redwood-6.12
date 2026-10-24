@@ -47,6 +47,16 @@ static void resend_irqs(struct tasklet_struct *unused)
 /* Tasklet to handle resend: */
 static DECLARE_TASKLET(resend_tasklet, resend_irqs);
 
+static void irq_tasklet_resend(struct irq_desc *desc)
+{
+	/* Add to resend_list and activate the softirq: */
+	raw_spin_lock(&irq_resend_lock);
+	if (hlist_unhashed(&desc->resend_node))
+		hlist_add_head(&desc->resend_node, &irq_resend_list);
+	raw_spin_unlock(&irq_resend_lock);
+	tasklet_schedule(&resend_tasklet);
+}
+
 static int irq_sw_resend(struct irq_desc *desc)
 {
 	/*
@@ -74,13 +84,21 @@ static int irq_sw_resend(struct irq_desc *desc)
 			return -EINVAL;
 	}
 
-	/* Add to resend_list and activate the softirq: */
-	raw_spin_lock(&irq_resend_lock);
-	if (hlist_unhashed(&desc->resend_node))
-		hlist_add_head(&desc->resend_node, &irq_resend_list);
-	raw_spin_unlock(&irq_resend_lock);
-	tasklet_schedule(&resend_tasklet);
+	irq_tasklet_resend(desc);
 	return 0;
+}
+
+/*
+ * A line the GIC keeps to hardirq handling is replayed here, as on 5.4: on this phone its GIC
+ * set-pending write is trapped by the hypervisor and can stop the SoC on resume from suspend
+ */
+static bool irq_tasklet_replay(struct irq_desc *desc)
+{
+	if (!handle_enforce_irqctx(&desc->irq_data))
+		return false;
+
+	irq_tasklet_resend(desc);
+	return true;
 }
 
 void clear_irq_resend(struct irq_desc *desc)
@@ -101,6 +119,11 @@ void irq_resend_init(struct irq_desc *desc) {}
 static int irq_sw_resend(struct irq_desc *desc)
 {
 	return -EINVAL;
+}
+
+static bool irq_tasklet_replay(struct irq_desc *desc)
+{
+	return false;
 }
 #endif
 
@@ -143,7 +166,7 @@ int check_irq_resend(struct irq_desc *desc, bool inject)
 
 	desc->istate &= ~IRQS_PENDING;
 
-	if (!try_retrigger(desc))
+	if (!irq_tasklet_replay(desc) && !try_retrigger(desc))
 		err = irq_sw_resend(desc);
 
 	/* If the retrigger was successful, mark it with the REPLAY bit */
