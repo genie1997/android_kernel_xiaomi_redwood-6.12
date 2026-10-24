@@ -1791,9 +1791,6 @@ static int aw882xx_codec_probe(aw_snd_soc_codec_t *aw_codec)
 	/*load fw bin*/
 	aw882xx_load_fw(aw882xx);
 
-	/*load cali re*/
-	aw882xx_dev_init_cali_re(aw882xx->aw_pa);
-
 	return 0;
 }
 
