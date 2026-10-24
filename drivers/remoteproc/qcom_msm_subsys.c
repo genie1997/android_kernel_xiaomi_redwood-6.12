@@ -33,6 +33,7 @@ static const char * const subsys_states[] = {
 
 struct msm_subsys {
 	struct device dev;
+	struct device chardev;
 	struct cdev cdev;
 	struct rproc *rproc;
 	const char *name;
@@ -185,6 +186,13 @@ static void msm_subsys_dev_release(struct device *dev)
 	kfree(subsys);
 }
 
+static void msm_subsys_chardev_release(struct device *dev)
+{
+	struct msm_subsys *subsys = container_of(dev, struct msm_subsys, chardev);
+
+	put_device(&subsys->dev);
+}
+
 static struct rproc *msm_subsys_get_rproc(struct device *dev, struct device_node *np)
 {
 	struct rproc *rproc;
@@ -202,7 +210,6 @@ static struct rproc *msm_subsys_get_rproc(struct device *dev, struct device_node
 static struct msm_subsys *msm_subsys_add(struct device *dev, struct device_node *np, dev_t devt)
 {
 	struct msm_subsys *subsys;
-	struct device *chardev;
 	const char *ssr_name;
 	struct rproc *rproc;
 	int ret;
@@ -258,25 +265,25 @@ static struct msm_subsys *msm_subsys_add(struct device *dev, struct device_node 
 	if (ret)
 		goto unregister_ssr;
 
-	/* An open file keeps the device, and with it the processor reference, until its release */
+	/* An open file holds the node, the node holds the device and with it the processor reference */
+	device_initialize(&subsys->chardev);
+	get_device(&subsys->dev);
+	subsys->chardev.class = &subsys_class;
+	subsys->chardev.parent = rproc->dev.parent;
+	subsys->chardev.devt = devt;
+	subsys->chardev.release = msm_subsys_chardev_release;
 	cdev_init(&subsys->cdev, &msm_subsys_fops);
-	cdev_set_parent(&subsys->cdev, &subsys->dev.kobj);
-	ret = cdev_add(&subsys->cdev, devt, 1);
+	ret = dev_set_name(&subsys->chardev, "subsys_%s", subsys->name);
 	if (ret)
-		goto del_dev;
-
-	chardev = device_create(&subsys_class, rproc->dev.parent, devt, NULL, "subsys_%s",
-				subsys->name);
-	if (IS_ERR(chardev)) {
-		ret = PTR_ERR(chardev);
-		goto del_cdev;
-	}
+		goto put_chardev;
+	ret = cdev_device_add(&subsys->cdev, &subsys->chardev);
+	if (ret)
+		goto put_chardev;
 
 	return subsys;
 
-del_cdev:
-	cdev_del(&subsys->cdev);
-del_dev:
+put_chardev:
+	put_device(&subsys->chardev);
 	qcom_unregister_ssr_notifier(subsys->ssr_cookie, &subsys->ssr_nb);
 	device_del(&subsys->dev);
 	put_device(&subsys->dev);
@@ -298,8 +305,8 @@ put_rproc:
 
 static void msm_subsys_del(struct msm_subsys *subsys)
 {
-	device_destroy(&subsys_class, subsys->cdev.dev);
-	cdev_del(&subsys->cdev);
+	cdev_device_del(&subsys->cdev, &subsys->chardev);
+	put_device(&subsys->chardev);
 	qcom_unregister_ssr_notifier(subsys->ssr_cookie, &subsys->ssr_nb);
 	device_unregister(&subsys->dev);
 }
