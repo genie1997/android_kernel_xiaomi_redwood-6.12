@@ -29,6 +29,9 @@ snd-usbmidi-lib-y := midi.o
 
 # Toplevel Module Dependency
 obj-$(CONFIG_SND_USB_AUDIO) += snd-usb-audio.o snd-usbmidi-lib.o
+obj-$(CONFIG_SND_USB_AUDIO_QMI) += snd-usb-audio-qmi.o
+snd-usb-audio-qmi-objs += usb_audio_qmi_svc.o usb_audio_qmi_v01.o
+CFLAGS_usb_audio_qmi_svc.o += -I$(srctree)
 
 obj-$(CONFIG_SND_USB_UA101) += snd-usbmidi-lib.o
 obj-$(CONFIG_SND_USB_USX2Y) += snd-usbmidi-lib.o
