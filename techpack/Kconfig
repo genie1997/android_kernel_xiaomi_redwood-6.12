@@ -14,5 +14,6 @@ source "techpack/securemsm/Kconfig"
 source "techpack/touch/Kconfig"
 source "techpack/vibrator/Kconfig"
 source "techpack/video/Kconfig"
+source "techpack/wlan/Kconfig"
 
 endmenu

@@ -1,0 +1,25 @@
+# Qualcomm's wlan-platform and qcacld-3.0 Kbuilds take their roots, the chip profile and its overrides from here
+export WLAN_PLATFORM_ROOT := $(srctree)/techpack/wlan/platform
+export WLAN_ROOT := $(srctree)/techpack/wlan/qcacld-3.0
+export WLAN_COMMON_ROOT := cmn
+export WLAN_COMMON_INC := $(WLAN_ROOT)/cmn
+export WLAN_FW_API := $(srctree)/techpack/wlan/fw-api
+export WLAN_PLATFORM_INC := $(WLAN_PLATFORM_ROOT)/inc
+export DATA_IPA_INC := $(srctree)/techpack/dataipa/drivers/platform/msm/include
+export DATA_IPA_UAPI_INC := $(DATA_IPA_INC)/uapi
+
+# wlan.ko and /dev/wlan are the names the Wi-Fi HAL loads and switches the driver by
+export MODNAME := wlan
+export DEVNAME := wlan
+export WLAN_CTRL_NAME := wlan
+
+export WLAN_PROFILE := pineapple_gki_qca6750
+# The profile's own CONFIG_QCA_CLD_WLAN=y gives way to Kconfig; the rest are names the qcacld-3.0 Kbuild reads without CONFIG_,
+# hotspot offload through IPA, the STA + hotspot DFS rule and the testmode object
+export WLAN_CFG_OVERRIDE := CONFIG_QCA_CLD_WLAN=$(CONFIG_QCA_CLD_WLAN) CONFIG_IPA_OUT_OF_TREE=y \
+	CONFIG_IPA_OFFLOAD=y CONFIG_ENABLE_SMMU_S1_TRANSLATION=y CONFIG_SMMU_S1_UNMAP=y \
+	CONFIG_FEATURE_WLAN_STA_AP_MODE_DFS_DISABLE=y WLAN_OPEN_SOURCE=y ENABLE_CE4_COMP_DISABLE_HTT_HTC_MISC_LIST=y \
+	QCA_WIFI_FTM_NL80211=y
+
+obj-y += platform/
+obj-$(CONFIG_QCA_CLD_WLAN) += qcacld-3.0/

@@ -1,0 +1,11 @@
+source "techpack/wlan/platform/icnss2/Kconfig"
+source "techpack/wlan/platform/cnss_utils/Kconfig"
+source "techpack/wlan/platform/cnss_genl/Kconfig"
+source "techpack/wlan/platform/cnss_prealloc/Kconfig"
+
+config QCA_CLD_WLAN
+	tristate "Qualcomm WCN6750 Wi-Fi host driver"
+	depends on m && CFG80211 && ICNSS2 && CNSS_GENL && WCNSS_MEM_PRE_ALLOC && IPA3 && QCOM_IOMMU_UTIL
+	help
+	  wlan: the qcacld-3.0 cfg80211 driver of the WCN6750 Wi-Fi, which
+	  the Wi-Fi HAL loads and switches on and off through /dev/wlan.
