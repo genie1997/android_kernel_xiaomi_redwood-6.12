@@ -6058,6 +6058,7 @@ connect_pipe_fail:
 	}
 }
 
+#ifdef IPA_OPT_WIFI_DP
 static inline void wlan_ipa_enable_powersave(struct wlan_ipa_priv *ipa_obj)
 {
 	struct wlan_objmgr_psoc *psoc;
@@ -6093,6 +6094,11 @@ static inline void wlan_ipa_enable_powersave(struct wlan_ipa_priv *ipa_obj)
 			      WIFI_POWER_EVENT_WAKELOCK_OPT_WIFI_DP);
 	ipa_debug("opt_dp: Wakelock released");
 }
+#else
+static inline void wlan_ipa_enable_powersave(struct wlan_ipa_priv *ipa_obj)
+{
+}
+#endif
 
 static inline void wlan_ipa_smmu_unmap_rx_buf(struct wlan_ipa_priv *ipa_ctx)
 {
