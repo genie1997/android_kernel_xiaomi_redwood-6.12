@@ -552,6 +552,10 @@
 	};
 };
 
+&wpss_pas {
+	firmware-name = "wpss.mdt";
+};
+
 /* Memlat runs in the kernel here and nothing serves the CPUCP channel, so arm-scmi would defer on this node forever */
 &scmi {
 	status = "disabled";
