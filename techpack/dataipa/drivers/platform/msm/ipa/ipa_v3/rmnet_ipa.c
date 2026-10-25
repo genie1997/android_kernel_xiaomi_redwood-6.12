@@ -60,7 +60,7 @@
 #define MAX_NUM_OF_MUX_CHANNEL  15 /* max mux channels */
 #define UL_FILTER_RULE_HANDLE_START 69
 
-#define IPA_WWAN_DEV_NAME "rmnet_ipa%d"
+#define IPA_WWAN_DEV_NAME "rmnet_ipa0"
 #define IPA_UPSTEAM_WLAN_IFACE_NAME "wlan0"
 #define IPA_UPSTEAM_WLAN1_IFACE_NAME "wlan1"
 

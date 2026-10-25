@@ -83,7 +83,7 @@ static struct pm_client_name_lookup client_lookup_table[] = {
 	{"IPA_CLIENT_APPS_LAN_CONS", 2},
 	{"EMB MODEM", 3},
 	{"TETH MODEM", 4},
-	{"rmnet_ipa%d", 5},
+	{"rmnet_ipa0", 5},
 	{"USB", 6},
 	{"USB DPL", 7},
 	{"MODEM (USB RMNET)", 8},
