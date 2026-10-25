@@ -28,8 +28,6 @@ struct qmi_rmnet_ps_ind {
 	struct list_head list;
 };
 
-void qmi_reset_pm_notifier_state(u8 register_for_pm);
-
 #ifdef CONFIG_QTI_QMI_RMNET
 void qmi_rmnet_qmi_exit(void *qmi_pt, void *port);
 int qmi_rmnet_change_link(struct net_device *dev, void *port, void *tcm_pt,

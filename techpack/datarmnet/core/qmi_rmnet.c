@@ -28,8 +28,6 @@
 #include <linux/moduleparam.h>
 #include <linux/ip.h>
 #include <linux/ipv6.h>
-#include <linux/suspend.h>
-#include <linux/notifier.h>
 #if !defined(TRANSPORT_RMNET_BAM)
 #include <linux/ipa.h>
 #endif
@@ -75,17 +73,6 @@ unsigned int rmnet_wq_frequency __read_mostly = 1000;
 static unsigned int qmi_rmnet_scale_factor = 5;
 static LIST_HEAD(qos_cleanup_list);
 #endif
-
-static int qmi_rmnet_pm_notify_cb(struct notifier_block *notifier,
-		unsigned long pm_event, void *unused);
-
-static struct notifier_block dfc_pm_notifier = {
-	.notifier_call = qmi_rmnet_pm_notify_cb,
-};
-
-static struct qmi_info __rcu *qmi_info_ptr = NULL;
-DEFINE_STATIC_SRCU(qmi_info_srcu);
-static struct qmi_info __rcu *qmi_info_srcu_ptr = NULL;
 
 static int
 qmi_rmnet_del_flow(struct net_device *dev, struct tcmsg *tcm,
@@ -162,19 +149,6 @@ qmi_rmnet_has_pending(struct qmi_info *qmi)
 	}
 
 	return 0;
-}
-
-void qmi_reset_pm_notifier_state(u8 register_for_pm)
-{
-	if (register_for_pm) {
-		register_pm_notifier(&dfc_pm_notifier);
-		pr_err("RMNET registered pm_notifier\n");
-	}
-	else {
-		unregister_pm_notifier(&dfc_pm_notifier);
-		pr_err("RMNET De-registered pm_notifier\n");
-
-	}
 }
 
 #ifdef CONFIG_QTI_QMI_DFC
@@ -633,7 +607,6 @@ void qmi_rmnet_flow_control_queue_pair(struct net_device *dev,
 }
 EXPORT_SYMBOL(qmi_rmnet_flow_control_queue_pair);
 
-
 #else
 static inline void
 qmi_rmnet_update_flow_map(struct rmnet_flow_map *itm,
@@ -812,16 +785,7 @@ int qmi_rmnet_change_link(struct net_device *dev, void *port, void *tcm_pt,
 			qmi_rmnet_work_init(port);
 			rmnet_set_powersave_format(port);
 		}
-
 		rmnet_ll_wq_init();
-
-		qmi = (struct qmi_info *)rmnet_get_qmi_pt(port);
-		if (qmi) {
-			qmi->port = port;
-			rcu_assign_pointer(qmi_info_ptr, qmi);
-			rcu_assign_pointer(qmi_info_srcu_ptr, qmi);
-		}
-
 		break;
 	case NLMSG_CLIENT_DELETE:
 		if (!qmi)
@@ -1317,82 +1281,6 @@ int qmi_rmnet_set_powersave_mode(void *port, uint8_t enable, u8 num_bearers,
 }
 EXPORT_SYMBOL(qmi_rmnet_set_powersave_mode);
 
-static int qmi_rmnet_pm_notify_cb(struct notifier_block *notifier,
-		unsigned long pm_event, void *unused)
-{
-	struct rmnet_port *port = NULL;
-	struct qmi_info *qmi = NULL;
-	u8 num_bearers, notify_ps_on = 0;
-	int srcu_idx;
-
-	trace_dfc_pm_event(pm_event);
-
-	if (PM_SUSPEND_PREPARE == pm_event) {
-
-		if (rmnet_work && !rmnet_work_quit && rmnet_work_inited) {
-			cancel_delayed_work_sync(&rmnet_work->work);
-		}
-
-		srcu_idx = srcu_read_lock(&qmi_info_srcu);
-
-		qmi = srcu_dereference(qmi_info_srcu_ptr, &qmi_info_srcu);
-
-		if (!qmi) {
-			pr_err("%s() QMI client is NULL, Ignoring \n", __func__);
-			srcu_read_unlock(&qmi_info_srcu, srcu_idx);
-			goto done;
-		}
-
-		port = qmi->port;
-		if (!qmi->ps_enabled) {
-
-			qmi->ps_ignore_grant = true;
-			qmi->ps_enabled = true;
-			rmnet_module_hook_aps_data_inactive();
-			/* Needed Memory barrier */
-			smp_mb();
-
-			num_bearers = sizeof(ps_bearer_id);
-			memset(ps_bearer_id, 0, sizeof(ps_bearer_id));
-			rmnet_prepare_ps_bearers(port, &num_bearers,
-						 ps_bearer_id);
-			/* Enter powersave */
-			if (dfc_qmap)
-				dfc_qmap_set_powersave(1, num_bearers, ps_bearer_id);
-			else
-				qmi_rmnet_set_powersave_mode(port, 1,
-							     num_bearers, ps_bearer_id);
-
-			notify_ps_on = 1;
-		}
-		srcu_read_unlock(&qmi_info_srcu, srcu_idx);
-
-	} else if (PM_POST_SUSPEND  == pm_event) {
-		srcu_idx = srcu_read_lock(&qmi_info_srcu);
-		qmi = srcu_dereference(qmi_info_srcu_ptr, &qmi_info_srcu);
-
-		if (!qmi) {
-			pr_err("%s() QMI client is NULL, Ignoring\n", __func__);
-			srcu_read_unlock(&qmi_info_srcu, srcu_idx);
-			goto done;
-		}
-
-		/* Clear the bit before enabling flow so pending packets
-		 * can trigger the work again
-		 */
-		clear_bit(PS_WORK_ACTIVE_BIT, &qmi->ps_work_active);
-		srcu_read_unlock(&qmi_info_srcu, srcu_idx);
-	}
-
-	if (port && rmnet_get_powersave_notif(port) && notify_ps_on) {
-		pr_err("%s() Notify PS ON to clients\n", __func__);
-		qmi_rmnet_ps_on_notify(port);
-	}
-done:
-	return NOTIFY_DONE;
-}
-
-
 static void qmi_rmnet_work_restart(void *port)
 {
 	rcu_read_lock();
@@ -1638,9 +1526,6 @@ void qmi_rmnet_work_exit(void *port)
 		return;
 
 	rmnet_work_quit = true;
-	RCU_INIT_POINTER(qmi_info_ptr, NULL);
-	RCU_INIT_POINTER(qmi_info_srcu_ptr, NULL);
-	synchronize_srcu(&qmi_info_srcu);
 	synchronize_rcu();
 
 	rmnet_work_inited = false;

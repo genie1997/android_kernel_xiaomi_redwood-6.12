@@ -149,7 +149,6 @@ struct qmi_info {
 	bool dl_msg_active;
 	bool ps_ignore_grant;
 	int ps_ext;
-	struct rmnet_port *port;
 };
 
 enum data_ep_type_enum_v01 {

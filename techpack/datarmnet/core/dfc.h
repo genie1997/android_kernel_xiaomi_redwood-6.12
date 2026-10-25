@@ -396,24 +396,6 @@ TRACE_EVENT(dfc_set_powersave_mode,
 		__entry->enable ? "enable" : "disable")
 );
 
-TRACE_EVENT(dfc_pm_event,
-
-	TP_PROTO(int event),
-
-	TP_ARGS(event),
-
-	TP_STRUCT__entry(
-		__field(int, event)
-	),
-
-	TP_fast_assign(
-		__entry->event = event;
-	),
-
-	TP_printk("Got PM event from notifier %d",
-		  __entry->event)
-);
-
 /*****************************************************************************/
 /* Trace events for legacy (non-DFC) flow control */
 /*****************************************************************************/

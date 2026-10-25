@@ -919,7 +919,6 @@ static int __init rmnet_init(void)
 
 	rmnet_core_genl_init();
 #endif
-	qmi_reset_pm_notifier_state(1);
 
 	try_module_get(THIS_MODULE);
 	return rc;
@@ -934,7 +933,6 @@ static void __exit rmnet_exit(void)
 	rmnet_core_genl_deinit();
 	ipa_unregister_notifier(&rmnet_ipa_notify_cb);
 #endif
-	qmi_reset_pm_notifier_state(0);
 
 	module_put(THIS_MODULE);
 }
