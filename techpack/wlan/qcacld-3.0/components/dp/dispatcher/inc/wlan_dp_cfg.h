@@ -940,7 +940,7 @@
  * rx_wakelock_timeout - Amount of time to hold wakelock for RX unicast packets
  * @Min: 0
  * @Max: 100
- * @Default: 50
+ * @Default: 0
  *
  * This ini item configures the amount of time, in milliseconds, that the driver
  * should prevent system power collapse after receiving an RX unicast packet.
@@ -956,7 +956,7 @@
  */
 #define CFG_DP_RX_WAKELOCK_TIMEOUT \
 	CFG_INI_UINT("rx_wakelock_timeout", \
-	0, 100, 50, CFG_VALUE_OR_DEFAULT, \
+	0, 100, 0, CFG_VALUE_OR_DEFAULT, \
 	"Amount of time to hold wakelock for RX unicast packets")
 
 /*
