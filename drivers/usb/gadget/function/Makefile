@@ -58,3 +58,5 @@ usb_f_tcm-y			:= f_tcm.o
 obj-$(CONFIG_USB_F_TCM)		+= usb_f_tcm.o
 usb_f_acc-y			:= android_f_accessory.o
 obj-$(CONFIG_ANDROID_USB_F_ACC)	+= usb_f_acc.o
+usb_f_gsi-y			:= f_gsi.o rndis.o
+obj-$(CONFIG_USB_F_GSI)		+= usb_f_gsi.o

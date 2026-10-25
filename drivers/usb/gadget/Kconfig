@@ -227,6 +227,9 @@ config USB_F_TCM
 config ANDROID_USB_F_ACC
 	bool
 
+config USB_F_GSI
+	tristate
+
 # this first set of drivers all depend on bulk-capable hardware.
 
 config USB_CONFIGFS
@@ -532,6 +535,17 @@ config ANDROID_USB_CONFIGFS_F_ACC
 	  specific control_requests to describe what they are and what
 	  userspace application should handle their traffic. This function
 	  enables the data exchange with usersapce.
+
+config USB_CONFIGFS_F_GSI
+	tristate "USB GSI function"
+	select USB_F_GSI
+	depends on USB_CONFIGFS
+	depends on USB_DWC3_MSM
+	help
+	 Generic function driver to support h/w acceleration to IPA
+	 over GSI. This driver provides USB RMNET/RNDIS/ECM/MBIM/DPL
+	 related functionalities using GSI hardware accelerated data
+	 path and control path.
 
 source "drivers/usb/gadget/legacy/Kconfig"
 
