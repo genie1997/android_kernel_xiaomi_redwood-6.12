@@ -35,6 +35,14 @@ config RMNET_IPA3
 	  for RmNet Data Driver and also exchange of QMI messages between
 	  A7 and Q6 IPA-driver.
 
+config RNDIS_IPA
+	bool "IPA RNDIS network device for USB tethering"
+	depends on IPA3
+	help
+	  The network device of the USB GSI function's RNDIS instance.
+	  The IPA hardware carries the RNDIS data between the USB
+	  controller and the network stack.
+
 config IPA_RMNET_MEM
 	bool "IPA pages from the RmNet memory pool"
 	depends on IPA3 && (RMNET_MEM = y || RMNET_MEM = IPA3)

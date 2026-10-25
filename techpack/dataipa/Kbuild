@@ -71,6 +71,7 @@ ipam-$(CONFIG_RMNET_IPA3) += $(ipadrv)/ipa/ipa_v3/rmnet_ipa.o \
 	  $(ipadrv)/ipa/ipa_v3/rmnet_ctl_ipa.o \
 	  $(ipadrv)/ipa/ipa_v3/rmnet_ipa_fd_ioctl.o \
 	  $(ipadrv)/ipa/ipa_v3/rmnet_ll_ipa.o
+ipam-$(CONFIG_RNDIS_IPA) += $(ipadrv)/ipa/ipa_clients/rndis_ipa.o
 
 obj-$(CONFIG_IPA3) += ipanetm.o
 ipanetm-y := $(ipadrv)/ipa/ipa_v3/ipa_net.o
