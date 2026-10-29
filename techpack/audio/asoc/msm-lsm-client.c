@@ -4,6 +4,7 @@
  * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 #include <linux/init.h>
+#include <linux/compat.h>
 #include <linux/err.h>
 #include <linux/module.h>
 #include <linux/time.h>
@@ -49,9 +50,6 @@
 #define LSM_IS_LAST_STAGE(client, stage_idx) \
 	(client->num_stages == (stage_idx + 1))
 
-#define LSM_ALIGN_4BYTE(x) (((x) + 3) & (~3))
-#define LSM_POINTER_SIZE_32B 4
-#define LSM_32B_ADDR_TRANSLATE(X) (X & 0xffffffff)
 #define LSM_MAX_SESSION_COUNT 8
 
 #define ENABLE_SVA_MIXER_CTL
@@ -4025,54 +4023,24 @@ static int msm_lsm_module_params_get(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-int pack_lsm_params_info(struct lsm_params_info *temp_ptr_info, void * ptr)
-{
-	int size = 0;
-	uintptr_t ptr_32;
-	temp_ptr_info->module_id = *((__u32 *)ptr);
-	size += LSM_ALIGN_4BYTE(sizeof(__u32));
-	temp_ptr_info->param_id = *((__u32 *)(ptr + size ));
-	size += LSM_ALIGN_4BYTE(sizeof(__u32));
-	temp_ptr_info->param_size = *((__u32 *)(ptr + size ));
-	size += LSM_ALIGN_4BYTE(sizeof(__u32));
-	ptr_32 = (uintptr_t)(*((__u8 **) (ptr + size)));
-	temp_ptr_info->param_data = (__u8 *)LSM_32B_ADDR_TRANSLATE(ptr_32);
-	size += LSM_POINTER_SIZE_32B;
-	temp_ptr_info->param_type = *((__u32 *)(ptr + size));
-	size += LSM_ALIGN_4BYTE(sizeof(__u32));
-
-	/* add size for v2 version members,
-	 * sthal is sending v2 version structure. lsm_params_info_v2
-	 */
-	size += LSM_ALIGN_4BYTE(sizeof(__u32));
-	size += LSM_ALIGN_4BYTE(sizeof(__u32));
-	return size;
-}
-
 static int msm_lsm_module_params_put(struct snd_kcontrol *kcontrol,
 		const unsigned int __user *bytes, unsigned int size)
 {
 	int err;
 	u8 *params;
-	int param_size;
 	u8 *params_temp;
-#ifndef __LP64__
-	uintptr_t ptr_32;
-	void *temp_ptr = NULL;
-#endif
 	struct lsm_priv *prtd;
 	size_t p_size = 0, count;
 	struct snd_pcm_runtime *runtime;
 	struct snd_soc_pcm_runtime *rtd;
-	struct lsm_params_info_v2 info_v2;
-	struct snd_lsm_module_params *p_data = NULL;
-	struct snd_lsm_module_params lsm_params;
+	struct lsm_params_info_v2 info_v2, entry;
+	struct lsm_params_info_v2 *src;
+	struct snd_lsm_module_params lsm_params = {0};
+	size_t info_size = sizeof(struct lsm_params_info_v2);
+	bool compat = in_compat_syscall();
 	struct snd_pcm_substream *substream = NULL;
 	struct lsm_char_dev *lsm_dev;
 	struct snd_soc_component *component = NULL;
-#ifndef __LP64__
-	struct lsm_params_info temp_ptr_info;
-#endif
 	struct lsm_params_info_v2 *ptr_info_v2 = NULL;
 
 	if (get_substream_info(kcontrol, &substream))
@@ -4091,15 +4059,21 @@ static int msm_lsm_module_params_put(struct snd_kcontrol *kcontrol,
 		return -EINVAL;
 	}
 
-	if (size > sizeof(struct snd_lsm_module_params))
+	/* a 32-bit HAL sends 4-byte user pointers, so its structs need their compat layout */
+	if (compat) {
+#ifdef CONFIG_COMPAT
+		struct snd_lsm_module_params_32 p32 = {0};
+
+		if (size > sizeof(p32) || copy_from_user(&p32, bytes, size))
+			return -EFAULT;
+		lsm_params.params = compat_ptr(p32.params);
+		lsm_params.num_params = p32.num_params;
+		lsm_params.data_size = p32.data_size;
+		info_size = sizeof(struct lsm_params_info_v2_32);
+#endif
+	} else if (size > sizeof(lsm_params) || copy_from_user(&lsm_params, bytes, size)) {
 		return -EFAULT;
-
-	p_data = kzalloc(sizeof(*p_data), GFP_KERNEL);
-	if (!p_data)
-		return -ENOMEM;
-
-	if (copy_from_user(p_data, bytes, size))
-		pr_err("%s: Error copying from user", __func__);
+	}
 
 	//mutex_lock(&lsm_dev->lock);
 	if (!runtime) {
@@ -4114,18 +4088,6 @@ static int msm_lsm_module_params_put(struct snd_kcontrol *kcontrol,
 		return -EINVAL;
 	}
 	mutex_lock(&prtd->lsm_api_lock);
-#ifdef __LP64__
-	lsm_params = *p_data;
-#else
-	/*pack lsm_params to handle 32/64 bit issue*/
-	temp_ptr = (void *)p_data;
-	ptr_32 = (uintptr_t)(*((__u8 **) temp_ptr));
-	lsm_params.params = (__u8 *)LSM_32B_ADDR_TRANSLATE(ptr_32);
-	temp_ptr = temp_ptr + LSM_ALIGN_4BYTE(sizeof(__u8));
-	lsm_params.num_params = *((__u32 *) temp_ptr);
-	temp_ptr = temp_ptr + LSM_ALIGN_4BYTE(sizeof(__u32));
-	lsm_params.data_size = *((__u32 *) temp_ptr);
-#endif
 
 	if (lsm_params.num_params > LSM_PARAMS_MAX) {
 		dev_err(rtd->dev, "%s: %s: Invalid num_params %d\n",
@@ -4135,13 +4097,7 @@ static int msm_lsm_module_params_put(struct snd_kcontrol *kcontrol,
 		goto err_free_pdata;
 	}
 
-#ifdef __LP64__
-	p_size = lsm_params.num_params *
-			(sizeof(struct lsm_params_info_v2));
-#else
-	p_size = lsm_params.num_params *
-			(sizeof(struct lsm_params_info) - LSM_POINTER_SIZE_32B);
-#endif
+	p_size = lsm_params.num_params * info_size;
 
 	if (lsm_params.data_size != p_size) {
 		dev_err(rtd->dev,
@@ -4173,13 +4129,25 @@ static int msm_lsm_module_params_put(struct snd_kcontrol *kcontrol,
 	params_temp = params;
 
 	for (count = 0; count < lsm_params.num_params; count++) {
-#ifdef __LP64__
-		param_size = sizeof(struct lsm_params_info_v2);
-		info_v2.module_id = ((struct lsm_params_info_v2 *)(params))->module_id;
-		info_v2.param_id = ((struct lsm_params_info_v2 *)(params))->param_id;
-		info_v2.param_size = ((struct lsm_params_info_v2 *)(params))->param_size;
-		info_v2.param_data = ((struct lsm_params_info_v2 *)(params))->param_data;
-		info_v2.param_type = ((struct lsm_params_info_v2 *)(params))->param_type;
+		src = (struct lsm_params_info_v2 *)params;
+#ifdef CONFIG_COMPAT
+		if (compat) {
+			struct lsm_params_info_v2_32 *p32 = (struct lsm_params_info_v2_32 *)params;
+
+			entry.module_id = p32->module_id;
+			entry.param_id = p32->param_id;
+			entry.param_size = p32->param_size;
+			entry.param_data = compat_ptr(p32->param_data);
+			entry.param_type = p32->param_type;
+			entry.model_id = p32->model_id;
+			src = &entry;
+		}
+#endif
+		info_v2.module_id = src->module_id;
+		info_v2.param_id = src->param_id;
+		info_v2.param_size = src->param_size;
+		info_v2.param_data = src->param_data;
+		info_v2.param_type = src->param_type;
 		info_v2.instance_id = INSTANCE_ID_0;
 		info_v2.stage_idx = LSM_STAGE_INDEX_FIRST;
 		info_v2.model_id = 0;
@@ -4187,21 +4155,10 @@ static int msm_lsm_module_params_put(struct snd_kcontrol *kcontrol,
 		if (LSM_REG_MULTI_SND_MODEL == info_v2.param_type ||
 			LSM_DEREG_MULTI_SND_MODEL == info_v2.param_type ||
 			LSM_MULTI_SND_MODEL_CONFIDENCE_LEVELS == info_v2.param_type) {
-			info_v2.model_id = ((struct lsm_params_info_v2 *)(params))->model_id;
+			info_v2.model_id = src->model_id;
 			pr_debug("%s Setting model_id : %d \n", __func__, info_v2.model_id);
 		}
-#else
-		/* convert to V2 param info struct from legacy param info */
-		param_size = pack_lsm_params_info(&temp_ptr_info, params);
-		info_v2.module_id = temp_ptr_info.module_id;
-		info_v2.param_id = temp_ptr_info.param_id;
-		info_v2.param_size = temp_ptr_info.param_size;
-		info_v2.param_data = temp_ptr_info.param_data;
-		info_v2.param_type = temp_ptr_info.param_type;
-#endif
-		info_v2.instance_id = INSTANCE_ID_0;
-		info_v2.stage_idx = LSM_STAGE_INDEX_FIRST;
-		params = params + param_size;
+		params = params + info_size;
 		ptr_info_v2 = &info_v2;
 
 		err = msm_lsm_process_params(substream, ptr_info_v2);
@@ -4212,13 +4169,11 @@ static int msm_lsm_module_params_put(struct snd_kcontrol *kcontrol,
 					ptr_info_v2->stage_idx, err);
 	}
 	kfree(params_temp);
-	kfree(p_data);
 	mutex_unlock(&prtd->lsm_api_lock);
 	//mutex_unlock(&lsm_dev->lock);
 	return 0;
 
 err_free_pdata:
-	kfree(p_data);
 	mutex_unlock(&prtd->lsm_api_lock);
 	//mutex_unlock(&lsm_dev->lock);
 	return err;
