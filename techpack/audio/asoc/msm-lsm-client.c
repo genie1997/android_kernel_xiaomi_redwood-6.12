@@ -57,6 +57,7 @@
 
 /*The below one should be always aligned with that in ST HAL*/
 #define LSM_LUT_CLEAR_INFO  _IOW('U', 0xF0, int)
+#define LSM_CDEV_GET_MODULE_PARAMS  _IOWR('U', 0xF1, struct lsm_cdev_param)
 
 /*Commands to control LSM module from HAL*/
 enum lsm_ape_control {
@@ -78,6 +79,13 @@ struct lsm_cdev_info
 {
 	int dev_num;
 	int det_status;
+};
+
+/* GET_MODULE_PARAMS of session dev_num, info = user address of a struct lsm_params_get_info */
+struct lsm_cdev_param {
+	int dev_num;
+	__u32 reserved;
+	__u64 info;
 };
 
 struct lsm_char_dev {
@@ -5163,6 +5171,23 @@ static long msm_lsm_cdev_ioctl(struct file *file,
 		}
 		//__pm_relax(prtd->ws);
 		break;
+	case LSM_CDEV_GET_MODULE_PARAMS: {
+		struct lsm_cdev_param param;
+
+		if (copy_from_user(&param, (void __user *)arg, sizeof(param)))
+			return -EFAULT;
+		mutex_lock(&lsm_dev->lock);
+		substream.number = param.dev_num;
+		if (msm_lsm_cdev_session_lut(&substream, GET_INFO) ||
+		    !substream.runtime || !substream.runtime->private_data) {
+			mutex_unlock(&lsm_dev->lock);
+			return -EINVAL;
+		}
+		rc = msm_lsm_ioctl(NULL, &substream, SNDRV_LSM_GET_MODULE_PARAMS,
+				   u64_to_user_ptr(param.info));
+		mutex_unlock(&lsm_dev->lock);
+		return rc;
+	}
 		case LSM_LUT_CLEAR_INFO:
 		{
 			struct snd_pcm_substream substream;
