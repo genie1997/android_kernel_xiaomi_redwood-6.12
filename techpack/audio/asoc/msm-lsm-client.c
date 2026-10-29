@@ -102,7 +102,8 @@ enum
 {
 	SET_INFO = 1,
 	GET_INFO,
-	CLEAR_INFO
+	CLEAR_INFO,
+	CLEAR_PCM_INFO
 };
 
 #endif
@@ -3069,13 +3070,21 @@ static int msm_lsm_cdev_session_lut(struct snd_pcm_substream *substream, uint8_t
 	{
 		case SET_INFO:
 			ret = -ENODEV;
+			/* reuse the slot of this PCM if one is left, so a lookup never finds an older copy first */
 			for (i = 0; i < LSM_MAX_SESSION_COUNT; i++) {
-				if (sub_str_info[i].pcm == NULL) {
-					memcpy(&sub_str_info[i], substream,
-							sizeof(struct snd_pcm_substream));
-					ret = 0;
+				if (sub_str_info[i].pcm == substream->pcm)
 					break;
+			}
+			if (i == LSM_MAX_SESSION_COUNT) {
+				for (i = 0; i < LSM_MAX_SESSION_COUNT; i++) {
+					if (sub_str_info[i].pcm == NULL)
+						break;
 				}
+			}
+			if (i < LSM_MAX_SESSION_COUNT) {
+				memcpy(&sub_str_info[i], substream,
+						sizeof(struct snd_pcm_substream));
+				ret = 0;
 			}
 			break;
 		case GET_INFO:
@@ -3111,6 +3120,13 @@ static int msm_lsm_cdev_session_lut(struct snd_pcm_substream *substream, uint8_t
 				{
 					ret = -ENODEV;
 				}
+			}
+			break;
+		case CLEAR_PCM_INFO:
+			for (i = 0; i < LSM_MAX_SESSION_COUNT; i++) {
+				if (sub_str_info[i].pcm == substream->pcm)
+					memset(&sub_str_info[i], 0,
+							sizeof(struct snd_pcm_substream));
 			}
 			break;
 		default:
@@ -3473,7 +3489,7 @@ static int msm_lsm_close(struct snd_soc_component *component, struct snd_pcm_sub
 	wake_up(&prtd->event_wait);
 
 	/* Clear LUT *before* freeing, so ioctl re-validation returns -EINVAL. */
-	msm_lsm_cdev_session_lut(substream, CLEAR_INFO);
+	msm_lsm_cdev_session_lut(substream, CLEAR_PCM_INFO);
 
 	/* Serialize: wait for any ioctl currently holding lsm_api_lock to finish. */
 	mutex_lock(&prtd->lsm_api_lock);
