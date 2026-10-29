@@ -3071,6 +3071,7 @@ static int msm_lsm_cdev_session_lut(struct snd_pcm_substream *substream, uint8_t
 			}
 			break;
 		case GET_INFO:
+			ret = -ENODEV;
 			for (i = 0; i < LSM_MAX_SESSION_COUNT; i++)
 			{
 				if (sub_str_info[i].pcm == NULL)
@@ -3082,10 +3083,6 @@ static int msm_lsm_cdev_session_lut(struct snd_pcm_substream *substream, uint8_t
 							sizeof(struct snd_pcm_substream));
 					ret = 0;
 					break;
-				}
-				else
-				{
-					ret = -ENODEV;
 				}
 			}
 			break;
