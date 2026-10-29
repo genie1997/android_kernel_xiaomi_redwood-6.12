@@ -4646,6 +4646,25 @@ static int msm_lsm_det_event_info_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+/* a session's last detection: det_event if generic, else event_status; hold event_lock */
+static bool msm_lsm_get_det_event(struct lsm_priv *prtd, uint16_t *status,
+				  uint16_t *payload_size, uint8_t **payload)
+{
+	if (prtd->det_event) {
+		*status = prtd->det_event->status;
+		*payload_size = prtd->det_event->payload_size;
+		*payload = (uint8_t *)prtd->det_event + sizeof(*prtd->det_event);
+		return true;
+	}
+	if (prtd->event_status) {
+		*status = prtd->event_status->status;
+		*payload_size = prtd->event_status->payload_size;
+		*payload = (uint8_t *)prtd->event_status + sizeof(*prtd->event_status);
+		return true;
+	}
+	return false;
+}
+
 static int msm_lsm_det_event_info_get(struct snd_kcontrol *kcontrol,
 		unsigned int __user *bytes, unsigned int size)
 {
@@ -4658,6 +4677,7 @@ static int msm_lsm_det_event_info_get(struct snd_kcontrol *kcontrol,
 	struct snd_lsm_event_status *user;
 	struct snd_pcm_substream *substream;
 	uint16_t status = 0, payload_size = 0;
+	uint8_t *event_payload;
 	struct lsm_char_dev *lsm_dev;
 	struct snd_soc_component *component = NULL;
 
@@ -4717,7 +4737,8 @@ static int msm_lsm_det_event_info_get(struct snd_kcontrol *kcontrol,
 
 		spin_lock_irqsave(&prtd->event_lock, flags);
 
-		if (!prtd->det_event) {
+		if (!msm_lsm_get_det_event(prtd, &status, &payload_size,
+					   &event_payload)) {
 			spin_unlock_irqrestore(&prtd->event_lock, flags);
 			dev_err(rtd->dev,
 					"%s: %s: prtd->event_status is NULL\n",
@@ -4726,9 +4747,6 @@ static int msm_lsm_det_event_info_get(struct snd_kcontrol *kcontrol,
 			err = -EINVAL;
 			goto err_free_user_unlock;
 		}
-
-		payload_size = prtd->det_event->payload_size;
-		status = prtd->det_event->status;
 
 		if (user->payload_size < payload_size) {
 			spin_unlock_irqrestore(&prtd->event_lock, flags);
@@ -4742,8 +4760,7 @@ static int msm_lsm_det_event_info_get(struct snd_kcontrol *kcontrol,
 
 		user->status = status;
 		user->payload_size = payload_size;
-		memcpy((uint8_t *)user + sizeof(*user),
-				(uint8_t *)prtd->det_event + sizeof(*prtd->det_event),
+		memcpy((uint8_t *)user + sizeof(*user), event_payload,
 				payload_size);
 		spin_unlock_irqrestore(&prtd->event_lock, flags);
 
@@ -5149,34 +5166,27 @@ static long msm_lsm_cdev_ioctl(struct file *file,
 		dev_dbg(rtd->dev, "%s: wait_event_freezable %d event_wait_stop %d\n",
 				__func__, rc, xchg);
 
+		lsm_info.det_status = 0;
 		if (!rc && !xchg) {
+			uint16_t status, payload_size;
+			uint8_t *event_payload;
+
 			dev_dbg(rtd->dev, "%s: %s: New event available %ld\n",
 					__func__, "SNDRV_LSM_GENERIC_DET_EVENT",
 					prtd->event_avail);
 
 			spin_lock_irqsave(&prtd->event_lock, flags);
-
-
-			if (prtd->det_event) {
-				lsm_info.det_status = prtd->det_event->status;
-				spin_unlock_irqrestore(&prtd->event_lock,
-						flags);
-			} else {
-				spin_unlock_irqrestore(&prtd->event_lock,
-						flags);
-				dev_dbg(rtd->dev,
-					"%s: %s: prtd->event_status is NULL\n",
+			if (msm_lsm_get_det_event(prtd, &status, &payload_size,
+						  &event_payload))
+				lsm_info.det_status = status;
+			else
+				dev_dbg(rtd->dev, "%s: %s: no detection event\n",
 						__func__,
 						"SNDRV_LSM_GENERIC_DET_EVENT");
-				rc = -EINVAL;
-				break;
-			}
-
+			spin_unlock_irqrestore(&prtd->event_lock, flags);
 		} else if (xchg) {
-			lsm_info.det_status = 0;
 			dev_dbg(rtd->dev, "%s: %s: Wait aborted\n",
 					__func__, "SNDRV_LSM_GENERIC_DET_EVENT");
-			rc = 0;
 		}
 		__pm_relax(prtd->ws); /* moved inside the lock scope */
 		mutex_unlock(&prtd->lsm_api_lock);
