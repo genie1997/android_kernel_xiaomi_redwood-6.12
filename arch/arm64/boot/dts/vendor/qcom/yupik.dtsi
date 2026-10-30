@@ -3180,6 +3180,11 @@
 			qcom,rproc-handle = <&cdsp_pas>;
 			qcom,ssr-name = "cdsp";
 		};
+
+		wpss {
+			qcom,rproc-handle = <&wpss_pas>;
+			qcom,ssr-name = "wpss";
+		};
 	};
 
 	/* The audio stack learns ADSP up and down (APR, PDR) through this notifier */
