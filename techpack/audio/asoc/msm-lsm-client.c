@@ -4985,7 +4985,8 @@ static int msm_lsm_add_va_controls(struct snd_soc_pcm_runtime *rtd)
 	struct snd_pcm *pcm = rtd->pcm;
 	struct snd_pcm_va_info *va_dev_info = NULL;
 	struct snd_kcontrol_new ctl_copy;
-	char ctl_name[128];
+	/* the HAL builds the same names into a buffer of this size, so both sides cut them alike */
+	char ctl_name[SNDRV_CTL_ELEM_ID_NAME_MAXLEN];
 
 	for (i = 0; i < ARRAY_SIZE(va_mixer_ctl); i++)
 	{
