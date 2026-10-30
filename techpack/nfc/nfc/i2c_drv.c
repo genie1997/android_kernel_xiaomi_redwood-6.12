@@ -44,6 +44,7 @@
 #include <linux/delay.h>
 #include <linux/uaccess.h>
 #include <linux/gpio.h>
+#include <linux/hwid.h>
 #ifdef CONFIG_COMPAT
 #include <linux/compat.h>
 #endif
@@ -359,6 +360,11 @@ int nfc_i2c_dev_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	struct platform_configs *nfc_configs = NULL;
 	struct platform_gpio *nfc_gpio = NULL;
 	pr_debug("NxpDrv: %s: enter\n", __func__);
+	/* The Indian variant has no NFC controller: stay bound without a node, so the unused supply can still turn off */
+	if (get_hw_country_version() == CountryIndia) {
+		pr_info("NxpDrv: %s: no NFC controller on this variant\n", __func__);
+		return 0;
+	}
 	nfc_dev = kzalloc(sizeof(struct nfc_dev), GFP_KERNEL);
 	if (nfc_dev == NULL) {
 		ret = -ENOMEM;
@@ -489,12 +495,8 @@ int nfc_i2c_dev_remove(struct i2c_client *client)
 
 	pr_info("NxpDrv: %s: remove device\n", __func__);
 	nfc_dev = i2c_get_clientdata(client);
-	if (!nfc_dev) {
-		pr_err("NxpDrv: %s: device doesn't exist anymore\n", __func__);
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
-		return -ENODEV;
-#endif
-	}
+	if (!nfc_dev)
+		return;
 	if (nfc_dev->dev_ref_count > 0) {
 		pr_err("NxpDrv: %s: device already in use\n", __func__);
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
@@ -530,10 +532,8 @@ int nfc_i2c_dev_suspend(struct device *device)
 	struct i2c_client *client = to_i2c_client(device);
 	struct nfc_dev *nfc_dev = i2c_get_clientdata(client);
 	struct i2c_dev *i2c_dev = NULL;
-	if (!nfc_dev) {
-		pr_err("NxpDrv: %s: device doesn't exist anymore\n", __func__);
-		return -ENODEV;
-	}
+	if (!nfc_dev)
+		return 0;
 	i2c_dev = &nfc_dev->i2c_dev;
 
 	NFCLOG_IPC(nfc_dev, false, "%s: irq_enabled = %d", __func__,
@@ -552,10 +552,8 @@ int nfc_i2c_dev_resume(struct device *device)
 	struct i2c_client *client = to_i2c_client(device);
 	struct nfc_dev *nfc_dev = i2c_get_clientdata(client);
 	struct i2c_dev *i2c_dev = NULL;
-	if (!nfc_dev) {
-		pr_err("NxpDrv: %s: device doesn't exist anymore\n", __func__);
-		return -ENODEV;
-	}
+	if (!nfc_dev)
+		return 0;
 	i2c_dev = &nfc_dev->i2c_dev;
 
 	NFCLOG_IPC(nfc_dev, false, "%s: irq_wake_up = %d", __func__,
