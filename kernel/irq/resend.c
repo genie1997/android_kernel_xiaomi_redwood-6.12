@@ -89,7 +89,7 @@ static int irq_sw_resend(struct irq_desc *desc)
 }
 
 /*
- * A line the GIC keeps to hardirq handling is replayed here, as on 5.4: on this phone its GIC
+ * A line the GIC keeps to hardirq handling is replayed from the tasklet: on this phone its GIC
  * set-pending write is trapped by the hypervisor and can stop the SoC on resume from suspend
  */
 static bool irq_tasklet_replay(struct irq_desc *desc)
