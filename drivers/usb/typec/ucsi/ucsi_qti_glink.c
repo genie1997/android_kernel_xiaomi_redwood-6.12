@@ -38,6 +38,8 @@
 #define UCSI_LOG_BUF_SIZE		256
 #define NUM_LOG_PAGES			10
 #define UCSI_WAIT_TIME_MS		5000
+#define UCSI_INIT_RETRIES		3
+#define UCSI_INIT_CHECK_MS		1000
 
 #define ucsi_dbg(fmt, ...) \
 	do { \
@@ -91,6 +93,8 @@ struct ucsi_dev {
 	atomic_t			rx_valid;
 	struct work_struct		setup_work;
 	struct work_struct		unregister_work;
+	struct delayed_work		init_check_work;
+	unsigned int			init_retries;
 	atomic_t			state;
 	bool				remoteproc_timestamp_en;
 };
@@ -536,6 +540,8 @@ static int ucsi_setup(struct ucsi_dev *udev)
 		return rc;
 	}
 
+	schedule_delayed_work(&udev->init_check_work,
+			      msecs_to_jiffies(UCSI_INIT_CHECK_MS));
 	mutex_unlock(&udev->state_lock);
 	return 0;
 }
@@ -565,6 +571,48 @@ static void ucsi_qti_unregister_work(struct work_struct *work)
 	mutex_unlock(&udev->state_lock);
 }
 
+/* ucsi_register() only queues the PPM init, and a failed init leaves no port until the next boot */
+static void ucsi_qti_init_check_work(struct work_struct *work)
+{
+	struct ucsi_dev *udev = container_of(to_delayed_work(work),
+			struct ucsi_dev, init_check_work);
+	struct ucsi *ucsi = udev->ucsi;
+
+	if (!ucsi || atomic_read(&udev->state) != PMIC_GLINK_STATE_UP)
+		return;
+
+	if (delayed_work_pending(&ucsi->work) || work_busy(&ucsi->work.work)) {
+		schedule_delayed_work(&udev->init_check_work,
+				      msecs_to_jiffies(UCSI_INIT_CHECK_MS));
+		return;
+	}
+
+	if (ucsi->connector)
+		return;
+
+	if (udev->init_retries >= UCSI_INIT_RETRIES) {
+		dev_err(udev->dev, "PPM init failed after %u retries\n",
+			udev->init_retries);
+		return;
+	}
+
+	udev->init_retries++;
+	dev_warn(udev->dev, "PPM init failed, registering UCSI again (%u/%u)\n",
+		 udev->init_retries, UCSI_INIT_RETRIES);
+
+	mutex_lock(&udev->state_lock);
+	if (udev->ucsi != ucsi) {
+		mutex_unlock(&udev->state_lock);
+		return;
+	}
+	ucsi_unregister(ucsi);
+	ucsi_destroy(ucsi);
+	udev->ucsi = NULL;
+	mutex_unlock(&udev->state_lock);
+
+	ucsi_setup(udev);
+}
+
 static void ucsi_qti_state_cb(void *priv, enum pmic_glink_state state)
 {
 	struct ucsi_dev *udev = priv;
@@ -577,11 +625,13 @@ static void ucsi_qti_state_cb(void *priv, enum pmic_glink_state state)
 
 	switch (state) {
 	case PMIC_GLINK_STATE_DOWN:
+		cancel_delayed_work_sync(&udev->init_check_work);
 		cancel_work_sync(&udev->setup_work);
 		schedule_work(&udev->unregister_work);
 		break;
 	case PMIC_GLINK_STATE_UP:
 		cancel_work_sync(&udev->unregister_work);
+		udev->init_retries = 0;
 		schedule_work(&udev->setup_work);
 		break;
 	default:
@@ -603,6 +653,7 @@ static int ucsi_probe(struct platform_device *pdev)
 
 	INIT_WORK(&udev->setup_work, ucsi_qti_setup_work);
 	INIT_WORK(&udev->unregister_work, ucsi_qti_unregister_work);
+	INIT_DELAYED_WORK(&udev->init_check_work, ucsi_qti_init_check_work);
 	mutex_init(&udev->read_lock);
 	mutex_init(&udev->write_lock);
 	mutex_init(&udev->state_lock);
@@ -679,8 +730,9 @@ static void ucsi_remove(struct platform_device *pdev)
 	int rc;
 
 	debugfs_remove_recursive(udev->debugfs_dir);
+	cancel_delayed_work_sync(&udev->init_check_work);
 	cancel_work_sync(&udev->setup_work);
-	if (!cancel_work_sync(&udev->unregister_work)) {
+	if (!cancel_work_sync(&udev->unregister_work) && udev->ucsi) {
 		ucsi_unregister(udev->ucsi);
 		ucsi_destroy(udev->ucsi);
 	}
