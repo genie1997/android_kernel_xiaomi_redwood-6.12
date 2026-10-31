@@ -3090,6 +3090,7 @@
   snd_interval_refine
   snd_jack_set_key
   snd_pcm_format_width
+  snd_pcm_hw_constraint_msbits
   _snd_pcm_hw_params_any
   snd_pcm_stream_lock
   snd_pcm_stream_unlock
@@ -3414,6 +3415,7 @@
   __traceiter_android_rvh_migrate_queued_task
   __traceiter_android_rvh_new_task_stats
   __traceiter_android_rvh_prepare_prio_fork
+  __traceiter_android_rvh_psci_system_reset2
   __traceiter_android_rvh_replace_next_task_fair
   __traceiter_android_rvh_rtmutex_prepare_setprio
   __traceiter_android_rvh_rto_next_cpu
@@ -3564,6 +3566,7 @@
   __tracepoint_android_rvh_migrate_queued_task
   __tracepoint_android_rvh_new_task_stats
   __tracepoint_android_rvh_prepare_prio_fork
+  __tracepoint_android_rvh_psci_system_reset2
   __tracepoint_android_rvh_replace_next_task_fair
   __tracepoint_android_rvh_rtmutex_prepare_setprio
   __tracepoint_android_rvh_rto_next_cpu

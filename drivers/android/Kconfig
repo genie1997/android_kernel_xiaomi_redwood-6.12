@@ -105,7 +105,7 @@ config ANDROID_VENDOR_OEM_DATA
 
 	  If even slightly unsure, say Y.
 
-config ANDROID_WRAPFD
+config ANDROID_WRAPFD_LEGACY
 	bool "WrapFD Driver"
 	depends on MMU
 	help
@@ -114,5 +114,16 @@ config ANDROID_WRAPFD
 	  WrapFD allows wrapping an fd representing a memory buffer into a new
 	  file supporting ioctl API for file ownership that controls ability to
 	  map the file.
+
+config GUEST_DMA_PROXY
+	tristate "Guest DMA-Buf Proxy Driver"
+	select DMA_SHARED_BUFFER
+	help
+	  This driver provides an ioctl interface for guest userspace to convert
+	  hypervisor-injected physical address ranges (e.g., from host shared memory)
+	  into standard dma-buf file descriptors.
+	  Say Y or M here if building a kernel for Microdroid or guest pVMs.
+
+source "drivers/android/wrapfd/Kconfig"
 
 endmenu
