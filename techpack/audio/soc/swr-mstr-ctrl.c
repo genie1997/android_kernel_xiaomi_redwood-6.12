@@ -4119,17 +4119,17 @@ static int swrm_device_down(struct device *dev)
 int swrm_register_wake_irq(struct swr_mstr_ctrl *swrm)
 {
 	int ret = 0;
-	int irq, dir_apps_irq;
+	int irq, dir_apps_irq, wake_irq;
 
 	if (!swrm->ipc_wakeup) {
 		irq = of_get_named_gpio(swrm->dev->of_node,
 					"qcom,swr-wakeup-irq", 0);
 		if (gpio_is_valid(irq)) {
-			swrm->wake_irq = gpio_to_irq(irq);
-			if (swrm->wake_irq < 0) {
+			wake_irq = gpio_to_irq(irq);
+			if (wake_irq < 0) {
 				dev_err_ratelimited(swrm->dev,
 					"Unable to configure irq\n");
-				return swrm->wake_irq;
+				return wake_irq;
 			}
 		} else {
 			dir_apps_irq = platform_get_irq_byname(swrm->pdev,
@@ -4139,9 +4139,9 @@ int swrm_register_wake_irq(struct swr_mstr_ctrl *swrm)
 					"TLMM connect gpio not found\n");
 				return -EINVAL;
 			}
-			swrm->wake_irq = dir_apps_irq;
+			wake_irq = dir_apps_irq;
 		}
-		ret = request_threaded_irq(swrm->wake_irq, NULL,
+		ret = request_threaded_irq(wake_irq, NULL,
 					   swrm_wakeup_interrupt,
 					   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
 					   "swr_wake_irq", swrm);
@@ -4150,7 +4150,9 @@ int swrm_register_wake_irq(struct swr_mstr_ctrl *swrm)
 				__func__, ret);
 			return -EINVAL;
 		}
-		irq_set_irq_wake(swrm->wake_irq, 1);
+		irq_set_irq_wake(wake_irq, 1);
+		/* runtime suspend enables wake_irq without mlock: publish it only once requested */
+		swrm->wake_irq = wake_irq;
 	}
 	return ret;
 }
