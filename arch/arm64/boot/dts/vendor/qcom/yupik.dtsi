@@ -30,7 +30,7 @@
 	#size-cells = <2>;
 
 	chosen: chosen {
-		bootargs = "loglevel=6 log_buf_len=512K rcupdate.rcu_expedited=1 printk.console_no_auto_verbose=1 rcu_nocbs=0-7 kpti=0 cpufreq.default_governor=performance pcie_ports=compat fw_devlink.strict=1 android_arch_task_struct_size=512 arm64.nosme sysctl.kernel.sched_pelt_multiplier=4 no-steal-acc swiotlb=0 loop.max_part=7 irqaffinity=0-1 kasan=off cgroup_disable=pressure sysctl.kernel.panic_on_rcu_stall=1 ftrace_dump_on_oops restrict_cma_redirect=false slub_debug=-";
+		bootargs = "loglevel=6 log_buf_len=512K rcupdate.rcu_expedited=1 printk.console_no_auto_verbose=1 rcu_nocbs=0-7 kpti=0 pcie_ports=compat fw_devlink.strict=1 android_arch_task_struct_size=512 arm64.nosme sysctl.kernel.sched_pelt_multiplier=4 no-steal-acc swiotlb=0 loop.max_part=7 irqaffinity=0-1 kasan=off cgroup_disable=pressure sysctl.kernel.panic_on_rcu_stall=1 ftrace_dump_on_oops restrict_cma_redirect=false slub_debug=-";
 		stdout-path = "/soc/qcom,qupv3_0_geni_se@9c0000/qcom,qup_uart@994000:115200n8";
 	};
 
