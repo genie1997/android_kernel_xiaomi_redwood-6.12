@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: GPL-2.0-only
+
+config SCHED_CASS
+	tristate "Capacity Aware Superset Scheduler task placement"
+	depends on m && SMP && UCLAMP_TASK && CPU_FREQ_GOV_SCHEDUTIL && ANDROID_VENDOR_HOOKS
+	help
+	  Places CFS and RT tasks with the Capacity Aware Superset Scheduler
+	  through the restricted scheduler vendor hooks, so the core scheduler
+	  stays as it is. Light wakeups keep energy aware placement, an idle
+	  smaller CPU is preferred for any task that fits it, and the busy share
+	  of the last window keeps a floor under the schedutil clock for streams
+	  of short tasks.
