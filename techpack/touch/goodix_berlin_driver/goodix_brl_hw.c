@@ -478,7 +478,8 @@ static int brl_flash_read(struct goodix_ts_core *cd,
     struct flash_head head_info;
     u8 *p = (u8 *)&head_info.address;
 
-    tmp_buf = kzalloc(len + sizeof(head_info), GFP_KERNEL);
+    /* The checksum adds 16-bit words, an odd length needs a zero pad byte */
+    tmp_buf = kzalloc(ALIGN(len + sizeof(head_info), 2), GFP_KERNEL);
     if (!tmp_buf)
         return -ENOMEM;
 
