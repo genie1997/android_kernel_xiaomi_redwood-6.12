@@ -2,14 +2,15 @@
 
 config SCHED_CASS
 	tristate "Capacity Aware Superset Scheduler task placement"
-	depends on m && SMP && UCLAMP_TASK && CPU_FREQ_GOV_SCHEDUTIL && ANDROID_VENDOR_HOOKS
+	depends on m && SMP && UCLAMP_TASK_GROUP && CPU_FREQ_GOV_SCHEDUTIL && ANDROID_VENDOR_HOOKS
 	help
 	  Places CFS and RT tasks with the Capacity Aware Superset Scheduler
 	  through the restricted scheduler vendor hooks, so the core scheduler
-	  stays as it is. Light wakeups keep energy aware placement, an idle
-	  smaller CPU is preferred for any task that fits it, and the busy share
-	  of the last window keeps a floor under the schedutil clock for streams
-	  of short tasks.
+	  stays as it is. The foreground app (a latency sensitive group) takes
+	  the faster idle CPU. Other tasks keep energy aware placement for
+	  light wakeups and prefer an idle smaller CPU that fits them. The
+	  busy share of the last window keeps a floor under the schedutil
+	  clock for streams of short tasks.
 
 config SCHED_SCREEN_IDLE
 	tristate "Shallow CPU idle while the panel is on"

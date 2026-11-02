@@ -31,6 +31,17 @@ static unsigned int rt_mode = 2;
 module_param_named(rt, rt_mode, uint, 0644);
 MODULE_PARM_DESC(rt, "RT task placement: 0 kernel, 1 CASS, 2 CASS preferring the smaller idle CPU");
 
+static unsigned int small_idle = 1;
+module_param(small_idle, uint, 0644);
+MODULE_PARM_DESC(small_idle,
+		 "Smaller idle CPU first: 0 never, 1 outside latency sensitive groups, 2 always");
+
+/* The foreground app runs in a latency sensitive group */
+static inline bool cass_foreground(struct task_struct *p)
+{
+	return READ_ONCE(small_idle) != 2 && task_group(p)->latency_sensitive;
+}
+
 static unsigned int busy_window_ms = 16;
 module_param(busy_window_ms, uint, 0644);
 MODULE_PARM_DESC(busy_window_ms, "Clock floor from a cluster's busy share of a window, 0 off");
@@ -222,7 +233,7 @@ static inline bool cass_prime_cpu(const struct cass_cpu_cand *c)
 /* Returns true if @a is a better CPU than @b */
 static bool cass_cpu_better(const struct cass_cpu_cand *a,
 			    const struct cass_cpu_cand *b, unsigned long p_util,
-			    int this_cpu, int prev_cpu, bool sync, bool rt)
+			    int this_cpu, int prev_cpu, bool sync, bool small)
 {
 #define cass_cmp(a, b) ({ res = (a) - (b); })
 #define cass_eq(a, b) ({ res = (a) == (b); })
@@ -246,8 +257,8 @@ static bool cass_cpu_better(const struct cass_cpu_cand *a,
 	if (cass_cmp(cass_prime_cpu(b), cass_prime_cpu(a)))
 		goto done;
 
-	/* Prefer the smaller idle CPU for a task that fits it, sync wakes aside; RT on request */
-	if ((!rt || READ_ONCE(rt_mode) == 2) && a->exit_lat && b->exit_lat &&
+	/* Prefer the smaller idle CPU for a task that fits it, sync wakes aside */
+	if (small && a->exit_lat && b->exit_lat &&
 	    cass_fits(p_util, a->cpu) &&
 	    !(sync && (a->cpu == this_cpu || b->cpu == this_cpu)) &&
 	    cass_cmp(b->cap_orig, a->cap_orig))
@@ -291,10 +302,16 @@ static int cass_best_cpu(struct task_struct *p, int prev_cpu, bool sync,
 	struct cass_cpu_cand cands[2], *best = cands;
 	int this_cpu = raw_smp_processor_id();
 	unsigned long uc_min;
-	bool has_idle = false;
+	bool has_idle = false, small;
 	int cidx = 0, cpu;
 
 	uc_min = uclamp_eff_value(p, UCLAMP_MIN);
+
+	/* The foreground app takes the faster idle CPU */
+	if (rt)
+		small = READ_ONCE(rt_mode) == 2;
+	else
+		small = READ_ONCE(small_idle) && !cass_foreground(p);
 
 	/* Not preemptible here, so idle_get_state() needs no rcu_read_lock() */
 	for_each_cpu_and(cpu, p->cpus_ptr, cpu_active_mask) {
@@ -353,7 +370,7 @@ static int cass_best_cpu(struct task_struct *p, int prev_cpu, bool sync,
 		curr->util = curr->util * SCHED_CAPACITY_SCALE / curr->cap_no_therm;
 
 		if (best == curr ||
-		    cass_cpu_better(curr, best, p_util, this_cpu, prev_cpu, sync, rt)) {
+		    cass_cpu_better(curr, best, p_util, this_cpu, prev_cpu, sync, small)) {
 			best = curr;
 			cidx ^= 1;
 		}
@@ -381,11 +398,11 @@ static void cass_select_task_rq_fair(void *unused, struct task_struct *p,
 	    unlikely(!cpumask_intersects(p->cpus_ptr, cpu_active_mask)))
 		return;
 
-	/* Light unboosted wakeups stay with energy aware placement while it runs */
+	/* Light unboosted background wakeups stay with energy aware placement while it runs */
 	if ((wake_flags & WF_TTWU) && sched_energy_enabled() &&
 	    !READ_ONCE(this_rq()->rd->overutilized) &&
 	    cass_task_util(p) < READ_ONCE(eas_gate) &&
-	    !uclamp_eff_value(p, UCLAMP_MIN))
+	    !uclamp_eff_value(p, UCLAMP_MIN) && !cass_foreground(p))
 		return;
 
 	/* A fork inside a stream of work is placed the kernel's way */
