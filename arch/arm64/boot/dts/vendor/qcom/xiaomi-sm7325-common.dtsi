@@ -449,6 +449,10 @@
 		board-sensor = "VIRTUAL-SENSOR";
 	};
 
+	screen_idle: screen-idle {
+		compatible = "xiaomi,screen-idle";
+	};
+
 	xiaomi_touch {
 		compatible = "xiaomi-touch";
 		status = "ok";

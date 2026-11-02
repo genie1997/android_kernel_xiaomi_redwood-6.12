@@ -138,6 +138,10 @@
 	qcom,display-panels = <&dsi_m20_36_02_0a_dsc_vid &dsi_m20_42_0d_0b_dsc_vid>;
 };
 
+&screen_idle {
+	qcom,display-panels = <&dsi_m20_36_02_0a_dsc_vid &dsi_m20_42_0d_0b_dsc_vid>;
+};
+
 &qupv3_se13_spi {
 	xiaomi_m20_touch@0 {
 		qcom,display-panels = <&dsi_m20_36_02_0a_dsc_vid &dsi_m20_42_0d_0b_dsc_vid>;
