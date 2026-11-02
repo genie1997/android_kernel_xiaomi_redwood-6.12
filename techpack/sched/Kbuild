@@ -4,3 +4,6 @@ ccflags-y += -I$(srctree)
 
 obj-$(CONFIG_SCHED_CASS) += sched-cass.o
 sched-cass-y := cass.o
+
+obj-$(CONFIG_SCHED_SCREEN_IDLE) += screen-idle.o
+screen-idle-y := screen_idle.o

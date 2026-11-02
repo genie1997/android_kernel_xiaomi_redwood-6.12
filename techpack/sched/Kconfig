@@ -10,3 +10,13 @@ config SCHED_CASS
 	  smaller CPU is preferred for any task that fits it, and the busy share
 	  of the last window keeps a floor under the schedutil clock for streams
 	  of short tasks.
+
+config SCHED_SCREEN_IDLE
+	tristate "Shallow CPU idle while the panel is on"
+	depends on m && QCOM_PANEL_EVENT_NOTIFIER && DRM_PANEL
+	help
+	  Holds a CPU wakeup latency request while the primary panel is on, so
+	  idle CPUs stay in their shallow state and answer a wakeup within
+	  microseconds instead of leaving a power collapse. The request drops
+	  when the panel blanks or enters low power, which leaves the deep
+	  states to standby and always on display.
