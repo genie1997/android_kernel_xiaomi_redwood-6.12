@@ -65,7 +65,7 @@ static bool pool_zone_watermark_ok(struct zone *z, unsigned int order,
 	if (!order)
 		return true;
 
-	for (o = order; o < MAX_PAGE_ORDER; o++) {
+	for (o = order; o < NR_PAGE_ORDERS; o++) {
 		struct free_area *area = &z->free_area[o];
 
 		if (!area->nr_free)
