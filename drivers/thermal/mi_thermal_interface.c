@@ -94,6 +94,7 @@ static void cpu_limits_set_level(unsigned int cpu, unsigned int max_freq)
 	struct cpufreq_device *cpufreq_dev;
 	unsigned int level = 0;
 
+	mutex_lock(&cpufreq_list_lock);
 	list_for_each_entry(cpufreq_dev, &cpufreq_dev_list, node) {
 		if (cpufreq_dev->id == cpu) {
 			for (level = 0; level <= cpufreq_dev->max_level; level++) {
@@ -105,6 +106,7 @@ static void cpu_limits_set_level(unsigned int cpu, unsigned int max_freq)
 			break;
 		}
 	}
+	mutex_unlock(&cpufreq_list_lock);
 }
 
 static unsigned int find_next_max(struct cpufreq_frequency_table *table,
@@ -132,6 +134,10 @@ static int cpu_thermal_init(void)
 		struct cpufreq_device *cpufreq_dev;
 
 		req = &per_cpu(qos_req, cpu);
+		/* set up by an earlier pass */
+		if (freq_qos_request_active(req))
+			continue;
+
 		policy = cpufreq_cpu_get(cpu);
 		if (!policy) {
 			pr_err("%s: cpufreq policy not found for cpu%d\n",
@@ -184,6 +190,17 @@ static int cpu_thermal_init(void)
 		mutex_unlock(&cpufreq_list_lock);
 	}
 	return ret;
+}
+
+/* the CPU frequency driver is a module too and may add its policies after this one loads */
+static int cpu_thermal_retries = 10;
+static void cpu_thermal_init_work(struct work_struct *work);
+static DECLARE_DELAYED_WORK(cpu_thermal_dw, cpu_thermal_init_work);
+
+static void cpu_thermal_init_work(struct work_struct *work)
+{
+	if (cpu_thermal_init() == -ESRCH && cpu_thermal_retries-- > 0)
+		schedule_delayed_work(&cpu_thermal_dw, 5 * HZ);
 }
 
 static void destory_thermal_cpu(void)
@@ -695,7 +712,8 @@ static int __init mi_thermal_interface_init(void)
 		return ret;
 	}
 
-	cpu_thermal_init();
+	if (cpu_thermal_init() == -ESRCH)
+		schedule_delayed_work(&cpu_thermal_dw, 5 * HZ);
 
 	ret = of_parse_thermal_message();
 	if (ret)
@@ -725,6 +743,7 @@ late_initcall(mi_thermal_interface_init);
 static void __exit mi_thermal_interface_exit(void)
 {
 	cancel_delayed_work_sync(&panel_dw);
+	cancel_delayed_work_sync(&cpu_thermal_dw);
 	panel_event_notifier_unregister(panel_cookie);
 	of_node_put(panel_np);
 	destroy_thermal_message_node();
