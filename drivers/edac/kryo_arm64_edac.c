@@ -220,9 +220,9 @@ static int request_erp_irq(struct platform_device *pdev, const char *propname,
 	struct erp_drvdata *temp = NULL;
 	int irq;
 
-	irq = platform_get_irq_byname(pdev, propname);
+	irq = platform_get_irq_byname_optional(pdev, propname);
 	if (irq < 0) {
-		pr_err("ARM64 CPU ERP: Could not find <%s> IRQ property. Proceeding anyway.\n",
+		pr_debug("ARM64 CPU ERP: Could not find <%s> IRQ property. Proceeding anyway.\n",
 			propname);
 		goto out;
 	}
