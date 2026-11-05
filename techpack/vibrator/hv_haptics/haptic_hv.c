@@ -902,7 +902,9 @@ static int rtp_stream_upload(struct aw_haptic *aw_haptic, struct ff_effect *effe
 	mutex_lock(&aw_haptic->rtp_lock);
 	old_rtp = aw_haptic->aw_rtp;
 	aw_haptic->aw_rtp = aw_rtp;
-	aw_haptic->rtp_init = true;
+	/* A running playback is at rtp_cnt of the old buffer; rtp_work starts this one */
+	aw_haptic->rtp_init = false;
+	aw_haptic->rtp_cnt = 0;
 	aw_haptic->rtp_from_user = true;
 	mutex_unlock(&aw_haptic->rtp_lock);
 	vfree(old_rtp);
