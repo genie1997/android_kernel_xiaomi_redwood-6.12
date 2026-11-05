@@ -36,6 +36,10 @@ module_param(small_idle, uint, 0644);
 MODULE_PARM_DESC(small_idle,
 		 "Smaller idle CPU first: 0 never, 1 outside latency sensitive groups, 2 always");
 
+static bool sync_wake = true;
+module_param(sync_wake, bool, 0644);
+MODULE_PARM_DESC(sync_wake, "A sync wakee takes the waker's CPU when the waker is the only task there");
+
 /* The foreground app runs in a latency sensitive group */
 static inline bool cass_foreground(struct task_struct *p)
 {
@@ -312,6 +316,15 @@ static int cass_best_cpu(struct task_struct *p, int prev_cpu, bool sync,
 		small = READ_ONCE(rt_mode) == 2;
 	else
 		small = READ_ONCE(small_idle) && !cass_foreground(p);
+
+	/* The waker sleeps next, so its CPU frees up without an idle exit or a migration */
+	if (sync && !rt && READ_ONCE(sync_wake) && in_task() &&
+	    cpu_rq(this_cpu)->nr_running == 1 && !rt_task(current) &&
+	    cpumask_test_cpu(this_cpu, p->cpus_ptr) &&
+	    cpumask_test_cpu(this_cpu, cpu_active_mask) &&
+	    uc_min <= arch_scale_cpu_capacity(this_cpu) &&
+	    cass_fits(p_util, this_cpu))
+		return this_cpu;
 
 	/* Not preemptible here, so idle_get_state() needs no rcu_read_lock() */
 	for_each_cpu_and(cpu, p->cpus_ptr, cpu_active_mask) {
