@@ -567,6 +567,11 @@ long qseecom_ioctl_32bit(struct file *file,
 		return qseecom_ioctl(file, convert_cmd(cmd), 0);
 	}
 	break;
+	case QSEECOM_IOCTL_PERF_ENABLE_REQ:
+	case QSEECOM_IOCTL_PERF_DISABLE_REQ:
+		return qseecom_ioctl(file, cmd, 0);
+	case QSEECOM_IOCTL_SET_BUS_SCALING_REQ:
+		return qseecom_ioctl(file, cmd, (unsigned long)compat_ptr(arg));
 	case QSEECOM_IOCTL_REGISTER_LISTENER_REQ_32BIT: {
 		struct qseecom_register_listener_req_32bit __user *data32;
 		struct qseecom_register_listener_req *data;
