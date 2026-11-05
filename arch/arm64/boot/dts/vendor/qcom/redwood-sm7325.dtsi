@@ -234,8 +234,8 @@
 		pinctrl-names = "default", "sleep";
 		pinctrl-0 = <&top_smartpa_int_active>;
 		pinctrl-1 = <&top_smartpa_int_suspend>;
-		aw-tx-topo-id = <0x1000ff01>;
-		aw-rx-topo-id = <0x1000ff00>;
+		aw-tx-topo-id = <0x1000ff00>;
+		aw-rx-topo-id = <0x1000ff01>;
 		aw-tx-port-id = <0x9001>;
 		aw-rx-port-id = <0x9000>;
 		aw-re-min = <4000>;
@@ -259,8 +259,8 @@
 		pinctrl-names = "default", "sleep";
 		pinctrl-0 = <&bot_smartpa_int_active>;
 		pinctrl-1 = <&bot_smartpa_int_suspend>;
-		aw-tx-topo-id = <0x1000ff01>;
-		aw-rx-topo-id = <0x1000ff00>;
+		aw-tx-topo-id = <0x1000ff00>;
+		aw-rx-topo-id = <0x1000ff01>;
 		aw-tx-port-id = <0x9001>;
 		aw-rx-port-id = <0x9000>;
 		aw-re-min = <4000>;
