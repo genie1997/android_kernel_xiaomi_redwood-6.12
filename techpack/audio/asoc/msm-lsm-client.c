@@ -3214,7 +3214,7 @@ static int msm_lsm_open(struct snd_soc_component *component, struct snd_pcm_subs
 	for (i = 0; i < LSM_MAX_STAGES_PER_SESSION; i++)
 		INIT_LIST_HEAD(&prtd->lsm_client->stage_cfg[i].sound_models);
 
-	prtd->ws = wakeup_source_register(rtd->dev, "lsm-client");
+	prtd->ws = wakeup_source_register(NULL, "lsm-client");
 
 #ifdef ENABLE_SVA_MIXER_CTL
 	msm_lsm_cdev_session_lut(substream, SET_INFO);
