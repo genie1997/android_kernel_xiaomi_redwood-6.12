@@ -2214,7 +2214,8 @@ static const struct thermal_cooling_device_ops kgsl_cooling_ops = {
 static int register_thermal_cooling_device(struct kgsl_device *device, struct device_node *np)
 {
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
-	const char *name = "kgsl";
+	/* the name the devfreq cooling device had; vendor thermal daemons look the GPU up by it */
+	const char *name = "thermal-devfreq-0";
 	int ret;
 
 	ret = dev_pm_qos_add_request(&device->pdev->dev, &pwr->pmqos_max_freq,
