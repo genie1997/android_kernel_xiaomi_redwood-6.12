@@ -199,7 +199,7 @@
 #define IPA_v4_11_GROUP_UL_DL		(0)
 #define IPA_v4_11_GROUP_NOT_USE		(1)
 #define IPA_v4_11_GROUP_DRB_IP		(2)
-#define IPA_v4_11_SRC_GROUP_MAX		(3)
+#define IPA_v4_11_SRC_GROUP_MAX		(1)
 #define IPA_v4_11_DST_GROUP_MAX		(3)
 
 #define IPA_v5_0_GROUP_UL			(0)
