@@ -8151,7 +8151,7 @@ static const struct snd_soc_component_driver msm_dai_q6_component = {
 
 static int msm_dai_q6_dev_probe(struct platform_device *pdev)
 {
-	int rc, id, i, len;
+	int rc, id, i;
 	const char *q6_dev_id = "qcom,msm-dai-q6-dev-id";
 	char stream_name[80];
 
@@ -8200,7 +8200,6 @@ static int msm_dai_q6_dev_probe(struct platform_device *pdev)
 		goto register_slim_playback;
 register_slim_playback:
 		rc = -ENODEV;
-		len = strnlen(stream_name, 80);
 		for (i = 0; i < ARRAY_SIZE(msm_dai_q6_slimbus_rx_dai); i++) {
 			if (msm_dai_q6_slimbus_rx_dai[i].playback.stream_name &&
 				!strcmp(stream_name,
@@ -8248,7 +8247,6 @@ register_slim_playback:
 		goto register_slim_capture;
 register_slim_capture:
 		rc = -ENODEV;
-		len = strnlen(stream_name, 80);
 		for (i = 0; i < ARRAY_SIZE(msm_dai_q6_slimbus_tx_dai); i++) {
 			if (msm_dai_q6_slimbus_tx_dai[i].capture.stream_name &&
 				!strcmp(stream_name,
@@ -8308,7 +8306,6 @@ register_slim_capture:
 		strscpy(stream_name, "AFE-PROXY RX", 80);
 register_afe_playback:
 		rc = -ENODEV;
-		len = strnlen(stream_name, 80);
 		for (i = 0; i < ARRAY_SIZE(msm_dai_q6_afe_rx_dai); i++) {
 			if (msm_dai_q6_afe_rx_dai[i].playback.stream_name &&
 			    !strcmp(stream_name,
@@ -8330,7 +8327,6 @@ register_afe_playback:
 		strscpy(stream_name, "AFE Capture", 80);
 register_afe_capture:
 		rc = -ENODEV;
-		len = strnlen(stream_name, 80);
 		for (i = 0; i < ARRAY_SIZE(msm_dai_q6_afe_tx_dai); i++) {
 			if (msm_dai_q6_afe_tx_dai[i].capture.stream_name &&
 				!strcmp(stream_name,
@@ -8356,7 +8352,6 @@ register_afe_capture:
 		strscpy(stream_name, "Voice2 Farend Playback", 80);
 register_voice_playback:
 		rc = -ENODEV;
-		len = strnlen(stream_name, 80);
 		for (i = 0; i < ARRAY_SIZE(msm_dai_q6_voc_playback_dai); i++) {
 			if (msm_dai_q6_voc_playback_dai[i].playback.stream_name
 			    && !strcmp(stream_name,
@@ -8378,7 +8373,6 @@ register_voice_playback:
 		strscpy(stream_name, "Voice Uplink Capture", 80);
 register_uplink_capture:
 		rc = -ENODEV;
-		len = strnlen(stream_name, 80);
 		for (i = 0; i < ARRAY_SIZE(msm_dai_q6_incall_record_dai); i++) {
 			if (msm_dai_q6_incall_record_dai[i].capture.stream_name
 			    && !strcmp(stream_name,
