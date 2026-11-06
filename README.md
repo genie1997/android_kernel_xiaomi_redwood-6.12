@@ -2,7 +2,7 @@
 
 Custom kernel for Xiaomi **redwood** (POCO X5 Pro 5G).
 
-`Linux 6.12.92` · `Android clang 19.0.1` · `arm64`
+`Linux 6.12.96` · `Android clang 19.0.1` · `arm64`
 
 Built on Google's android16-6.12 common kernel, with one core change for suspend and every Qualcomm and Xiaomi driver as a vendor module.
 
@@ -10,6 +10,7 @@ Built on Google's android16-6.12 common kernel, with one core change for suspend
 
 - **CASS** task placement by Sultan Alsawaf, as a vendor module
 - **MGLRU**, per-VMA locks, EEVDF, sched_ext
+- **64K** folios for anonymous memory
 - **zram** with lz4 and zstd, EROFS, f2fs compression, io_uring
 - **Clang CFI**, shadow call stack, pointer authentication
 
@@ -24,7 +25,7 @@ Clang and Rust versions are pinned in `build.config.constants`.
 
 ## Changelog
 
-[vajra-neo-redwood-6.12.md](https://github.com/genie1997/vajra-kernel-changelog/blob/main/vajra-neo-redwood-6.12.md)
+[vajra-neo-redwood-6.12.md](https://github.com/genie1997/kernel-changelog/blob/main/vajra-neo-redwood-6.12.md)
 
 ## License
 
