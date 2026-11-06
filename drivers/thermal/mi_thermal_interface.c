@@ -74,6 +74,10 @@ static LIST_HEAD(cpufreq_dev_list);
 static DEFINE_MUTEX(cpufreq_list_lock);
 static DEFINE_PER_CPU(struct freq_qos_request, qos_req);
 
+/* cpu_limits caps this many frequency steps above the request; 0 = the exact step */
+static unsigned int cap_margin = 3;
+module_param(cap_margin, uint, 0644);
+
 static int cpufreq_set_level(struct cpufreq_device *cdev, unsigned long state)
 {
 	/* Request state should be less than max_level */
@@ -99,6 +103,7 @@ static void cpu_limits_set_level(unsigned int cpu, unsigned int max_freq)
 		if (cpufreq_dev->id == cpu) {
 			for (level = 0; level <= cpufreq_dev->max_level; level++) {
 				if (max_freq >= cpufreq_dev->freq_table[level].frequency) {
+					level = level > cap_margin ? level - cap_margin : 0;
 					cpufreq_set_level(cpufreq_dev, level);
 					break;
 				}
