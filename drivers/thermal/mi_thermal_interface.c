@@ -74,8 +74,8 @@ static LIST_HEAD(cpufreq_dev_list);
 static DEFINE_MUTEX(cpufreq_list_lock);
 static DEFINE_PER_CPU(struct freq_qos_request, qos_req);
 
-/* cpu_limits caps this many frequency steps above the request; 0 = the exact step */
-static unsigned int cap_margin = 3;
+/* cpu_limits caps this many frequency steps above the request; 0 = the exact step, default = no cap */
+static unsigned int cap_margin = UINT_MAX;
 module_param(cap_margin, uint, 0644);
 
 static int cpufreq_set_level(struct cpufreq_device *cdev, unsigned long state)
